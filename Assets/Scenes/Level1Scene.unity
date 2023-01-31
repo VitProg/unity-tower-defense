@@ -159,6 +159,10 @@ PrefabInstance:
       value: 1.15
       objectReference: {fileID: 0}
     - target: {fileID: 5732931542714361563, guid: d65aa221b82fda2499a944522a65e592, type: 3}
+      propertyPath: m_Enabled
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5732931542714361563, guid: d65aa221b82fda2499a944522a65e592, type: 3}
       propertyPath: m_AutoRepath
       value: 1
       objectReference: {fileID: 0}
@@ -5769,6 +5773,8 @@ GameObject:
   - component: {fileID: 771487829}
   - component: {fileID: 771487828}
   - component: {fileID: 771487831}
+  - component: {fileID: 771487833}
+  - component: {fileID: 771487832}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -5804,14 +5810,14 @@ Camera:
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
-    y: 0
+    y: 0.043726236
     width: 1
-    height: 1
+    height: 0.9125475
   near clip plane: 0.3
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 6.14
+  orthographic size: 4.009168
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -5835,7 +5841,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 771487827}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -1.47, y: 1.06, z: -10}
+  m_LocalPosition: {x: 0, y: 0, z: -10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5875,6 +5881,47 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!114 &771487832
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 771487827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e47ed1e082843f4fad75569c33b64cb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cam: {fileID: 771487829}
+  pixelCam: {fileID: 771487833}
+  tilemap: {fileID: 455392854}
+  zoomStep: 8
+  minCamSize: 48
+  maxCamSize: 240
+--- !u!114 &771487833
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 771487827}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c88f5cead0c0b2a4eb05b5900433f8d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ComponentVersion: 1
+  m_AssetsPPU: 24
+  m_RefResolutionX: 320
+  m_RefResolutionY: 240
+  m_CropFrame: 2
+  m_GridSnapping: 0
+  m_UpscaleRT: 0
+  m_PixelSnapping: 0
+  m_CropFrameX: 0
+  m_CropFrameY: 0
+  m_StretchFill: 0
 --- !u!1 &1147005858
 GameObject:
   m_ObjectHideFlags: 0
