@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class TransperentItemDrug : MonoBehaviour, IDragHandler
+public class TransperentItemDrug : MonoBehaviour
 {
     private Transform _transform;
     [SerializeField]
@@ -13,52 +13,30 @@ public class TransperentItemDrug : MonoBehaviour, IDragHandler
     [SerializeField]
     private Material _DefalultMat;
     private bool _isPlaceable = true;
-    private Coroutine _checkPlaceColorC;
-    private LayerMask _mask;
+    //private Coroutine _checkPlaceColorC;
+    private LayerMask _mask, _maskRoad;
     private BoxCollider2D _boxCollider2D;
     private SpriteRenderer _spriteRenderer;
+    public Structures structures = default;
 
-    private void Start()
-    {
-        _mask = LayerMask.GetMask("PlatformsAndStaff");
-        _boxCollider2D = GetComponent<BoxCollider2D>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
-    }
-
-    public void OnDrag(PointerEventData eventData)
-    {
-        //transform.position =  new Vector3(transform.position.x+ (eventData.delta.x * 0.01f), transform.position.y + (eventData.delta.y * 0.01f), transform.position.z);
-        
-        
-        //Vector3 snap;
-        //float gridSize = 0.5f;
-        //snap.x = Mathf.RoundToInt(transform.position.x / gridSize) * gridSize;
-        //snap.y = Mathf.RoundToInt(transform.position.y / gridSize) * gridSize;
-        //transform.position = new Vector3(snap.x, snap.y, 0);
-    }
-    
     public void StartCheckPlace()
     {
         Debug.Log("StartCheckPlace");
-        _mask = LayerMask.GetMask("PlatformsAndStaff");
-        _boxCollider2D = GetComponent<BoxCollider2D>();
-        _spriteRenderer = GetComponent<SpriteRenderer>();
-        _checkPlaceColorC = StartCoroutine(CheckPlaceColor());
-
+        //_mask = LayerMask.GetMask("PlatformsAndStaff");
+        //_maskRoad = LayerMask.GetMask("BackObjectLayer");
+        //_boxCollider2D = GetComponent<BoxCollider2D>();
+        //_spriteRenderer = GetComponent<SpriteRenderer>();
+        //_checkPlaceColorC = StartCoroutine(CheckPlaceColor());
     }
 
     IEnumerator CheckPlaceColor()
     {
         if (GetComponent<BoxCollider2D>() != null)
         {
-            if (GetComponent<BoxCollider2D>().IsTouchingLayers(_mask))
+            if (GetComponent<BoxCollider2D>().IsTouchingLayers(_mask) | GetComponent<BoxCollider2D>().IsTouchingLayers(_maskRoad))
             {
                 Debug.Log("Wrong Place");
                 GetComponent<SpriteRenderer>().material = _wrongMat;
-                //if (GetComponent<SpriteRenderer>().material != _wrongMat)
-                //{
-                //    GetComponent<SpriteRenderer>().material = _wrongMat;
-                //}
             }
             else 
             {
@@ -72,22 +50,27 @@ public class TransperentItemDrug : MonoBehaviour, IDragHandler
 
     public void OnPointerUpCustom()
     {
-        Debug.Log("OnPointerUp TransperentItemDrug");
+        Debug.Log("OnPointerUpCustom TransperentItemDrug");
         UIManager.instance.ActivateScroll(true);
-        
-        if (!_boxCollider2D.IsTouchingLayers(_mask))
+        /*
+        if (GetComponent<BoxCollider2D>().IsTouchingLayers(_mask) | GetComponent<BoxCollider2D>().IsTouchingLayers(_maskRoad))
         {
-            Debug.Log("IsTouchingLayers@@@ ==== true");
+            Debug.Log("Destroy(gameObject)@ ");
+        }
+        else
+        {
+            Debug.Log("IsTouchingLayers@@@ ==== Faaaalse");
             GameManager.instance.PlacePlatform(transform.position);
         }
-        /*
+        Destroy(gameObject);
+        */
+        
         if (_isPlaceable)
         {
             Debug.Log("_isPlaceable ==== true");
-            GameManager.instance.PlacePlatform(transform.position);
+            GameManager.instance.PlaceStructures(transform.position, structures);
         }
-        */
-        Destroy(gameObject);//,0.2f);
+        Destroy(gameObject);
     }
   
     private void OnTriggerEnter2D(Collider2D collision)
@@ -97,10 +80,15 @@ public class TransperentItemDrug : MonoBehaviour, IDragHandler
         _isPlaceable = false;
     }
 
+    private void OnTriggerStay2D(Collider2D collision)
+    {
+        GetComponent<SpriteRenderer>().material = _wrongMat;
+        _isPlaceable = false;
+    }
+
     private void OnTriggerExit2D(Collider2D collision)
     {
         Debug.Log("OnTriggerExit2D===TRUE");
-        //GetComponent<SpriteRenderer>().material.color = Color.white;
         GetComponent<SpriteRenderer>().material = _DefalultMat;
         _isPlaceable = true;
     }
@@ -108,10 +96,8 @@ public class TransperentItemDrug : MonoBehaviour, IDragHandler
     void Update()
     {
         Vector3 newPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
         newPos.x = Mathf.RoundToInt(newPos.x / GameManager.instance.gridSize) * GameManager.instance.gridSize;
         newPos.y = Mathf.RoundToInt(newPos.y / GameManager.instance.gridSize) * GameManager.instance.gridSize;
-        //transform.position = new Vector3(snap.x, snap.y, 0);
         transform.position = new Vector3(newPos.x, newPos.y, transform.position.z);
     }
 }

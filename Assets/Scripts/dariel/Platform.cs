@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class Platform : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    private Structures structures = Structures.Platform;
+    public Structures GetStructureType ()
     {
-        
+        return structures;
     }
 
     // Update is called once per frame

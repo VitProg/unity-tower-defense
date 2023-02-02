@@ -4,15 +4,26 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    // Start is called before the first frame update
-    void Start()
+    [SerializeField]
+    private int attackStrength;
+
+    [SerializeField]
+    private ProjectileType projectileType;
+
+    public int AttackStrength
     {
-        
+        get { return attackStrength; }
     }
 
-    // Update is called once per frame
-    void Update()
+    public ProjectileType ProjectileType
     {
-        
+        get { return projectileType; }
     }
 }
+
+public enum ProjectileType
+{
+    rock,
+    arrow,
+    fireball
+};
