@@ -81,7 +81,6 @@ namespace td
             eventsWorld = new EcsWorld();
 
             systems = new EcsSystems(world, sharedData);
-            
             systems
                 .AddWorld(eventsWorld, Constants.Ecs.EventWorldName)
                 .Add(new LoadLevelExecutor())
@@ -99,10 +98,11 @@ namespace td
                 .Add(new MoveToTargetSystem())
                 .Add(new SmoothRotateExecutor())
                 
-#region Waves Systems
+                #region Waves Systems
                 .DelHere<WaveChangedEvent>(Constants.Ecs.EventWorldName)
-                .Add(new WaitForWaveComliteSystem())
-                .Add(new IncreaseWaveHanndler())
+                .Add(new NextWaveCountdownTimerSystem())
+                .Add(new WaitForWaveComliteSystem())                
+                .Add(new IncreaseWaveHandler())
                 .DelHere<IncreaseWaveCommand>(Constants.Ecs.EventWorldName)
                 
                 .Add(new StartWaveExecutor())
@@ -124,7 +124,7 @@ namespace td
                 
                 // .Add(new EnemyTestSpawnerExecutor()) // test spawner
                 // .Add(new SpawnEnemyExecutor())
-#endregion                
+                #endregion                
                 // 
                 
                 .Add(new RemoveGameObjectExecutor())
@@ -138,7 +138,8 @@ namespace td
                 .Add(new SturtupInitSystem())
                 .Inject(levelData)
                 .Init();
-            
+
+
         }
 
         [SerializeField] public GameObject enemyPrefab;

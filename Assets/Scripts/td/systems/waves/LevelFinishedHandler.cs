@@ -20,14 +20,14 @@ namespace td.systems.waves
         
         public void Run(IEcsSystems systems)
         {
-            var entity = EcsEventUtils.Single(entities);
+            var entity = EcsEventUtils.FirstEntity(entities);
 
             if (entity == null) return;
 
             var spawnSequenceCount = spawnSequenceEntities.Value.GetEntitiesCount();
             var enemiesCount = enemyEntities.Value.GetEntitiesCount();
             
-            if (levelData.Value.waveNumber >= levelData.Value.WavesCount &&
+            if (levelData.Value.IsLastWave &&
                 spawnSequenceCount <= 0 &&
                 enemiesCount <= 0)
             {

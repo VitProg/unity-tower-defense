@@ -39,7 +39,7 @@ namespace td.systems.events
 
                 ref var target = ref EntityUtils.GetComponent<Target>(systems, entity);
                 ref var movableOffset = ref EntityUtils.GetComponent<MovableOffset>(systems, entity);
-                ref var transformLink = ref EntityUtils.GetComponent<TransformLink>(systems, entity);
+                ref var gameObjectLink = ref EntityUtils.GetComponent<GameObjectLink>(systems, entity);
 
                 var cell = levelData.Value.GetCell(target.target);
                 var nextCell = levelData.Value.GetCell(cell.NextCellCoordinates);
@@ -51,7 +51,9 @@ namespace td.systems.events
                     toNextCellVector.Normalize();
                     var rotation = Quaternion.LookRotation(Vector3.forward, toNextCellVector);
 
-                    if (transformLink.transform.rotation != rotation)
+                    var transform = gameObjectLink.gameObject.transform;
+                    
+                    if (transform.rotation != rotation)
                     {
                         var angularSpeed = 5f;
                         if (EntityUtils.HasComponent<SpawnEnemyCommand>(systems, entity))
@@ -66,19 +68,20 @@ namespace td.systems.events
                         {
                             EntityUtils.AddComponent(systems, entity, new SmoothRotateCommand()
                             {
-                                From = transformLink.transform.rotation,
+                                From = transform.rotation,
                                 To = rotation,
                                 AngularSpeed = angularSpeed
                             });
                         }
                         else
                         {
-                            transformLink.transform.rotation = rotation;
+                            transform.rotation = rotation;
                         }
                     }
 
                     var newTarget = GridUtils.GetVector(nextCell.Coordinates) +
                                     (Vector2)(rotation * movableOffset.offset);
+                    
                     target.target = newTarget;
                 }
 

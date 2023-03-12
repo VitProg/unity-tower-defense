@@ -17,7 +17,7 @@ namespace td.systems.commands
         
         public void Run(IEcsSystems systems)
         {
-            var entity = EcsEventUtils.Single(entities);
+            var entity = EcsEventUtils.FirstEntity(entities);
             
             if (entity == null) return;
             
@@ -32,7 +32,7 @@ namespace td.systems.commands
             
                 // todo load prefab with level
                 
-                levelData.Value.levelConfig = levelConfig;
+                levelData.Value.LevelConfig = levelConfig;
             }
             catch (Exception e)
             {

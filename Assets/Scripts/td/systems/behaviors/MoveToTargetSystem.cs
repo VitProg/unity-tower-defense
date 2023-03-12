@@ -16,15 +16,12 @@ namespace td.systems.behaviors
 {
     public class MoveToTargetSystem : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<Position, TransformLink, Target, MoveToTarget>, Exc<SmoothRotateCommand>> entities = default;
-        private readonly EcsPoolInject<RemoveGameObjectCommand> removeGameObjectEventsPool = default;
+        private readonly EcsWorldInject world = default;
+        private readonly EcsFilterInject<Inc<GameObjectLink, Target, MoveToTarget>, Exc<SmoothRotateCommand>> entities = default;
         
         public void Run(IEcsSystems systems)
         {
-            var world = systems.GetWorld();
-            
             var entitiesCount = entities.Value.GetEntitiesCount();
-            // var eventBus = systems.GetShared<SharedData>().EventsBus;
             
             var entitiesNativeArray = new NativeArray<int>(entitiesCount, Allocator.Temp);
             var targetNativeArray = new NativeArray<Target>(entitiesCount, Allocator.TempJob);
@@ -37,13 +34,13 @@ namespace td.systems.behaviors
             {
                 entitiesNativeArray[index] = entity;
                 
-                ref var transformLink = ref entities.Pools.Inc2.Get(entity);
-                ref var targetPoint = ref entities.Pools.Inc3.Get(entity);
-                ref var movement = ref entities.Pools.Inc4.Get(entity);
+                ref var gameObjectLink = ref entities.Pools.Inc1.Get(entity);
+                ref var targetPoint = ref entities.Pools.Inc2.Get(entity);
+                ref var movement = ref entities.Pools.Inc3.Get(entity);
 
                 targetNativeArray[index] = targetPoint;
                 speedNativeArray[index] = movement.speed;
-                transforms.Add(transformLink.transform);
+                transforms.Add(gameObjectLink.gameObject.transform);
 
                 index++;
             }
@@ -62,7 +59,7 @@ namespace td.systems.behaviors
             {
                 EcsEventUtils.Send(systems, new ReachingTargetEvent()
                 {
-                    TargetEntity = world.PackEntity(entitiesNativeArray[onTargetIndex])
+                    TargetEntity = world.Value.PackEntity(entitiesNativeArray[onTargetIndex])
                 });
             }
 
@@ -93,12 +90,7 @@ namespace td.systems.behaviors
             var speed = SpeedArray[index];
             var target = TargetArray[index];
 
-            // var position2 = new Vector2(transform.position.x, transform.position.y);
-            // var vectorForRotation = target.target - position2;
-            // vectorForRotation.Normalize();
-        
             transform.position = Vector3.MoveTowards(transform.position, target.target, DeltaTime * speed);
-            // transform.rotation = Quaternion.LookRotation(Vector3.forward, vectorForRotation);
         
             var distance = (target.target - (Vector2)transform.position).sqrMagnitude;
             if (distance <= target.gap * target.gap)

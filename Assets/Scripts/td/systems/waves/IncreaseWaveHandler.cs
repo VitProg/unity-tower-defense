@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace td.systems.waves
 {
-    public class IncreaseWaveHanndler: IEcsRunSystem
+    public class IncreaseWaveHandler: IEcsRunSystem
     {
         private readonly EcsCustomInject<LevelData> levelData = default;
         private readonly EcsFilterInject<Inc<IncreaseWaveCommand>> entities = Constants.Ecs.EventWorldName;
@@ -16,7 +16,7 @@ namespace td.systems.waves
         {
             var eventsWorld = systems.GetWorld(Constants.Ecs.EventWorldName);
 
-            if (EcsEventUtils.Single(entities) == null) return;
+            if (EcsEventUtils.FirstEntity(entities) == null) return;
             
             Debug.Log("IncreaseWaveHanndler RUN...");
             

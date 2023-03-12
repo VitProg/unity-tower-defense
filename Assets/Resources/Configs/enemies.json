@@ -11,10 +11,10 @@
     {
       "name": "speedy_walker",
       "prefabPath": "Enemy2",
-      "baseSpeed": 5,
+      "baseSpeed": 1.25,
       "baseHealth": 2,
       "baseDamage": 0.5,
-      "angularSpeed": 50
+      "angularSpeed": 100
     }
   ]
 }

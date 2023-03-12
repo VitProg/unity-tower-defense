@@ -16,7 +16,7 @@ namespace td.systems.commands
 
         public void Run(IEcsSystems systems)
         {
-            if(EcsEventUtils.Single(entities) == null) return;
+            if(EcsEventUtils.FirstEntity(entities) == null) return;
             
             Debug.Log("LevelInitExecutor RUN...");
 

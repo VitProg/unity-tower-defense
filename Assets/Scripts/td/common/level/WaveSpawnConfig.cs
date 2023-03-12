@@ -1,5 +1,6 @@
 ﻿using System;
-using td.common.levelEvents;
+using td.utils;
+using UnityEngine.Serialization;
 
 namespace td.common.level
 {
@@ -8,18 +9,20 @@ namespace td.common.level
     {
         public int spawner;
         public string[] enemies;
-        public SelectEnemyTypeMethod selectMethod;
+        public MethodOfSelectNextEnemy selectMethod;
         public int quantity;
         public float speed;
         public float health;
         public float damage;
         public int delayBefore;
         public int delayBetween;
+        public float[] scale;
+        public float[] offset;
     }
 
     public enum MethodOfSelectNextEnemy
     {
-        Random,
-        Sequence
+        Random = 1,
+        Sequence = 2
     }
 }

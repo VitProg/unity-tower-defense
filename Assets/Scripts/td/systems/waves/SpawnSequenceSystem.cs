@@ -3,7 +3,7 @@ using System.Linq;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common;
-using td.common.levelEvents;
+using td.common.level;
 using td.components.commands;
 using td.components.waves;
 using td.services;
@@ -19,7 +19,7 @@ namespace td.systems.waves
         private readonly EcsSharedInject<SharedData> shared = default;
         private readonly EcsWorldInject world = default;
         private readonly EcsWorldInject eventsWorld = Constants.Ecs.EventWorldName;
-        
+
         private readonly EcsFilterInject<Inc<SpawnSequence>> entities = default;
 
         public void Run(IEcsSystems systems)
@@ -32,7 +32,7 @@ namespace td.systems.waves
                 {
                     spawnData.DelayBeforeCountdown -= Time.deltaTime;
 
-                    if (spawnData.DelayBeforeCountdown < 0.0001f)
+                    if (spawnData.DelayBeforeCountdown < Constants.ZeroFloat)
                     {
                         StartSpawnProccess(ref spawnData);
                         Tick(ref spawnData, entity);
@@ -56,17 +56,17 @@ namespace td.systems.waves
         {
             spawnData.DelayBetweenCountdown -= Time.deltaTime;
 
-            if (!(spawnData.DelayBetweenCountdown <= 0.0001f)) return spawnData;
-            
+            if (!(spawnData.DelayBetweenCountdown <= Constants.ZeroFloat)) return spawnData;
+
             spawnData.DelayBetweenCountdown = spawnData.Config.delayBetween;
             spawnData.EnemyCounter++;
-                
+
             if (spawnData.EnemyCounter > spawnData.Config.quantity)
             {
                 Finish(entity);
                 return spawnData;
             }
-            
+
             var enemyConfig = GetNextEnemy(ref spawnData);
             EcsEventUtils.Send(eventsWorld.Value, new SpawnEnemyCommand()
             {
@@ -76,6 +76,8 @@ namespace td.systems.waves
                 health = enemyConfig.baseHealth * spawnData.Config.health,
                 damage = enemyConfig.baseDamage * spawnData.Config.damage,
                 angularSpeed = enemyConfig.angularSpeed,
+                scale = RandomUtils.Range(spawnData.Config.scale ?? new [] {Constants.Enemy.MinSize, Constants.Enemy.MaxSize}),
+                offset = RandomUtils.Vector2(spawnData.Config.offset ?? new [] {Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax}),
             });
 
             return spawnData;
@@ -85,11 +87,11 @@ namespace td.systems.waves
         {
             var selectMethod = spawnData.Config.selectMethod;
 
-            var needEnemyName = selectMethod == SelectEnemyTypeMethod.Random
+            var needEnemyName = selectMethod == MethodOfSelectNextEnemy.Random
                 ? RandomUtils.RandomArrayItem(spawnData.Config.enemies)
                 : spawnData.Config.enemies[spawnData.EnemyCounter % spawnData.Config.enemies.Length];
 
-            var enemy = shared.Value.EnemyConfigs.SingleOrDefault(e => e.name == needEnemyName);
+            var enemy = shared.Value.GetEnemyConfig(needEnemyName);
 
             if (enemy.name == string.Empty)
             {

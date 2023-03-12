@@ -26,7 +26,7 @@ namespace td.systems.commands
 
         public void Run(IEcsSystems systems)
         {
-            var entity = EcsEventUtils.Single(entities);
+            var entity = EcsEventUtils.FirstEntity(entities);
             
             if (entity == null) return;
             

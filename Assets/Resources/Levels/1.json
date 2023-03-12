@@ -8,24 +8,15 @@
         {
           "spawner": 0,
           "enemies": [
-            "simple_walker"
-          ],
-          "quantity": 3,
-          "speed": 3.0,
-          "health": 1.0,
-          "delayBefore": 10,
-          "delayBetween": 5
-        },
-        {
-          "spawner": 2,
-          "enemies": [
+            "simple_walker",
             "speedy_walker"
           ],
-          "quantity": 30,
-          "speed": 4.0,
-          "health": 0.1,
-          "delayBefore": 15,
-          "delayBetween": 1
+          "selectMethod": 2,
+          "quantity": 6,
+          "speed": 2.0,
+          "health": 1.0,
+          "delayBetween": 2,
+          "offset": [0, 0]
         }
       ]
     },
@@ -36,22 +27,21 @@
           "enemies": [
             "simple_walker"
           ],
-          "quantity": 6,
+          "quantity": 4,
           "speed": 4.01,
           "health": 1.1,
-          "delayBefore": 20,
-          "delayBetween": 4
+          "delayBetween": 3,
+          "scale": [0.25, 0.4]
         },
         {
           "spawner": 3,
           "enemies": [
             "simple_walker"
           ],
-          "quantity": 6,
+          "quantity": 4,
           "speed": 4.01,
           "health": 1.1,
-          "delayBefore": 20,
-          "delayBetween": 4
+          "delayBetween": 3
         }
       ]
     },
@@ -62,10 +52,9 @@
           "enemies": [
             "speedy_walker"
           ],
-          "quantity": 10,
+          "quantity": 5,
           "speed": 3.0,
           "health": 1.5,
-          "delayBefore": 20,
           "delayBetween": 2
         },
         {
@@ -73,33 +62,33 @@
           "enemies": [
             "speedy_walker"
           ],
-          "quantity": 10,
+          "quantity": 5,
           "speed": 3.0,
           "health": 1.5,
-          "delayBefore": 30,
-          "delayBetween": 2
+          "delayBefore": 5,
+          "delayBetween": 1.8
         },
         {
           "spawner": 2,
           "enemies": [
             "speedy_walker"
           ],
-          "quantity": 10,
-          "speed": 4.0,
+          "quantity": 5,
+          "speed": 3.0,
           "health": 1.5,
-          "delayBefore": 30,
-          "delayBetween": 2
+          "delayBefore": 10,
+          "delayBetween": 1.6
         },
         {
           "spawner": 3,
           "enemies": [
             "speedy_walker"
           ],
-          "quantity": 10,
-          "speed": 4.0,
+          "quantity": 5,
+          "speed": 3.0,
           "health": 1.5,
-          "delayBefore": 30,
-          "delayBetween": 2
+          "delayBefore": 15,
+          "delayBetween": 1.4
         }
       ]
     }

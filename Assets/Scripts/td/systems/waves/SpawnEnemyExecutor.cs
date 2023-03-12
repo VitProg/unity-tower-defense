@@ -26,21 +26,22 @@ namespace td.systems.waves
 
             foreach (var eventEntity in entities.Value)
             {
-                ref var spawnCommand = ref entities.Pools.Inc1.Get(eventEntity);
-                var enemyConfig = shared.Value.GetEnemyConfig(spawnCommand.enemyName);
+                ref var spawnConfig = ref entities.Pools.Inc1.Get(eventEntity);
+                var enemyConfig = shared.Value.GetEnemyConfig(spawnConfig.enemyName);
 
-                var spawn = levelData.Value.Spawns[spawnCommand.spawner];
+                var spawn = levelData.Value.Spawns[spawnConfig.spawner];
                 var spawnCell = levelData.Value.GetCell(spawn.Coordinates);
                 var nextCell = levelData.Value.GetCell(spawnCell.NextCellCoordinates);
 
                 var containerForEnemies = GameObject.FindGameObjectWithTag(Constants.Tags.EnemiesContainer);
 
-                var offset = new Vector2(
-                    (Random.Range(0, 100) - 50) / 100.0f,
-                    (Random.Range(0, 100) - 50) / 100.0f
-                );
+                // var offset = new Vector2(
+                    // (Random.Range(0, 100) - 50) / 100.0f,
+                    // (Random.Range(0, 100) - 50) / 100.0f
+                // );
+                // var offset = spawnConfig.offset;
 
-                var position = GridUtils.GetVector(spawn.Coordinates) + offset;
+                var position = GridUtils.GetVector(spawn.Coordinates) + spawnConfig.offset;
 
                 var enemyGameObject = Object.Instantiate(
                     enemyConfig.prefab,
@@ -50,28 +51,28 @@ namespace td.systems.waves
                 );
                 var entity = UniEcsUtils.Convert(enemyGameObject, world);
 
-                var scale = Random.Range(Constants.Enemy.MinSize, Constants.Enemy.MaxSize);
-                enemyGameObject.transform.localScale = new Vector2(scale, scale);
+                // var scale = Random.Range(Constants.Enemy.MinSize, Constants.Enemy.MaxSize);
+                enemyGameObject.transform.localScale = new Vector2(spawnConfig.scale, spawnConfig.scale);
 
                 ref var moveToTargetPoint = ref EntityUtils.GetComponent<MoveToTarget>(systems, entity);
-                moveToTargetPoint.speed = spawnCommand.speed;
+                moveToTargetPoint.speed = spawnConfig.speed;
 
                 ref var movableOffset = ref EntityUtils.GetComponent<MovableOffset>(systems, entity);
-                movableOffset.offset = offset;
+                movableOffset.offset = spawnConfig.offset;
 
                 EntityUtils.AddComponent(systems, entity, new Target()
                 {
                     target = GridUtils.GetVector(nextCell.Coordinates),
                 });
 
-                EntityUtils.AddComponent<SpawnEnemyCommand>(systems, entity) = spawnCommand;
+                EntityUtils.AddComponent<SpawnEnemyCommand>(systems, entity) = spawnConfig;
 
                 //todo
                 var toNextCellVector = GridUtils.GetVector(nextCell.Coordinates) -
                                        GridUtils.GetVector(spawnCell.Coordinates);
                 toNextCellVector.Normalize();
-                ref var transformLink = ref EntityUtils.GetComponent<TransformLink>(systems, entity);
-                transformLink.transform.rotation = Quaternion.LookRotation(Vector3.forward, toNextCellVector);
+                ref var gameObjectLink = ref EntityUtils.GetComponent<GameObjectLink>(systems, entity);
+                gameObjectLink.gameObject.transform.rotation = Quaternion.LookRotation(Vector3.forward, toNextCellVector);
 
                 eventsWorld.DelEntity(eventEntity);
             }

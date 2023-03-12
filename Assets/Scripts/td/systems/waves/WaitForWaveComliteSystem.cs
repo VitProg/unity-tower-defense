@@ -17,23 +17,37 @@ namespace td.systems.waves
 
         public void Run(IEcsSystems systems)
         {
-            var eventEntity = EcsEventUtils.Single(eventEntities);
+            var eventEntity = EcsEventUtils.FirstEntity(eventEntities);
 
             if (eventEntity == null) return;
 
             var spawnSequenceCount = spawnSequenceEntities.Value.GetEntitiesCount();
             var enemiesCount = enemyEntities.Value.GetEntitiesCount();
 
-            Debug.Log("WaitForAllEnemiesDeadSystem RUN...");
-
             if (spawnSequenceCount <= 0 &&
                 enemiesCount <= 0)
             {
+                Debug.Log("WaitForAllEnemiesDeadSystem RUN...");
+                
                 EcsEventUtils.CleanupEvent(systems, eventEntities);
-                EcsEventUtils.Send<IncreaseWaveCommand>(systems);
-            }
+                
+                if (levelData.Value.IsLastWave)
+                {
+                    EcsEventUtils.SendSingle<LevelFinishedEvent>(systems);
+                }
+                else
+                {
+                    var countdown = levelData.Value.waveNumber <= 0
+                        ? levelData.Value.LevelConfig?.delayBeforeFirstWave
+                        : levelData.Value.LevelConfig?.delayBetweenWaves;
 
-            Debug.Log("WaitForAllEnemiesDeadSystem FIN");
+                    EcsEventUtils.SendSingle(systems, new NextWaveCountdownTimer()
+                    {
+                        countdown = countdown ?? 0,
+                    });
+                }
+                Debug.Log("WaitForAllEnemiesDeadSystem FIN");
+            }
         }
     }
 }

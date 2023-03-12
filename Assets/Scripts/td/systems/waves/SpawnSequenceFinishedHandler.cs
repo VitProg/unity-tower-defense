@@ -21,7 +21,7 @@ namespace td.systems.waves
 
         public void Run(IEcsSystems systems)
         {
-            if (EcsEventUtils.Single(entities) == null) return;
+            if (EcsEventUtils.FirstEntity(entities) == null) return;
             
             Debug.Log("SpawnSequenceFinishedHandler RUN...");
         

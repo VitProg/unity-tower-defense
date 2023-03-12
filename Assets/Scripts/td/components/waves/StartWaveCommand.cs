@@ -2,6 +2,6 @@
 {
     public struct StartWaveCommand
     {
-        public uint WaveNumber;
+        public int WaveNumber;
     }
 }

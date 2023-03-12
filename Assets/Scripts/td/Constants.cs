@@ -3,6 +3,7 @@
     public static class Constants
     {
         public const float DefaultGap = 0.2f;
+        public const float ZeroFloat = 0.0001f;
         
         public static class Enemy
         {
@@ -11,8 +12,10 @@
             public const float DefaultSpeed = 1.0f;
             public const float MinSpeed = 10.5f;
             public const float MaxSpeed = 20.0f;
-            public const float MinSize = 0.3f;
+            public const float MinSize = 0.4f;
             public const float MaxSize = 0.5f;
+            public const float OffsetMin = -0.5f;
+            public const float OffsetMax = 0.5f;
         }
         
         public static class Tags

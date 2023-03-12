@@ -43,10 +43,10 @@ namespace td.systems.commands
             
             for (var spawnIndex = 0; spawnIndex < 4; spawnIndex++)
             {
-                var waveConfig = levelData.Value.levelConfig.waves[waveNumber - 1];
-                var spawmingConfig = waveConfig.spawns[0];
+                var waveConfig = levelData.Value.LevelConfig?.waves[waveNumber - 1];
+                var spawmingConfig = waveConfig?.spawns[0];
                 
-                var enemyConfig = sharedData.EnemyConfigs.Single(e => e.name == spawmingConfig.enemies[0]);
+                var enemyConfig = sharedData.EnemyConfigs.Single(e => e.name == spawmingConfig?.enemies[0]);
 
                 EcsEventUtils.Send(systems, new SpawnEnemyCommand()
                 {

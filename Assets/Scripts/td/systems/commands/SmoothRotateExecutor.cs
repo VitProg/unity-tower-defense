@@ -9,27 +9,28 @@ namespace td.systems.commands
 {
     public class SmoothRotateExecutor : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<SmoothRotateCommand, TransformLink>> entities = default;
+        private readonly EcsFilterInject<Inc<SmoothRotateCommand, GameObjectLink>> entities = default;
         
         public void Run(IEcsSystems systems)
         {
             foreach (var entity in entities.Value)
             {
                 ref var smoothRotate = ref entities.Pools.Inc1.Get(entity);
-                ref var transformLink = ref entities.Pools.Inc2.Get(entity);
+                ref var gameObjectLink = ref entities.Pools.Inc2.Get(entity);
+                var transform = gameObjectLink.gameObject.transform;
 
                 var isStarted = smoothRotate.Time <= 0.0001f;
 
-                if (transformLink.transform.rotation == smoothRotate.To ||
+                if (gameObjectLink.gameObject.transform.rotation == smoothRotate.To ||
                     (
                         isStarted &&
                         (
-                            Quaternion.Angle(transformLink.transform.rotation, smoothRotate.To) < smoothRotate.Threshold ||
+                            Quaternion.Angle(gameObjectLink.gameObject.transform.rotation, smoothRotate.To) < smoothRotate.Threshold ||
                             smoothRotate.AngularSpeed > 99f
                         )
                     ))
                 {
-                    transformLink.transform.rotation = smoothRotate.To;
+                    transform.rotation = smoothRotate.To;
                     entities.Pools.Inc1.Del(entity);
                 }
                 else
@@ -42,7 +43,7 @@ namespace td.systems.commands
                         smoothRotate.Time
                     );
 
-                    transformLink.transform.rotation = newRotate;
+                    transform.rotation = newRotate;
                 }
             }
         }

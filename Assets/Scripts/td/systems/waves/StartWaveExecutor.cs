@@ -20,29 +20,33 @@ namespace td.systems.waves
 
         public void Run(IEcsSystems systems)
         {
-            if (EcsEventUtils.Single(entities) == null) return;
+            if (EcsEventUtils.FirstEntity(entities) == null) return;
             
             Debug.Log("StartWaveExecutor RUN...");
 
             var waveNumber = levelData.Value.waveNumber;
 
-            var waveConfig = levelData.Value.levelConfig.waves[waveNumber];
+            var waveConfig = levelData.Value.LevelConfig?.waves[waveNumber];
 
-            foreach (var spawn in waveConfig.spawns)
+            if (waveConfig != null)
             {
-                EntityUtils.AddComponent(
-                    world.Value,
-                    world.Value.NewEntity(),
-                    new SpawnSequence()
-                    {
-                        Config = spawn,
-                        EnemyCounter = 0,
-                        DelayBeforeCountdown = spawn.delayBefore,
-                        DelayBetweenCountdown = 0,
-                    }
-                );
+                foreach (var spawn in waveConfig.Value.spawns)
+                {
+                    EntityUtils.AddComponent(
+                        world.Value,
+                        world.Value.NewEntity(),
+                        new SpawnSequence()
+                        {
+                            Config = spawn,
+                            EnemyCounter = 0,
+                            DelayBeforeCountdown = spawn.delayBefore,
+                            DelayBetweenCountdown = 0,
+                        }
+                    );
+                }
             }
-            
+
+
             EcsEventUtils.CleanupEvent(eventsWorld.Value, entities);
             
             Debug.Log("StartWaveExecutor FIN");

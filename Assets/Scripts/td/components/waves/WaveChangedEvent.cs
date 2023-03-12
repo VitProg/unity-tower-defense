@@ -2,6 +2,6 @@
 {
     public struct WaveChangedEvent
     {
-        public uint WaveNumber;
+        public int WaveNumber;
     }
 }

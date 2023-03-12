@@ -1,5 +1,7 @@
 ﻿using System;
 using td.common;
+using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td.components.commands
 {
@@ -12,5 +14,7 @@ namespace td.components.commands
         public float angularSpeed;
         public float health;
         public float damage;
+        public float scale;
+        public Vector2 offset;
     }
 }

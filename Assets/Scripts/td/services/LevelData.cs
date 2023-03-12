@@ -26,16 +26,18 @@ namespace td.services
         public uint TargetsLength { get; protected set; } = 0;
 
         [SerializeField]
-        public LevelConfig levelConfig;
+        public LevelConfig? LevelConfig;
 
-        public int LevelNumber => levelConfig.levelNumber;
+        public int LevelNumber => LevelConfig?.levelNumber ?? -1;
 
         [SerializeField]
-        public uint waveNumber;
+        public int waveNumber = -1;
+
+        public bool IsLastWave => waveNumber >= WavesCount - 1;
 
         public bool allEnemiesSpawned = false;
 
-        public uint WavesCount => (uint)levelConfig.waves.Length;
+        public int WavesCount => LevelConfig?.waves.Length ?? 0;
 
         public int Width { get; private set; } = -1;
         public int Height { get; private set; } = -1;
