@@ -1,0 +1,20 @@
+﻿{
+  "enemies": [
+    {
+      "name": "simple_walker",
+      "prefabPath": "Enemy",
+      "baseSpeed": 1,
+      "baseHealth": 10,
+      "baseDamage": 1,
+      "angularSpeed": 10
+    },
+    {
+      "name": "speedy_walker",
+      "prefabPath": "Enemy2",
+      "baseSpeed": 5,
+      "baseHealth": 2,
+      "baseDamage": 0.5,
+      "angularSpeed": 50
+    }
+  ]
+}

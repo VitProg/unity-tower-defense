@@ -1,0 +1,42 @@
+- - ShowText
+  - Welcome to our world!
+- - DelayForNextManipulation
+- - Delay
+  - 5
+- - ShowText
+  - Wave 1 / 3
+- - SpawnEvent
+  - EnemyTypes:
+      - 1
+    DelayBetweenSpawn: 3
+    EnemyForceMultiplier: 0.1
+    NumberOfEnemies: 10
+    WaitEnd: true
+- - Delay
+  - 60
+- - ShowText
+  - Wave 2 / 3
+- - SpawnEvent
+  - EnemyTypes:
+      - 1
+      - 1
+      - 1
+      - 2
+    SelectEnemyTypeMethod: Sequence
+    DelayBetweenSpawn: 3
+    EnemyForceMultiplier: 0.1
+    NumberOfEnemies: 10
+    WaitEnd: true
+- - Delay
+  - 60
+- - ShowText
+  - Final Wave
+- - SpawnEvent
+  - EnemyTypes:
+      - 1
+      - 2
+    SelectEnemyTypeMethod: Random
+    DelayBetweenSpawn: 3
+    EnemyForceMultiplier: 0.15
+    NumberOfEnemies: 10
+    WaitEnd: true

@@ -7,6 +7,10 @@ TagManager:
   - Enemy
   - Platform
   - projectile
+  - EnemiesContainer
+  - Spawn
+  - Target
+  - Tile
   layers:
   - Default
   - TransparentFX

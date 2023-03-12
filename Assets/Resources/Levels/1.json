@@ -1,0 +1,107 @@
+﻿{
+  "levelNumber": 1,
+  "delayBeforeFirstWave": 20,
+  "delayBetweenWaves": 20,
+  "waves": [
+    {
+      "spawns": [
+        {
+          "spawner": 0,
+          "enemies": [
+            "simple_walker"
+          ],
+          "quantity": 3,
+          "speed": 3.0,
+          "health": 1.0,
+          "delayBefore": 10,
+          "delayBetween": 5
+        },
+        {
+          "spawner": 2,
+          "enemies": [
+            "speedy_walker"
+          ],
+          "quantity": 30,
+          "speed": 4.0,
+          "health": 0.1,
+          "delayBefore": 15,
+          "delayBetween": 1
+        }
+      ]
+    },
+    {
+      "spawns": [
+        {
+          "spawner": 0,
+          "enemies": [
+            "simple_walker"
+          ],
+          "quantity": 6,
+          "speed": 4.01,
+          "health": 1.1,
+          "delayBefore": 20,
+          "delayBetween": 4
+        },
+        {
+          "spawner": 3,
+          "enemies": [
+            "simple_walker"
+          ],
+          "quantity": 6,
+          "speed": 4.01,
+          "health": 1.1,
+          "delayBefore": 20,
+          "delayBetween": 4
+        }
+      ]
+    },
+    {
+      "spawns": [
+        {
+          "spawner": 0,
+          "enemies": [
+            "speedy_walker"
+          ],
+          "quantity": 10,
+          "speed": 3.0,
+          "health": 1.5,
+          "delayBefore": 20,
+          "delayBetween": 2
+        },
+        {
+          "spawner": 1,
+          "enemies": [
+            "speedy_walker"
+          ],
+          "quantity": 10,
+          "speed": 3.0,
+          "health": 1.5,
+          "delayBefore": 30,
+          "delayBetween": 2
+        },
+        {
+          "spawner": 2,
+          "enemies": [
+            "speedy_walker"
+          ],
+          "quantity": 10,
+          "speed": 4.0,
+          "health": 1.5,
+          "delayBefore": 30,
+          "delayBetween": 2
+        },
+        {
+          "spawner": 3,
+          "enemies": [
+            "speedy_walker"
+          ],
+          "quantity": 10,
+          "speed": 4.0,
+          "health": 1.5,
+          "delayBefore": 30,
+          "delayBetween": 2
+        }
+      ]
+    }
+  ]
+}
