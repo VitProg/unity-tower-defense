@@ -1,7 +1,7 @@
 ﻿{
   "levelNumber": 1,
-  "delayBeforeFirstWave": 20,
-  "delayBetweenWaves": 20,
+  "delayBeforeFirstWave": 5,
+  "delayBetweenWaves": 5,
   "waves": [
     {
       "spawns": [
@@ -9,13 +9,16 @@
           "spawner": 0,
           "enemies": [
             "simple_walker",
+            "simple_walker",
+            "simple_walker",
+            "simple_walker",
             "speedy_walker"
           ],
           "selectMethod": 2,
-          "quantity": 6,
+          "quantity": 10,
           "speed": 2.0,
           "health": 1.0,
-          "delayBetween": 2,
+          "delayBetween": 0.5,
           "offset": [0, 0]
         }
       ]

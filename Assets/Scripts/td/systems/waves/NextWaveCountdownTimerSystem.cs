@@ -29,10 +29,11 @@ namespace td.systems.waves
                 Debug.Log($"COUNTDOWN - {(int)current}");
             }
 
-            if (countdown.countdown > 0) return;
-            
-            EcsEventUtils.CleanupEvent(eventsWorld.Value, entities);
-            EcsEventUtils.SendSingle<IncreaseWaveCommand>(eventsWorld.Value);
+            if (countdown.countdown < 0.000001f)
+            {
+                EcsEventUtils.CleanupEvent(eventsWorld.Value, entities);
+                EcsEventUtils.SendSingle<IncreaseWaveCommand>(eventsWorld.Value);
+            }
         }
     }
 }

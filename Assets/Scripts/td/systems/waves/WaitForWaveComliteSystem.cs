@@ -24,8 +24,7 @@ namespace td.systems.waves
             var spawnSequenceCount = spawnSequenceEntities.Value.GetEntitiesCount();
             var enemiesCount = enemyEntities.Value.GetEntitiesCount();
 
-            if (spawnSequenceCount <= 0 &&
-                enemiesCount <= 0)
+            if (spawnSequenceCount <= 0 && enemiesCount <= 0)
             {
                 Debug.Log("WaitForAllEnemiesDeadSystem RUN...");
                 

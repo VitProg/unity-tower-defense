@@ -14,8 +14,8 @@ namespace td.common.level
         public float speed;
         public float health;
         public float damage;
-        public int delayBefore;
-        public int delayBetween;
+        public float delayBefore;
+        public float delayBetween;
         public float[] scale;
         public float[] offset;
     }

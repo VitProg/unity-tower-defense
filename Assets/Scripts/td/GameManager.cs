@@ -31,50 +31,7 @@ namespace td
 
         private void Start()
         {
-            // var ll = new LevelConfig()
-            // {
-            //     levelNumber = 1,
-            //     waves = new WaveConfig[]
-            //     {
-            //         new WaveConfig()
-            //         {
-            //             spawns = new WaveSpawnConfig[]
-            //             {
-            //                 new WaveSpawnConfig()
-            //                 {
-            //                     spawner = 0,
-            //                     enemies = new string[] { "simple_walker" },
-            //                     quantity = 3,
-            //                     speed = 1,
-            //                     health = 1,
-            //                     delayBefore = 60,
-            //                     delayBetween = 5,
-            //                 }
-            //             }
-            //         },
-            //         new WaveConfig()
-            //         {
-            //             spawns = new WaveSpawnConfig[]
-            //             {
-            //                 new WaveSpawnConfig()
-            //                 {
-            //                     spawner = 0,
-            //                     enemies = new [] { "simple_walker" },
-            //                     quantity = 6,
-            //                     speed = 1.02f,
-            //                     health = 1.1f,
-            //                     delayBefore = 60,
-            //                     delayBetween = 4,
-            //                 }
-            //             }
-            //         }
-            //     }
-            // };
-            // Debug.Log(JsonUtility.ToJson(ll, true));
-            
-            
             levelData = new LevelData();
-
             sharedData = new SharedData();
 
             world = new EcsWorld();
@@ -98,7 +55,7 @@ namespace td
                 .Add(new MoveToTargetSystem())
                 .Add(new SmoothRotateExecutor())
                 
-                #region Waves Systems
+#region Waves Systems
                 .DelHere<WaveChangedEvent>(Constants.Ecs.EventWorldName)
                 .Add(new NextWaveCountdownTimerSystem())
                 .Add(new WaitForWaveComliteSystem())                
@@ -121,10 +78,7 @@ namespace td
                 
                 .Add(new EnemyReachingCellHandler())
                 .DelHere<ReachingTargetEvent>(Constants.Ecs.EventWorldName)
-                
-                // .Add(new EnemyTestSpawnerExecutor()) // test spawner
-                // .Add(new SpawnEnemyExecutor())
-                #endregion                
+#endregion                
                 // 
                 
                 .Add(new RemoveGameObjectExecutor())
@@ -138,8 +92,6 @@ namespace td
                 .Add(new SturtupInitSystem())
                 .Inject(levelData)
                 .Init();
-
-
         }
 
         [SerializeField] public GameObject enemyPrefab;

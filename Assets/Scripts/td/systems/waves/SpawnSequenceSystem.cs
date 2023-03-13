@@ -89,7 +89,7 @@ namespace td.systems.waves
 
             var needEnemyName = selectMethod == MethodOfSelectNextEnemy.Random
                 ? RandomUtils.RandomArrayItem(spawnData.Config.enemies)
-                : spawnData.Config.enemies[spawnData.EnemyCounter % spawnData.Config.enemies.Length];
+                : spawnData.Config.enemies[spawnData.EnemyCounter % spawnData.Config.enemies.Length]; // todo
 
             var enemy = shared.Value.GetEnemyConfig(needEnemyName);
 
