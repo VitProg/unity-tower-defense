@@ -2,6 +2,7 @@
 using Leopotam.EcsLite.Di;
 using td.components.attributes;
 using td.components.behaviors;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.systems.behaviors
@@ -9,7 +10,6 @@ namespace td.systems.behaviors
     public class CursorAsTargetSystem: IEcsRunSystem
     {
         private readonly EcsFilterInject<Inc<MoveToTarget>> entities = default;
-        private readonly EcsPoolInject<Target> targetPointPool = default;
 
         public void Run(IEcsSystems systems)
         {
@@ -21,15 +21,17 @@ namespace td.systems.behaviors
 
             foreach (var entity in entities.Value)
             {
-                if (targetPointPool.Value.Has(entity))
+                if (EntityUtils.HasComponent<Target>(systems, entity))
                 {
-                    targetPointPool.Value.Get(entity).target = worldPos;
+                    EntityUtils.GetComponent<Target>(systems, entity).target = worldPos;
                 }
                 else
                 {
-                    ref var targetPoint = ref targetPointPool.Value.Add(entity);
-                    targetPoint.target = worldPos;
-                    targetPoint.gap = Constants.DefaultGap;
+                    EntityUtils.AddComponent(systems, entity, new Target()
+                    {
+                        target = worldPos,
+                        gap = Constants.DefaultGap,
+                    });
                 }
             }
         }

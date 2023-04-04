@@ -11,6 +11,8 @@ TagManager:
   - Spawn
   - Target
   - Tile
+  - BuildingsContainer
+  - Building
   layers:
   - Default
   - TransparentFX

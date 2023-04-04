@@ -1,0 +1,11 @@
+.topLabel {
+    font-size: 25px;
+    color: rgba(255, 208, 0, 0.65);
+    -unity-font-style: bold;
+    -unity-text-outline-width: 0;
+    -unity-text-outline-color: rgba(173, 63, 96, 255);
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.5);
+    white-space: normal;
+    -unity-text-align: middle-center;
+    height: 48px;
+}

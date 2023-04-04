@@ -8,7 +8,7 @@ namespace td.utils
 #endif
     public sealed class GridSnapping : MonoBehaviour
     {
-        public float step = 2f;
+        public float step = Constants.Level.CellSize;
 
 #if UNITY_EDITOR
         private void Update()

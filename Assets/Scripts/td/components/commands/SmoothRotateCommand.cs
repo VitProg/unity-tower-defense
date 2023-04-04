@@ -1,10 +1,12 @@
-﻿using Leopotam.EcsLite;
+﻿using System;
+using Leopotam.EcsLite;
 using td.common;
 using td.common.ecs;
 using UnityEngine;
 
 namespace td.components.commands
 {
+    [Serializable]
     public struct SmoothRotateCommand: IEcsAutoReset<SmoothRotateCommand>, IEcsAutoMerge<SmoothRotateCommand>
     {
         public Quaternion From;

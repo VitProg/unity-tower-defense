@@ -5,7 +5,6 @@ using td.components.behaviors;
 using td.components.commands;
 using td.components.events;
 using td.components.links;
-using td.utils;
 using td.utils.ecs;
 using Unity.Burst;
 using Unity.Collections;
@@ -17,13 +16,17 @@ namespace td.systems.behaviors
     public class MoveToTargetSystem : IEcsRunSystem
     {
         private readonly EcsWorldInject world = default;
-        private readonly EcsFilterInject<Inc<GameObjectLink, Target, MoveToTarget>, Exc<SmoothRotateCommand>> entities = default;
-        
+
+        private readonly EcsFilterInject<
+            Inc<GameObjectLink, Target, MoveToTarget>,
+            Exc<SmoothRotateCommand, InertiaOfMovement>
+        > entities = default;
+
         public void Run(IEcsSystems systems)
         {
             var entitiesCount = entities.Value.GetEntitiesCount();
-            
-            var entitiesNativeArray = new NativeArray<int>(entitiesCount, Allocator.Temp);
+
+            var entitiesNativeArray = new NativeArray<int>(entitiesCount, Allocator.TempJob);
             var targetNativeArray = new NativeArray<Target>(entitiesCount, Allocator.TempJob);
             var speedNativeArray = new NativeArray<float>(entitiesCount, Allocator.TempJob);
             var transforms = new TransformAccessArray(entitiesCount, 3);
@@ -33,7 +36,7 @@ namespace td.systems.behaviors
             foreach (var entity in entities.Value)
             {
                 entitiesNativeArray[index] = entity;
-                
+
                 ref var gameObjectLink = ref entities.Pools.Inc1.Get(entity);
                 ref var targetPoint = ref entities.Pools.Inc2.Get(entity);
                 ref var movement = ref entities.Pools.Inc3.Get(entity);
@@ -45,13 +48,14 @@ namespace td.systems.behaviors
                 index++;
             }
 
-            var newJob = new MoveToTargetAndLookForwardJob {
+            var newJob = new MoveToTargetSystemJob
+            {
                 DeltaTime = Time.deltaTime,
                 TargetArray = targetNativeArray,
                 SpeedArray = speedNativeArray,
                 OnTargetNativeList = onTargetNativeList,
             };
-            
+
             var jobHandle = newJob.Schedule(transforms);
             jobHandle.Complete();
 
@@ -71,29 +75,31 @@ namespace td.systems.behaviors
         }
     }
 
-
-    [BurstCompile] 
-    public struct MoveToTargetAndLookForwardJob : IJobParallelForTransform {
-        public float DeltaTime;
     
-        [NativeDisableParallelForRestriction]
-        public NativeArray<Target> TargetArray;
+    [BurstCompile]
+    internal struct MoveToTargetSystemJob : IJobParallelForTransform
+    {
+        public float DeltaTime;
 
-        [NativeDisableParallelForRestriction]
-        public NativeArray<float> SpeedArray;
-
-        [NativeDisableParallelForRestriction]
-        public NativeList<int> OnTargetNativeList;
+        [NativeDisableParallelForRestriction] public NativeArray<Target> TargetArray;
+        [NativeDisableParallelForRestriction] public NativeArray<float> SpeedArray;
+        [NativeDisableParallelForRestriction] public NativeList<int> OnTargetNativeList;
 
         public void Execute(int index, TransformAccess transform)
         {
-            var speed = SpeedArray[index];
             var target = TargetArray[index];
-
+            var speed = SpeedArray[index];
+            
+            //-----
+            
             transform.position = Vector3.MoveTowards(transform.position, target.target, DeltaTime * speed);
-        
+            
+            //-----
+
             var distance = (target.target - (Vector2)transform.position).sqrMagnitude;
-            if (distance <= target.gap * target.gap)
+            var gap2 = target.gap * target.gap;
+            
+            if (distance <= gap2)
             {
                 OnTargetNativeList.Add(index);
             }

@@ -16,15 +16,22 @@
             public const float MaxSize = 0.5f;
             public const float OffsetMin = -0.5f;
             public const float OffsetMax = 0.5f;
+
+            public const float DefaultAngularSpeed = 5f;
+            public const float MinAngularSpeed = 0.01f;
+            public const float SmoothRotationThreshold = 100f;
         }
         
         public static class Tags
         {
             public const string Enemy = "Enemy";
             public const string EnemiesContainer = "EnemiesContainer";
+            public const string BuildingsContainer = "BuildingsContainer";
+            public const string Building = "Building";
             public const string Spawn = "Spawn";
             public const string Target = "Target";
             public const string Tile = "Tile";
+            public const string Projectile = "projectile";
         }
         
         public static class Level
@@ -33,11 +40,12 @@
             public const uint MaxHeight = 50;
             public const uint MaxSpawns = 10;
             public const uint MaxTargets = 5;
+            public const float CellSize = 2f;
         }
         
         public static class Ecs
         {
-            public const string EventWorldName = "events";
+            public const string EventsWorldName = "events";
         }
     }
 }

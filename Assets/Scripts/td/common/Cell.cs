@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td.common
 {
@@ -9,9 +10,11 @@ namespace td.common
         public Int2 Coordinates;
         public bool walkable;
         public bool space;
-        public bool isTarget; // todo - rename it to "kernel" or "core" or "home"...
+        public bool isKernel;
         public int buildEntity;
         public Int2 NextCellCoordinates;
+        public int distanceToKernel;
+        
         public GameObject gameObject;
     }
 }

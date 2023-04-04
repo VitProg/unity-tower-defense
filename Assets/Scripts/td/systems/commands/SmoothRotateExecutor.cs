@@ -21,7 +21,7 @@ namespace td.systems.commands
 
                 var isStarted = smoothRotate.Time <= 0.0001f;
 
-                if (gameObjectLink.gameObject.transform.rotation == smoothRotate.To ||
+                if (gameObjectLink.gameObject.transform.rotation.eulerAngles == smoothRotate.To.eulerAngles ||
                     (
                         isStarted &&
                         (

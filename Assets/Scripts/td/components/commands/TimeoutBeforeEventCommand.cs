@@ -1,5 +1,8 @@
-﻿namespace td.components.commands
+﻿using System;
+
+namespace td.components.commands
 {
+    [Serializable]
     public struct TimeoutBeforeEventCommand<T> where T : struct
     {
         public int Timeout;

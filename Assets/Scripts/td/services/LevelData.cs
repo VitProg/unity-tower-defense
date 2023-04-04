@@ -2,6 +2,7 @@
 using System.Linq;
 using td.common;
 using td.common.level;
+using td.events;
 using td.utils;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -18,15 +19,26 @@ namespace td.services
         private readonly Spawn[] spawns = new Spawn[Constants.Level.MaxSpawns];
 
         [SerializeField]
-        private readonly Target[] targets = new Target[Constants.Level.MaxTargets];
+        private readonly Kernel[] kernels = new Kernel[Constants.Level.MaxTargets];
 
         [SerializeField]
         public uint SpawnsLength { get; protected set; } = 0;
         [SerializeField]
-        public uint TargetsLength { get; protected set; } = 0;
+        public uint KernelsLength { get; protected set; } = 0;
 
         [SerializeField]
-        public LevelConfig? LevelConfig;
+        private LevelConfig? _levelConfig;
+
+        public LevelConfig? LevelConfig
+        {
+            get => _levelConfig;
+            set
+            {
+                _levelConfig = value;
+                _lives = MaxLives;
+                money = LevelConfig?.startedMoney ?? 10;
+            }
+        }
 
         public int LevelNumber => LevelConfig?.levelNumber ?? -1;
 
@@ -44,7 +56,30 @@ namespace td.services
 
 
         public Spawn[] Spawns => spawns.Where(spawn => spawn != null).ToArray();
-        public Target[] Targets => targets.Where(target => target != null).ToArray();
+        public Kernel[] Kernels => kernels.Where(target => target != null).ToArray();
+        
+        //todo подумать куда лучше вынестти стейт
+        public float MaxLives => LevelConfig?.lives ?? 0;
+
+        private float _lives = 0;
+        public float Lives
+        {
+            get => _lives;
+            set {
+                if (_lives != value)
+                {
+                    _lives = value;
+                }
+            }
+        
+        }
+
+        public int money = 0;
+
+        public LevelData()
+        {
+            _lives = MaxLives;
+        }
 
         public void AddCell(Cell cell)
         {
@@ -94,11 +129,12 @@ namespace td.services
             SpawnsLength++;
         }
         
-        public void AddTarget(Target target)
+        public void AddKernel(Kernel kernel)
         {
-            targets[TargetsLength] = target;
-            TargetsLength++;
+            kernels[KernelsLength] = kernel;
+            KernelsLength++;
         }
+        
         
     }
 }

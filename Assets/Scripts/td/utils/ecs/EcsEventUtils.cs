@@ -12,7 +12,7 @@ namespace td.utils.ecs
         #region SEND
 
         public static void Send<T>(IEcsSystems systems) where T : struct =>
-            Send<T>(systems.GetWorld(Constants.Ecs.EventWorldName));
+            Send<T>(systems.GetWorld(Constants.Ecs.EventsWorldName));
 
         public static void Send<T>(EcsWorld eventsWorld) where T : struct
         {
@@ -20,7 +20,7 @@ namespace td.utils.ecs
         }
 
         public static void Send<T>(IEcsSystems systems, T eventData) where T : struct =>
-            Send(systems.GetWorld(Constants.Ecs.EventWorldName), eventData);
+            Send(systems.GetWorld(Constants.Ecs.EventsWorldName), eventData);
 
         public static void Send<T>(EcsWorld eventsWorld, T eventData) where T : struct
         {
@@ -42,7 +42,7 @@ namespace td.utils.ecs
 
         
         public static void SendSingle<T>(IEcsSystems systems, bool rewrite = true) where T : struct =>
-            SendSingle<T>(systems.GetWorld(Constants.Ecs.EventWorldName));
+            SendSingle<T>(systems.GetWorld(Constants.Ecs.EventsWorldName));
 
         public static void SendSingle<T>(EcsWorld eventsWorld, bool rewrite = true) where T : struct
         {
@@ -50,7 +50,7 @@ namespace td.utils.ecs
         }
 
         public static void SendSingle<T>(IEcsSystems systems, T eventData, bool rewrite = true) where T : struct =>
-            SendSingle(systems.GetWorld(Constants.Ecs.EventWorldName), eventData);
+            SendSingle(systems.GetWorld(Constants.Ecs.EventsWorldName), eventData);
         
         public static bool SendSingle<T>(EcsWorld eventsWorld, T eventData, bool rewrite = true) where T : struct
         {
@@ -92,7 +92,7 @@ namespace td.utils.ecs
 
         public static void CleanupEvent<T>(IEcsSystems systems, EcsFilterInject<T> filter)
             where T : struct, IEcsInclude =>
-            CleanupEvent(systems.GetWorld(Constants.Ecs.EventWorldName), filter);
+            CleanupEvent(systems.GetWorld(Constants.Ecs.EventsWorldName), filter);
 
         public static void CleanupEvent<T>(EcsWorld eventsWorld, EcsFilterInject<T> filter)
             where T : struct, IEcsInclude

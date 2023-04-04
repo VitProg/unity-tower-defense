@@ -8,6 +8,8 @@ namespace td.common.level
         public int levelNumber;
         public int delayBeforeFirstWave;
         public int delayBetweenWaves;
+        public float lives;
+        public int startedMoney;
         public WaveConfig[] waves;
     }
 }

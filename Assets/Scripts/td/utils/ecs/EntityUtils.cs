@@ -37,7 +37,7 @@ namespace td.utils.ecs
             var pool = world.GetPool<T>();
             if (pool.Has(entity))
             {
-                return ref pool.Get(entity);
+                return ref pool.Get(entity); // todo
             }
 
             return ref pool.Add(entity);
