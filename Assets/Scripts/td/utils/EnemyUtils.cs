@@ -22,13 +22,13 @@ namespace td.utils
             return Quaternion.LookRotation(Vector3.forward, toNextCellVector);
         }
 
-        public static float GetAngularSpeed(IEcsSystems systems, int ennemyEntity)
+        public static float GetAngularSpeed(EcsWorld world, int ennemyEntity)
         {
             var angularSpeed = Constants.Enemy.DefaultAngularSpeed;
                         
-            if (EntityUtils.HasComponent<SpawnEnemyCommand>(systems, ennemyEntity))
+            if (world.HasComponent<EnemyState>(ennemyEntity))
             {
-                ref var spawConfig = ref EntityUtils.GetComponent<SpawnEnemyCommand>(systems, ennemyEntity);
+                ref var spawConfig = ref world.GetComponent<EnemyState>(ennemyEntity);
                 angularSpeed = spawConfig.angularSpeed > Constants.Enemy.MinAngularSpeed 
                     ? spawConfig.angularSpeed
                     : Constants.Enemy.DefaultAngularSpeed;
@@ -36,5 +36,7 @@ namespace td.utils
 
             return angularSpeed;
         }
+
+        public static int GetEnemiesCount(EcsWorld world) => world.Filter<IsEnemy>().Exc<IsEnemyDead>().End().GetEntitiesCount();
     }
 }

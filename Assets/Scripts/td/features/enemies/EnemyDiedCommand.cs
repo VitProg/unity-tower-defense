@@ -6,6 +6,6 @@ namespace td.features.enemies
     [Serializable]
     public struct EnemyDiedCommand
     {
-        public EcsPackedEntity EnemyEntity;
+        // public EcsPackedEntity EnemyEntity;
     }
 }

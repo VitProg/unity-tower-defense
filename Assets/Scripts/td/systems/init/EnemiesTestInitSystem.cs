@@ -10,7 +10,7 @@ namespace td.systems.init
 {
     public class EnemiesTestInitSystem : IEcsInitSystem
     {
-        private readonly EcsPoolInject<MoveToTarget> moveToTargetPointPool = default;
+        [EcsPool] private EcsPool<MoveToTarget> moveToTargetPointPool;
 
         public void Init(IEcsSystems systems)
         {
@@ -28,7 +28,7 @@ namespace td.systems.init
                 count++;
             }
 
-            Debug.Log($"Final number of enemies {count}");
+            // Debug.Log($"Final number of enemies {count}");
         }
 
         private void CreateEnemy(EcsWorld world, GameObject baseGameObject, Transform parent)
@@ -37,7 +37,7 @@ namespace td.systems.init
             var y = Random.Range(1 * 100, 25 * 100) / 100.0f;
             
             var gameObject = Object.Instantiate(baseGameObject, parent, true);
-            var entity = UniEcsUtils.Convert(gameObject, world);
+            var entity = world.ConvertToEntity(gameObject);
             
             gameObject.transform.position = new Vector2(x, y);
             
@@ -67,7 +67,7 @@ namespace td.systems.init
             // lookForwardPool.Value.Add(entity);
 
             // ref var movable = ref moveToTargetPointPool.Value.Add(entity);
-            ref var movable = ref moveToTargetPointPool.Value.Get(entity);
+            ref var movable = ref moveToTargetPointPool.Get(entity);
             movable.speed = Random.Range(Constants.Enemy.MinSpeed, Constants.Enemy.MaxSpeed);
 
             var scale = Random.Range(Constants.Enemy.MinSize, Constants.Enemy.MaxSize);

@@ -1,50 +1,55 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.components.flags;
+using td.features.ui;
 using td.features.waves;
 using td.services;
+using td.states;
 using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.levels
 {
+    // todo rewrite to load level service
     public class LevelLoadedHandler : IEcsRunSystem
     {
-        private readonly EcsCustomInject<LevelData> levelData = default;
-        private readonly EcsFilterInject<Inc<LevelLoadedEvent>> entities = Constants.Ecs.EventsWorldName;
-        private readonly EcsCustomInject<UI> ui = default;
+        [EcsInject] private LevelMap levelMap;
+        [EcsInject] private LevelState levelState;
+        
+        private readonly EcsFilterInject<Inc<LevelLoadedOuterEvent>> eventEntities = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
-            var entity = EcsEventUtils.FirstEntity(entities);
+            if (eventEntities.Value.GetEntitiesCount() == 0) return;
+            systems.CleanupOuter(eventEntities);
 
-            if (entity == null) return;
-            
-            Debug.Log("LevelLoadedHandler RUN...");
-            
-            GlobalEntityUtils.DelComponent<IsLoading>(systems);
-            
-            ui.Value.UpdateLives((int)levelData.Value.Lives);
-            ui.Value.UpdateWave(0, 0);
-            ui.Value.UpdateMoney(levelData.Value.money);
-            
-            var countdown = levelData.Value.waveNumber <= 0
-                ? levelData.Value.LevelConfig?.delayBeforeFirstWave
-                : levelData.Value.LevelConfig?.delayBetweenWaves;
-            
-            EcsEventUtils.SendSingle(systems, new NextWaveCountdownTimer()
+            // Debug.Log("LevelLoadedHandler RUN...");
+
+            systems.CleanupOuter<IsLoadingOuter>();
+            systems.SendSingleOuter(new UpdateUIOuterCommand
+            {
+                Lives = levelState.Lives,
+                MaxLives = levelState.MaxLives,
+                Money = levelState.Money,
+                LevelNumber = levelState.LevelNumber,
+                EnemiesCount = levelState.EnemiesCount,
+                IsLastWave = levelState.IsLastWave,
+                NextWaveCountdown = levelState.NextWaveCountdown,
+                wave = new[] { levelState.WaveNumber, levelState.WaveCount },
+            });
+
+
+            var countdown = levelState.WaveNumber <= 0
+                ? levelMap.LevelConfig?.delayBeforeFirstWave
+                : levelMap.LevelConfig?.delayBetweenWaves;
+
+            systems.SendSingleOuter(new NextWaveCountdownOuter()
             {
                 countdown = countdown ?? 0,
             });
-            
-            // EcsEventUtils.Send(systems, new StartWaveCommand()
-            // {
-            //     WaveNumber = 0,
-            // });
 
-            EcsEventUtils.CleanupEvent(systems, entities);
-            
-            Debug.Log("LevelLoadedHandler FIN");
+
+            // Debug.Log("LevelLoadedHandler FIN");
         }
     }
 }

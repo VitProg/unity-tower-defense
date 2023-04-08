@@ -1,6 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.services;
+using td.states;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -8,34 +8,42 @@ namespace td.features.waves
 {
     public class NextWaveCountdownTimerSystem : IEcsRunSystem
     {
-        private readonly EcsWorldInject eventsWorld = Constants.Ecs.EventsWorldName;
-        private readonly EcsFilterInject<Inc<NextWaveCountdownTimer>> entities = Constants.Ecs.EventsWorldName;
-        private readonly EcsCustomInject<UI> ui = default;
+        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
+        [EcsInject] private LevelState levelSatate;
+        
+        private readonly EcsFilterInject<Inc<NextWaveCountdownOuter>> eventEntities = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
-            var entity = EcsEventUtils.FirstEntity(entities);
-
-            if (entity == null) return;
-            
-            ref var countdown = ref entities.Pools.Inc1.Get((int)entity);
+            foreach (var eventEntity in eventEntities.Value)
+            {
+                RunInternal(systems, eventEntity);
+            }
+        }
+        
+        private void RunInternal(IEcsSystems systems, int eventEntity)
+        {
+            ref var countdown = ref eventEntities.Pools.Inc1.Get((int)eventEntity);
 
             var last = countdown.countdown;
             var current = last - Time.deltaTime;
                 
             countdown.countdown = current;
 
-            if ((int)last != (int)current)
+            var iLast = (int)last;
+            var iCurrent = (int)current;
+            
+            if (iLast != iCurrent)
             {
-                Debug.Log($"COUNTDOWN - {(int)current}");
-                ui.Value.UpdateWaveCountdown((int)current + 1);
+                // Debug.Log($"COUNTDOWN - {iCurrent}");
+                levelSatate.NextWaveCountdown = iCurrent + 1;
             }
 
             if (countdown.countdown < Constants.ZeroFloat)
             {
-                EcsEventUtils.CleanupEvent(eventsWorld.Value, entities);
-                EcsEventUtils.SendSingle<IncreaseWaveCommand>(eventsWorld.Value);
-                ui.Value.UpdateWaveCountdown(0);
+                systems.CleanupOuter(eventEntities);
+                systems.SendSingleOuter<IncreaseWaveOuterCommand>();
+                levelSatate.NextWaveCountdown = 0;
             }
         }
     }

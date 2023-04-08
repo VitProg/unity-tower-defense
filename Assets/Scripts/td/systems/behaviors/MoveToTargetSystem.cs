@@ -15,8 +15,8 @@ namespace td.systems.behaviors
 {
     public class MoveToTargetSystem : IEcsRunSystem
     {
-        private readonly EcsWorldInject world = default;
-
+        [EcsWorld] private EcsWorld world;
+        
         private readonly EcsFilterInject<
             Inc<GameObjectLink, Target, MoveToTarget>,
             Exc<SmoothRotateCommand, InertiaOfMovement>
@@ -61,10 +61,11 @@ namespace td.systems.behaviors
 
             foreach (var onTargetIndex in onTargetNativeList)
             {
-                EcsEventUtils.Send(systems, new ReachingTargetEvent()
-                {
-                    TargetEntity = world.Value.PackEntity(entitiesNativeArray[onTargetIndex])
-                });
+                world.AddComponent<ReachingTargetEvent>(entitiesNativeArray[onTargetIndex]);
+                // systems.SendEvent(new ReachingTargetEvent()
+                // {
+                    // TargetEntity = world.PackEntity(entitiesNativeArray[onTargetIndex])
+                // });
             }
 
             targetNativeArray.Dispose();

@@ -4,6 +4,7 @@ using td.components.flags;
 using td.features.enemies;
 using td.features.levels;
 using td.services;
+using td.states;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -11,42 +12,42 @@ namespace td.features.waves
 {
     public class WaitForWaveComliteSystem : IEcsRunSystem
     {
-        private readonly EcsCustomInject<LevelData> levelData = default;
+        [EcsInject] private LevelState levelState;
+        [EcsInject] private LevelMap levelMap;
+        
         private readonly EcsFilterInject<Inc<IsEnemy>> enemyEntities = default;
-        private readonly EcsFilterInject<Inc<WaitForAllEnemiesDead>> eventEntities = Constants.Ecs.EventsWorldName;
-        private readonly EcsFilterInject<Inc<SpawnSequence>> spawnSequenceEntities = Constants.Ecs.EventsWorldName;
+        private readonly EcsFilterInject<Inc<AllEnemiesAreOverOuterWait>> outerEntities = Constants.Worlds.Outer;
+        private readonly EcsFilterInject<Inc<SpawnSequence>> spawnSequenceEntities = default;
 
         public void Run(IEcsSystems systems)
         {
-            var eventEntity = EcsEventUtils.FirstEntity(eventEntities);
-
-            if (eventEntity == null) return;
-
+            if (outerEntities.Value.GetEntitiesCount() == 0) return;
+            
             var spawnSequenceCount = spawnSequenceEntities.Value.GetEntitiesCount();
             var enemiesCount = enemyEntities.Value.GetEntitiesCount();
 
             if (spawnSequenceCount <= 0 && enemiesCount <= 0)
             {
-                Debug.Log("WaitForAllEnemiesDeadSystem RUN...");
+                // Debug.Log("WaitForAllEnemiesDeadSystem RUN...");
                 
-                EcsEventUtils.CleanupEvent(systems, eventEntities);
+                systems.CleanupOuter(outerEntities);
                 
-                if (levelData.Value.IsLastWave)
+                if (levelState.IsLastWave)
                 {
-                    EcsEventUtils.SendSingle<LevelFinishedEvent>(systems);
+                    systems.SendSingleOuter<LevelFinishedOuterEvent>();
                 }
                 else
                 {
-                    var countdown = levelData.Value.waveNumber <= 0
-                        ? levelData.Value.LevelConfig?.delayBeforeFirstWave
-                        : levelData.Value.LevelConfig?.delayBetweenWaves;
+                    var countdown = levelState.WaveNumber <= 0
+                        ? levelMap.LevelConfig?.delayBeforeFirstWave
+                        : levelMap.LevelConfig?.delayBetweenWaves;
 
-                    EcsEventUtils.SendSingle(systems, new NextWaveCountdownTimer()
+                    systems.SendSingleOuter(new NextWaveCountdownOuter()
                     {
                         countdown = countdown ?? 0,
                     });
                 }
-                Debug.Log("WaitForAllEnemiesDeadSystem FIN");
+                // Debug.Log("WaitForAllEnemiesDeadSystem FIN");
             }
         }
     }

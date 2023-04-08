@@ -7,6 +7,7 @@ using UnityEngine;
 
 namespace td.features.levels
 {
+    // todo rewrite to load level service 
     public class BuildingsInitSystem : IEcsInitSystem
     {
         private readonly EcsFilterInject<Inc<IsTower, GameObjectLink>> entities = default;

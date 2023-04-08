@@ -9,16 +9,29 @@ using UnityEngine;
 
 namespace td.features.levels
 {
+    // todo rewrite to load level service
     public class LevelInitExecutor: IEcsRunSystem
     {
-        private readonly EcsCustomInject<LevelData> levelData = default;
-        private readonly EcsFilterInject<Inc<LevelInitCommand>> entities = Constants.Ecs.EventsWorldName;
+        [EcsInject] private LevelMap levelMap;
+        
+        private readonly EcsFilterInject<Inc<LevelInitOuterCommand>> eventEntities = Constants.Worlds.Outer;
+        private readonly EcsFilterInject<Inc<Test>> test = Constants.Worlds.Outer;
+        private readonly EcsFilterInject<Inc<LevelInitOC>> LevelInitOC = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
-            if(EcsEventUtils.FirstEntity(entities) == null) return;
-            
-            Debug.Log("LevelInitExecutor RUN...");
+            foreach (var eventEntity in eventEntities.Value)
+            {
+                RunInternal(systems, eventEntity);
+                
+                systems.CleanupOuter(eventEntities);
+                break;
+            }
+        }
+
+        private void RunInternal(IEcsSystems systems, int entity)
+        {
+            // Debug.Log("LevelInitExecutor RUN...");
 
             // Tiles
             InitTiles();
@@ -27,13 +40,16 @@ namespace td.features.levels
             InitSpawns();
 
             // Target
-            InitTargets();
+            InitKernels();
 
-            EcsEventUtils.CleanupEvent(systems, entities);
+#if UNITY_EDITOR
+            Debug.Log("FINAL MAP");
+            levelMap.ShowMapInLog();
+#endif
+
+            systems.SendOuter<PathInitOuterCommand>();
             
-            EcsEventUtils.Send<PathInitCommand>(systems);
-            
-            Debug.Log("LevelInitExecutor FIN");
+            // Debug.Log("LevelInitExecutor FIN");
         }
 
         private void InitTiles()
@@ -50,19 +66,8 @@ namespace td.features.levels
                     gameObject = tileGameObject,
                 };
 
-                levelData.Value.AddCell(cell);
+                levelMap.AddCell(cell);
             }
-
-            var line = "";
-            for (var y = 0; y < levelData.Value.Height; y++)
-            {
-                for (var x = 0; x < levelData.Value.Width; x++)
-                {
-                    line += levelData.Value.GetCell(x, y) != null ? '#' : '0';
-                }
-                line += '\n';
-            }
-            Debug.Log(line);
         }
 
         private void InitSpawns()
@@ -74,11 +79,11 @@ namespace td.features.levels
                 {
                     Coordinates = GridUtils.GetGridCoordinate(spawnGameObject.transform.position),
                 };
-                levelData.Value.AddSpawn(spawn);
+                levelMap.AddSpawn(spawn);
             }
         }
 
-        private void InitTargets()
+        private void InitKernels()
         {
             var targets = GameObject.FindGameObjectsWithTag(Constants.Tags.Target);
             foreach (var targetGameObject in targets)
@@ -87,7 +92,7 @@ namespace td.features.levels
                 {
                     Coordinates = GridUtils.GetGridCoordinate(targetGameObject.transform.position),
                 };
-                levelData.Value.AddKernel(kernel);
+                levelMap.AddKernel(kernel);
             }
         }
     }

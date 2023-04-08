@@ -13,41 +13,27 @@ namespace td.features.enemies
 {
     public class EnemyReachingCellHandler : IEcsRunSystem
     {
-        private readonly EcsCustomInject<LevelData> levelData = default;
-        private readonly EcsFilterInject<Inc<ReachingTargetEvent>> entities = Constants.Ecs.EventsWorldName;
+        [EcsInject] private LevelMap levelMap;
+        [EcsWorld] private EcsWorld world;
+        
+        private readonly EcsFilterInject<Inc<ReachingTargetEvent, IsEnemy>> entities;
 
         public void Run(IEcsSystems systems)
         {
-            var world = systems.GetWorld();
-            var eventsWorld = systems.GetWorld(Constants.Ecs.EventsWorldName);
-
-            foreach (var eventEntity in entities.Value)
+            foreach (var entity in entities.Value)
             {
-                var packedEntity = entities.Pools.Inc1.Get(eventEntity).TargetEntity;
+                ref var target = ref world.GetComponent<Target>(entity);
+                ref var movableOffset = ref world.GetComponent<MovableOffset>(entity);
+                ref var gameObjectLink = ref world.GetComponent<GameObjectLink>(entity);
 
-                if (
-                    !packedEntity.Unpack(world, out var entity) ||
-                    EntityUtils.HasComponent<IsEnemy>(systems, entity) == false
-                )
-                {
-                    continue;
-                }
+                var cell = levelMap.GetCell(target.target);
+                var nextCell = levelMap.GetCell(cell.NextCellCoordinates);
 
-                ref var target = ref EntityUtils.GetComponent<Target>(systems, entity);
-                ref var movableOffset = ref EntityUtils.GetComponent<MovableOffset>(systems, entity);
-                ref var gameObjectLink = ref EntityUtils.GetComponent<GameObjectLink>(systems, entity);
-
-                var cell = levelData.Value.GetCell(target.target);
-                var nextCell = levelData.Value.GetCell(cell.NextCellCoordinates);
-
-                if (cell.isKernel)
+                if (cell.IsKernel)
                 {
                     // send event
-                    EntityUtils.AddComponent<IsEnemyDead>(systems, entity);
-                    EcsEventUtils.Send(systems, new EnemyReachingKernelEvent()
-                    {
-                        EnemyEntity = world.PackEntity(entity)
-                    });
+                    world.AddComponent<IsEnemyDead>(entity);
+                    world.AddComponent<EnemyReachingKernelEvent>(entity);
                 }
                 else
                 {
@@ -57,11 +43,11 @@ namespace td.features.enemies
                     
                     if (transform.rotation != rotation)
                     {
-                        var angularSpeed = EnemyUtils.GetAngularSpeed(systems, entity);
+                        var angularSpeed = EnemyUtils.GetAngularSpeed(world, entity);
 
                         if (angularSpeed < Constants.Enemy.SmoothRotationThreshold)
                         {
-                            EntityUtils.AddComponent(systems, entity, new SmoothRotateCommand()
+                            world.AddComponent(entity, new SmoothRotateCommand()
                             {
                                 From = transform.rotation,
                                 To = rotation,
@@ -80,8 +66,6 @@ namespace td.features.enemies
                         movableOffset.offset
                     );;
                 }
-
-                eventsWorld.DelEntity(eventEntity);
             }
         }
     }

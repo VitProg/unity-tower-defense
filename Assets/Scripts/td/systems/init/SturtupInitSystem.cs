@@ -4,6 +4,7 @@ using td.common;
 using td.components.commands;
 using td.components.flags;
 using td.services;
+using td.states;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -12,37 +13,30 @@ namespace td.systems.init
 {
     public class SturtupInitSystem : IEcsPreInitSystem
     {
-        private IEcsSystems systems;
-        private EcsWorld world;
-        private SharedData sharedData;
-
-        private readonly EcsCustomInject<LevelData> levelData = default;
+        [EcsWorld] private EcsWorld world;
+        [EcsShared] private SharedData sharedData;
+        [EcsInject] private LevelState levelState;
 
         public void PreInit(IEcsSystems systems)
         {
-            Debug.Log("SturtupInitSystem RUN...");
+            // Debug.Log("SturtupInitSystem RUN...");
             
-            this.systems = systems;
-            world = this.systems.GetWorld();
-            sharedData = systems.GetShared<SharedData>();
-
             MakeGlobalEntity();
             LoadEnemiesData();
 
-            EcsEventUtils.Send(systems, new LoadLevelCommand()
+            systems.SendOuter(new LoadLevelOuterCommand()
             {
-                LevelNumber = 1
+                levelNumber = levelState.LevelNumber
             });
-            GlobalEntityUtils.AddComponent<IsLoading>(systems);
+            systems.SendOuter<IsLoadingOuter>();
             
-            Debug.Log("SturtupInitSystem FIN");
+            // Debug.Log("SturtupInitSystem FIN");
         }
 
         private void MakeGlobalEntity()
         {
             var globalEntity = world.NewEntity();
             world.GetPool<IsGlobal>().Add(globalEntity);
-            sharedData.GlobalEntity = world.PackEntity(globalEntity);
         }
 
         private void LoadEnemiesData()

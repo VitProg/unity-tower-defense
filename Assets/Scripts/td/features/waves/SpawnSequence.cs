@@ -2,40 +2,41 @@
 using Leopotam.EcsLite;
 using td.common.ecs;
 using td.common.level;
+using UnityEngine.Serialization;
 
 namespace td.features.waves
 {
     [Serializable]
     public struct SpawnSequence : IEcsAutoReset<SpawnSequence>, IEcsAutoMerge<SpawnSequence>
     {
-        public WaveSpawnConfig Config;
-        public float DelayBeforeCountdown;
-        public float DelayBetweenCountdown;
-        public int EnemyCounter;
-        public bool Started;
+        public WaveSpawnConfig config;
+        public float delayBeforeCountdown;
+        public float delayBetweenCountdown;
+        public int enemyCounter;
+        public bool started;
 
         public void AutoReset(ref SpawnSequence c)
         {
             c = default;
-            c.Started = false;
-            c.EnemyCounter = 0;
-            c.DelayBetweenCountdown = c.Config.delayBefore;
-            c.DelayBetweenCountdown = 0;
+            c.started = false;
+            c.enemyCounter = 0;
+            c.delayBetweenCountdown = c.config.delayBefore;
+            c.delayBetweenCountdown = 0;
         }
 
         public void AutoMerge(ref SpawnSequence result, SpawnSequence def)
         {
-            if (result.DelayBeforeCountdown < 0.0001f)
+            if (result.delayBeforeCountdown < 0.0001f)
             {
-                result.DelayBeforeCountdown = def.DelayBeforeCountdown;
+                result.delayBeforeCountdown = def.delayBeforeCountdown;
             }
-            if (result.DelayBetweenCountdown < 0.0001f)
+            if (result.delayBetweenCountdown < 0.0001f)
             {
-                result.DelayBetweenCountdown = def.DelayBetweenCountdown;
+                result.delayBetweenCountdown = def.delayBetweenCountdown;
             }
-            if (result.EnemyCounter == 0)
+            if (result.enemyCounter == 0)
             {
-                result.EnemyCounter = def.EnemyCounter;
+                result.enemyCounter = def.enemyCounter;
             }
         }
     }

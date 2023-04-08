@@ -7,8 +7,8 @@ namespace td.features.impactsEnemy
 {
     public class TakeBuffDebuffExecutor : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<TakeBuffDebuffCommand>> eventEntities = Constants.Ecs.EventsWorldName;
-        private readonly EcsWorldInject world = default;
+        private readonly EcsFilterInject<Inc<TakeDebuffOuterCommand>> eventEntities = Constants.Worlds.Outer;
+        [EcsWorld] private EcsWorld world;
 
         public void Run(IEcsSystems systems)
         {
@@ -16,13 +16,13 @@ namespace td.features.impactsEnemy
             {
                 var buff = eventEntities.Pools.Inc1.Get(eventEntity);
 
-                if (!buff.TargetEntity.Unpack(world.Value, out var enemyEntity) ||
-                    !EntityUtils.HasComponent<SpawnEnemyCommand>(systems, enemyEntity))
+                if (!buff.TargetEntity.Unpack(world, out var enemyEntity) ||
+                    !world.HasComponent<SpawnEnemyOuterCommand>(enemyEntity))
                 {
                     continue;
                 }
                 
-                ref var enemyStat = ref EntityUtils.GetComponent<SpawnEnemyCommand>(systems, enemyEntity);
+                ref var enemyState = ref world.GetComponent<EnemyState>(enemyEntity);
                 
                 // ToDo
             }

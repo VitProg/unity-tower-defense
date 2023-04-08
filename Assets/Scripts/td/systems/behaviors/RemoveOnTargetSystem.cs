@@ -2,15 +2,17 @@
 using Leopotam.EcsLite.Di;
 using td.components.attributes;
 using td.components.commands;
+using td.utils.ecs;
 
 namespace td.systems.behaviors
 {
     public class RemoveOnTargetSystem: IEcsRunSystem
     {
+        [EcsPool] private EcsPool<RemoveGameObjectCommand> removeGameObjectEventsPool;
+        
         private readonly EcsFilterInject<Inc<Target, Position>> entities = default;
-        
-        private readonly EcsPoolInject<RemoveGameObjectCommand> removeGameObjectEventsPool = default;
-        
+
+
         public void Run(IEcsSystems systems)
         {
             var world = systems.GetWorld();
@@ -24,7 +26,7 @@ namespace td.systems.behaviors
 
                 if (distance <= target.gap * target.gap)
                 {
-                    removeGameObjectEventsPool.Value.Add(entity);
+                    removeGameObjectEventsPool.Add(entity);
                 }
             }
         }

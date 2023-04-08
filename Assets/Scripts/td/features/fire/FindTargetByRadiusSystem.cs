@@ -14,7 +14,8 @@ namespace td.features.fire
 {
     public class FindTargetByRadiusSystem : IEcsRunSystem
     {
-        private readonly EcsCustomInject<LevelData> levelData = default;
+        [EcsInject] private LevelMap levelMap;
+        
         private readonly EcsFilterInject<Inc<IsTower, GameObjectLink>> entities = default;
         private readonly EcsFilterInject<Inc<IsEnemy, GameObjectLink>> enemyEntities = default;
 
@@ -53,8 +54,8 @@ namespace td.features.fire
                         
                         //todo select method by tower settings
                         var enemyCoordinate = GridUtils.GetGridCoordinate(enemyPosition);
-                        var cell = levelData.Value.GetCell(enemyCoordinate);
-                        if (!cell.isKernel && enemy.distanceToKernel > 0)
+                        var cell = levelMap.GetCell(enemyCoordinate);
+                        if (!cell.IsKernel && enemy.distanceToKernel > 0)
                         {
                             distanceToKernel = enemy.distanceToKernel;
                         }
@@ -69,8 +70,8 @@ namespace td.features.fire
 
                 if (targetEntity >= 0)
                 {
-                    EntityUtils.DelComponent<FireTarget>(systems, entity);
-                    EntityUtils.AddComponent(systems, entity, new FireTarget()
+                    world.DelComponent<FireTarget>(entity);
+                    world.AddComponent(entity, new FireTarget()
                     {
                         TargetEntity = world.PackEntity(targetEntity),
                     });

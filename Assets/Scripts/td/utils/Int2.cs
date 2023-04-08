@@ -25,5 +25,10 @@
         public static Int2 operator * (Int2 a, int multiplier) {
             return new Int2 (a.x * multiplier, a.y * multiplier);
         }
+
+        public override string ToString()
+        {
+            return $"[{x}; {y}]";
+        }
     }
 }

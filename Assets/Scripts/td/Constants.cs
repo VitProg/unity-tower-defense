@@ -36,16 +36,30 @@
         
         public static class Level
         {
-            public const uint MaxWidth = 50;
-            public const uint MaxHeight = 50;
+            public const uint MaxMapArrayWidth = 100;
+            public const uint MaxMapArrayHeight = 100;
             public const uint MaxSpawns = 10;
             public const uint MaxTargets = 5;
             public const float CellSize = 2f;
         }
         
-        public static class Ecs
+        public static class Worlds
         {
-            public const string EventsWorldName = "events";
+            public const string Default = default;
+            public const string Outer = "events";
+            public const string UI = "ui-events";
+        }
+        
+        public static class UI
+        {
+            public const string LivesLabel = "LivesLabel";
+            public const string MoneyLabel = "MoneyLabel";
+            public const string WaveCountdownLabel = "WaveCountdownLabel";
+            public const string WaveCountdown = "WaveCountdown";
+            public const string WaveLabel = "WaveLabel";
+            public const string EnemiesLabel = "EnemiesLabel";
+
+            public const string AddTowerButton = "AddTower";
         }
     }
 }

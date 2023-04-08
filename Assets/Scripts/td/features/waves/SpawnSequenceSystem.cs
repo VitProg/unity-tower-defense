@@ -13,10 +13,9 @@ namespace td.features.waves
 {
     public class SpawnSequenceSystem : IEcsRunSystem
     {
-        private readonly EcsCustomInject<LevelData> levelData = default;
-        private readonly EcsSharedInject<SharedData> shared = default;
-        private readonly EcsWorldInject world = default;
-        private readonly EcsWorldInject eventsWorld = Constants.Ecs.EventsWorldName;
+        [EcsShared] private SharedData shared;
+        [EcsWorld] private EcsWorld world;
+        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
         private readonly EcsFilterInject<Inc<SpawnSequence>> entities = default;
 
@@ -26,75 +25,75 @@ namespace td.features.waves
             {
                 ref var spawnData = ref entities.Pools.Inc1.Get(entity);
 
-                if (spawnData.Started == false)
+                if (spawnData.started == false)
                 {
-                    spawnData.DelayBeforeCountdown -= Time.deltaTime;
+                    spawnData.delayBeforeCountdown -= Time.deltaTime;
 
-                    if (spawnData.DelayBeforeCountdown < Constants.ZeroFloat)
+                    if (spawnData.delayBeforeCountdown < Constants.ZeroFloat)
                     {
                         StartSpawnProccess(ref spawnData);
-                        Tick(ref spawnData, entity);
+                        Tick(ref spawnData, entity, systems);
                     }
                 }
                 else
                 {
-                    Tick(ref spawnData, entity);
+                    Tick(ref spawnData, entity, systems);
                 }
             }
         }
 
         private void StartSpawnProccess(ref SpawnSequence spawnData)
         {
-            spawnData.DelayBeforeCountdown = 0f;
-            spawnData.DelayBetweenCountdown = 0f;
-            spawnData.Started = true;
+            spawnData.delayBeforeCountdown = 0f;
+            spawnData.delayBetweenCountdown = 0f;
+            spawnData.started = true;
         }
 
-        private SpawnSequence Tick(ref SpawnSequence spawnData, int entity)
+        private SpawnSequence Tick(ref SpawnSequence spawnData, int entity, IEcsSystems systems)
         {
-            spawnData.DelayBetweenCountdown -= Time.deltaTime;
+            spawnData.delayBetweenCountdown -= Time.deltaTime;
 
-            if (!(spawnData.DelayBetweenCountdown <= Constants.ZeroFloat)) return spawnData;
+            if (!(spawnData.delayBetweenCountdown <= Constants.ZeroFloat)) return spawnData;
 
-            spawnData.DelayBetweenCountdown = spawnData.Config.delayBetween;
-            spawnData.EnemyCounter++;
+            spawnData.delayBetweenCountdown = spawnData.config.delayBetween;
+            spawnData.enemyCounter++;
 
-            if (spawnData.EnemyCounter > spawnData.Config.quantity)
+            if (spawnData.enemyCounter > spawnData.config.quantity)
             {
-                Finish(entity);
+                Finish(entity, systems);
                 return spawnData;
             }
 
             var enemyConfig = GetNextEnemy(ref spawnData);
-            var spawnConfig = new SpawnEnemyCommand()
+            var spawnConfig = new SpawnEnemyOuterCommand()
             {
                 enemyName = enemyConfig.name,
-                spawner = spawnData.Config.spawner,
-                speed = enemyConfig.baseSpeed * FloatUtils.DefaultIfZero(spawnData.Config.speed, 1f),
-                health = enemyConfig.baseHealth * FloatUtils.DefaultIfZero(spawnData.Config.health, 1f),
-                damage = enemyConfig.baseDamage * FloatUtils.DefaultIfZero(spawnData.Config.damage, 1f),
+                spawner = spawnData.config.spawner,
+                speed = enemyConfig.baseSpeed * FloatUtils.DefaultIfZero(spawnData.config.speed, 1f),
+                health = enemyConfig.baseHealth * FloatUtils.DefaultIfZero(spawnData.config.health, 1f),
+                damage = enemyConfig.baseDamage * FloatUtils.DefaultIfZero(spawnData.config.damage, 1f),
                 angularSpeed = enemyConfig.angularSpeed,
-                scale = RandomUtils.Range(spawnData.Config.scale ?? new[] { Constants.Enemy.MinSize, Constants.Enemy.MaxSize }),
-                offset = RandomUtils.Vector2(spawnData.Config.offset ?? new[] { Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax }),
+                scale = RandomUtils.Range(spawnData.config.scale ?? new[] { Constants.Enemy.MinSize, Constants.Enemy.MaxSize }),
+                offset = RandomUtils.Vector2(spawnData.config.offset ?? new[] { Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax }),
             };
             spawnConfig.money = Math.Max(
                 (int)(spawnConfig.health * spawnConfig.damage * spawnConfig.speed * spawnConfig.scale) / 5,
                 1
             );
-            EcsEventUtils.Send(eventsWorld.Value, spawnConfig);
+            systems.SendOuter(spawnConfig);
 
             return spawnData;
         }
 
         private EnemyConfig GetNextEnemy(ref SpawnSequence spawnData)
         {
-            var selectMethod = spawnData.Config.selectMethod;
+            var selectMethod = spawnData.config.selectMethod;
 
             var needEnemyName = selectMethod == MethodOfSelectNextEnemy.Random
-                ? RandomUtils.RandomArrayItem(spawnData.Config.enemies)
-                : spawnData.Config.enemies[spawnData.EnemyCounter % spawnData.Config.enemies.Length]; // todo
+                ? RandomUtils.RandomArrayItem(spawnData.config.enemies)
+                : spawnData.config.enemies[spawnData.enemyCounter % spawnData.config.enemies.Length]; // todo
 
-            var enemy = shared.Value.GetEnemyConfig(needEnemyName);
+            var enemy = shared.GetEnemyConfig(needEnemyName);
 
             if (enemy.name == string.Empty)
             {
@@ -104,10 +103,10 @@ namespace td.features.waves
             return enemy;
         }
 
-        private void Finish(int entity)
+        private void Finish(int entity, IEcsSystems systems)
         {
-            world.Value.DelEntity(entity);
-            EcsEventUtils.Send<SpawnSequenceFinishedEvent>(eventsWorld.Value);
+            world.DelEntity(entity);
+            systems.SendOuter<SpawnSequenceFinishedOuterEvent>();
         }
     }
 }

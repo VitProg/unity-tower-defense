@@ -3,13 +3,15 @@ using Leopotam.EcsLite.Di;
 using td.components.links;
 using td.services;
 using td.utils;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.enemies
 {
     public class CalcDistanceToKernelSystem : IEcsRunSystem
     {
-        private readonly EcsCustomInject<LevelData> levelData = default;
+        [EcsInject] private LevelMap levelMap;
+
         private readonly EcsFilterInject<Inc<IsEnemy, GameObjectLink>, Exc<IsEnemyDead>> entities = default;
             
         public void Run(IEcsSystems systems)
@@ -20,11 +22,11 @@ namespace td.features.enemies
                 var enemyGameObject = entities.Pools.Inc2.Get(entity);
                 var enemyPosition = enemyGameObject.gameObject.transform.position;
                 var enemyCoordinate = GridUtils.GetGridCoordinate(enemyPosition);
-                var cell = levelData.Value.GetCell(enemyCoordinate);
+                var cell = levelMap.GetCell(enemyCoordinate);
                 
-                if (!cell.isKernel)
+                if (!cell.IsKernel)
                 {
-                    var nextCell = levelData.Value.GetCell(cell.NextCellCoordinates);
+                    var nextCell = levelMap.GetCell(cell.NextCellCoordinates);
                     var numberOfCellsToKernel = cell.distanceToKernel;
                     var nextCellPosition = GridUtils.GetVector(nextCell.Coordinates);
 

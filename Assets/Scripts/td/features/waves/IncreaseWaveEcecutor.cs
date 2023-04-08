@@ -2,6 +2,7 @@
 using Leopotam.EcsLite.Di;
 using td.features.levels;
 using td.services;
+using td.states;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -9,43 +10,42 @@ namespace td.features.waves
 {
     public class IncreaseWaveEcecutor: IEcsRunSystem
     {
-        private readonly EcsCustomInject<LevelData> levelData = default;
-        private readonly EcsFilterInject<Inc<IncreaseWaveCommand>> entities = Constants.Ecs.EventsWorldName;
-        private readonly EcsCustomInject<UI> ui = default;
+        [EcsInject] private LevelState levelState;
+        
+        private readonly EcsFilterInject<Inc<IncreaseWaveOuterCommand>> eventEntities = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
-            var eventsWorld = systems.GetWorld(Constants.Ecs.EventsWorldName);
+            if (eventEntities.Value.GetEntitiesCount() == 0) return;
+            systems.CleanupOuter(eventEntities);
 
-            if (EcsEventUtils.FirstEntity(entities) == null) return;
+            // Debug.Log("IncreaseWaveHanndler RUN...");
             
-            Debug.Log("IncreaseWaveHanndler RUN...");
-            
-            ref var waveNumber = ref levelData.Value.waveNumber;
-            var waveCount = levelData.Value.WavesCount;
+            var waveNumber = levelState.WaveNumber;
+            var waveCount = levelState.WaveCount;
 
-            if (waveNumber + 1 > waveCount - 1)
+            if (levelState.IsLastWave)
             {
-                EcsEventUtils.Send<LevelFinishedEvent>(eventsWorld);
+                systems.SendOuter<LevelFinishedOuterEvent>();
                 return;
             }
 
             waveNumber++;
 
-            EcsEventUtils.Send(eventsWorld, new WaveChangedEvent()
+            // systems.SendOuter(new WaveChangedOuterEvent()
+            // {
+                // WaveNumber = waveNumber,
+            // });
+            systems.SendOuter(new StartWaveOuterCommand()
             {
                 WaveNumber = waveNumber,
             });
-            EcsEventUtils.Send(eventsWorld, new StartWaveCommand()
-            {
-                WaveNumber = waveNumber,
-            });
-            
-            ui.Value.UpdateWave(waveNumber + 1, waveCount);
 
-            EcsEventUtils.CleanupEvent(eventsWorld, entities);
+            levelState.WaveNumber = waveNumber;
             
-            Debug.Log("IncreaseWaveHanndler FIN");
+            // systems.CleanupOuter(eventEntities);
+            
+            // Debug.Log("IncreaseWaveHanndler FIN");
         }
     }
 }

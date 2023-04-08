@@ -20,17 +20,7 @@ namespace td.systems.behaviors
                 ref var transformLink = ref entities.Pools.Inc3.Get(entity);
 
                 positionComponent.position += movable.vector * movable.speed * Time.deltaTime;
-                // if (Random.Range(0.0f, 1.0f) > 0.5f)
-                // {
-                    transformLink.transform.position = positionComponent.position;
-                // }
-                
-                
-                
-                
-
-                // Debug.Log($"MoveSystem: new position: {positionComponent.position} for entity #{entity}");
-                // Debug.Log($"MoveSystem: new transform.position: {transformLink.transform.position} for entity #{entity}");
+                transformLink.transform.position = positionComponent.position;
             }
         }
     }

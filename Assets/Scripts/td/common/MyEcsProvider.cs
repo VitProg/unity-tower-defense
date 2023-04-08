@@ -1,18 +1,17 @@
 ﻿using Leopotam.EcsLite;
 using Mitfart.LeoECSLite.UniLeo.Providers;
-using Unity.Collections;
-using UnityEngine;
+
 
 namespace td.common
 {
     public abstract class MyEcsProvider<TComponent> : BaseEcsProvider where TComponent : struct{
         public TComponent component;
 
-        [HideInInspector] private bool converted;
+        private bool converted;
         
-        [HideInInspector] private EcsPackedEntity packedEntity;
-        [HideInInspector] private EcsWorld world;
-        [HideInInspector] private EcsPool<TComponent> pool;
+        private EcsPackedEntity packedEntity;
+        private EcsWorld world;
+        private EcsPool<TComponent> pool;
 
         public override void Convert(int e, EcsWorld w){
             world = w;

@@ -18,7 +18,6 @@ namespace td.features.fire
         public void Run(IEcsSystems systems)
         {
             var world = systems.GetWorld();
-            var nop = 1;
 
             foreach (var entity in entities.Value)
             {
@@ -37,21 +36,20 @@ namespace td.features.fire
                 }
 
                 if (!lunchProjectile ||
-                    !EntityUtils.HasComponent<FireTarget>(systems, entity))
+                    !world.HasComponent<FireTarget>(entity))
                 {
                     continue;
                 }
 
-                var target = EntityUtils.GetComponent<FireTarget>(systems, entity);
+                var target = world.GetComponent<FireTarget>(entity);
 
-                if (target.TargetEntity.Unpack(world, out var targetEntity))
+                if (target.TargetEntity.Unpack(world, out var enemyEntity))
                 {
-                    // var targetEnemy = EntityUtils.GetComponent<IsEnemy>(systems, targetEntity);
+                    var enemyGameObject = world.GetComponent<GameObjectLink>(enemyEntity);
+                    var enemyTarget = world.GetComponent<Target>(enemyEntity);
+                    var enemyState = world.GetComponent<EnemyState>(enemyEntity);
                     
-                    var enemyGameObject = EntityUtils.GetComponent<GameObjectLink>(systems, targetEntity);
-                    var enemyTarget = EntityUtils.GetComponent<Target>(systems, targetEntity);
                     var enemyPostiion = enemyGameObject.gameObject.transform.position;
-                    var enemyStats = EntityUtils.GetComponent<SpawnEnemyCommand>(systems, targetEntity);
 
                     var projectilePosition = connonGameObject.gameObject.transform.position;
                     var projectileTarget = enemyPostiion;
@@ -65,7 +63,7 @@ namespace td.features.fire
 
                     var enemyVector = (Vector3)enemyTarget.target - enemyPostiion;
                     enemyVector.Normalize();
-                    enemyVector *= ((enemyStats.speed / 2f) + (connon.projectileSpeed / 2f)) * (distance / 10f);
+                    enemyVector *= ((enemyState.speed / 2f) + (connon.projectileSpeed / 2f)) * (distance / 10f);
 
                     projectileTarget += enemyVector; //todo
                     
@@ -75,19 +73,19 @@ namespace td.features.fire
                         new Quaternion(0, 0, 0, 0),
                         connonGameObject.gameObject.transform
                     );
-                    var projectileEntity = UniEcsUtils.Convert(projectileGameObject, world);
+                    var projectileEntity = world.ConvertToEntity(projectileGameObject);
                     
-                    EntityUtils.GetComponent<IsProjectile>(systems, projectileEntity).damage = connon.damage;
-                    EntityUtils.GetComponent<MoveToTarget>(systems, projectileEntity).speed = connon.projectileSpeed;
-                    EntityUtils.AddComponent(systems, projectileEntity, new Target()
+                    world.GetComponent<IsProjectile>(projectileEntity).damage = connon.damage;
+                    world.GetComponent<MoveToTarget>(projectileEntity).speed = connon.projectileSpeed;
+                    world.AddComponent(projectileEntity, new Target()
                     {
                         target = projectileTarget,
                         gap = Constants.DefaultGap,
                     });
 
-                    EntityUtils.AddComponent(systems, projectileEntity, new FireTarget()
+                    world.AddComponent(projectileEntity, new FireTarget()
                     {
-                        TargetEntity = world.PackEntity(targetEntity),
+                        TargetEntity = world.PackEntity(enemyEntity),
                     });
                 }
             }

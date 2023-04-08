@@ -9,6 +9,8 @@ namespace td.systems.behaviors
 {
     public class CursorAsTargetSystem: IEcsRunSystem
     {
+        [EcsWorld] private EcsWorld world;
+        
         private readonly EcsFilterInject<Inc<MoveToTarget>> entities = default;
 
         public void Run(IEcsSystems systems)
@@ -21,13 +23,13 @@ namespace td.systems.behaviors
 
             foreach (var entity in entities.Value)
             {
-                if (EntityUtils.HasComponent<Target>(systems, entity))
+                if (world.HasComponent<Target>(entity))
                 {
-                    EntityUtils.GetComponent<Target>(systems, entity).target = worldPos;
+                    world.GetComponent<Target>(entity).target = worldPos;
                 }
                 else
                 {
-                    EntityUtils.AddComponent(systems, entity, new Target()
+                    world.AddComponent(entity, new Target()
                     {
                         target = worldPos,
                         gap = Constants.DefaultGap,

@@ -10,30 +10,27 @@ namespace td.features.waves
 {
     public class SpawnSequenceFinishedHandler : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<SpawnSequenceFinishedEvent>> entities = Constants.Ecs.EventsWorldName;
+        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
         
-        private readonly EcsCustomInject<LevelData> levelData = default;
-        private readonly EcsSharedInject<SharedData> shared = default;
-        private readonly EcsWorldInject world = default;
-        private readonly EcsWorldInject eventsWorld = Constants.Ecs.EventsWorldName;
+        private readonly EcsFilterInject<Inc<SpawnSequenceFinishedOuterEvent>> eventEntities = Constants.Worlds.Outer;
 
 
         public void Run(IEcsSystems systems)
         {
-            if (EcsEventUtils.FirstEntity(entities) == null) return;
+            if (eventEntities.Value.GetEntitiesCount() == 0) return;
+            systems.CleanupOuter(eventEntities);            
             
-            Debug.Log("SpawnSequenceFinishedHandler RUN...");
+            // Debug.Log("SpawnSequenceFinishedHandler RUN...");
         
-            var numberOfActiveSpawn = eventsWorld.Value.Filter<SpawnEnemyCommand>().End().GetEntitiesCount();
+            //Todo Check this!
+            var numberOfActiveSpawn = outerWorld.GetEntitiesCount<SpawnEnemyOuterCommand>();
 
             if (numberOfActiveSpawn <= 0)
             {
-                EcsEventUtils.Send<WaitForAllEnemiesDead>(eventsWorld.Value);
+                systems.SendOuter<AllEnemiesAreOverOuterWait>();
             }
         
-            EcsEventUtils.CleanupEvent(eventsWorld.Value, entities);
-            
-            Debug.Log("SpawnSequenceFinishedHandler FIN");
+            // Debug.Log("SpawnSequenceFinishedHandler FIN");
         }
     }
 }

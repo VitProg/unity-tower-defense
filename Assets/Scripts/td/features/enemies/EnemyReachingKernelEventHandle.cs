@@ -3,39 +3,41 @@ using Leopotam.EcsLite.Di;
 using td.common;
 using td.components.commands;
 using td.features.impactsKernel;
+using td.services;
+using td.states;
+using td.utils;
 using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.enemies
 {
     public class EnemyReachingKernelEventHandle : IEcsRunSystem {
-        private readonly EcsFilterInject<Inc<EnemyReachingKernelEvent>> eventEnteties = Constants.Ecs.EventsWorldName;
-        private readonly EcsWorldInject world = default;
+        [EcsInject] private LevelState levelState;
+        [EcsWorld] private EcsWorld world;
+        
+        private readonly EcsFilterInject<Inc<EnemyReachingKernelEvent, EnemyState>> entities = default;
 
         public void Run(IEcsSystems systems)
         {
-            foreach (var eventEntity in eventEnteties.Value)
+            foreach (var entity in entities.Value)
             {
-                ref var eventData = ref eventEnteties.Pools.Inc1.Get(eventEntity);
-
-                if (!eventData.EnemyEntity.Unpack(world.Value, out var enemyEntity))
-                {
-                    continue;
-                }
+                ref var enemyState = ref entities.Pools.Inc2.Get(entity);
                 
                 //todo тут можно запустиить анимацию атаки на ядро, проподания врага, эфекты, вычитание жизней ядра и т.п.
-                EntityUtils.AddComponent<RemoveGameObjectCommand>(systems, enemyEntity);
-
-                var enemyStats = EntityUtils.GetComponent<SpawnEnemyCommand>(systems, enemyEntity);
+                world.AddComponent<RemoveGameObjectCommand>(entity);
                 
-                EcsEventUtils.Send(systems, new KernalDamageCommand()
+                systems.SendOuter(new KernalDamageOuterCommand()
                 { 
-                    damage = enemyStats.damage
+                    damage = enemyState.damage
                 });
                     
-                Debug.Log(">>> ENEMY IS REACHED KERNEL!!!!!");
+                // Debug.Log(">>> ENEMY IS REACHED KERNEL!!!!!");
             }
-
+            
+            if (entities.Value.GetEntitiesCount() > 0)
+            {
+                levelState.EnemiesCount = EnemyUtils.GetEnemiesCount(world);
+            }
         }
     }
 }

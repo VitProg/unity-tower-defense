@@ -2,6 +2,7 @@
 using Leopotam.EcsLite.Di;
 using td.common;
 using td.services;
+using td.states;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -9,45 +10,43 @@ namespace td.features.waves
 {
     public class StartWaveExecutor : IEcsRunSystem
     {
-        private readonly EcsCustomInject<LevelData> levelData = default;
-        private readonly EcsSharedInject<SharedData> shared = default;
-        private readonly EcsWorldInject eventsWorld = Constants.Ecs.EventsWorldName;
-        private readonly EcsWorldInject world = default;
+        [EcsInject] private LevelState levelState;
+        [EcsInject] private LevelMap levelMap;
+        
+        [EcsWorld] private EcsWorld world;        
+        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
-        private readonly EcsFilterInject<Inc<StartWaveCommand>> entities = Constants.Ecs.EventsWorldName;
+        private readonly EcsFilterInject<Inc<StartWaveOuterCommand>> eventEntities = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
-            if (EcsEventUtils.FirstEntity(entities) == null) return;
+            if (eventEntities.Value.GetEntitiesCount() == 0) return;
+            systems.CleanupOuter(eventEntities);
             
-            Debug.Log("StartWaveExecutor RUN...");
+            // Debug.Log("LogStartWaveExecutor RUN...");
 
-            var waveNumber = levelData.Value.waveNumber;
+            var waveNumber = levelState.WaveNumber;
 
-            var waveConfig = levelData.Value.LevelConfig?.waves[waveNumber];
+            var waveConfig = levelMap.LevelConfig?.waves[waveNumber - 1];
 
             if (waveConfig != null)
             {
                 foreach (var spawn in waveConfig.Value.spawns)
                 {
-                    EntityUtils.AddComponent(
-                        world.Value,
-                        world.Value.NewEntity(),
+                    world.AddComponent(
+                        world.NewEntity(),
                         new SpawnSequence()
                         {
-                            Config = spawn,
-                            EnemyCounter = 0,
-                            DelayBeforeCountdown = spawn.delayBefore,
-                            DelayBetweenCountdown = 0,
+                            config = spawn,
+                            enemyCounter = 0,
+                            delayBeforeCountdown = spawn.delayBefore,
+                            delayBetweenCountdown = 0,
                         }
                     );
                 }
             }
-
-
-            EcsEventUtils.CleanupEvent(eventsWorld.Value, entities);
             
-            Debug.Log("StartWaveExecutor FIN");
+            // Debug.Log("StartWaveExecutor FIN");
         }
     }
 }

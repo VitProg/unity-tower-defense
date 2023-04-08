@@ -2,14 +2,16 @@
 using Leopotam.EcsLite.Di;
 using td.components.attributes;
 using td.components.behaviors;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.systems.behaviors
 {
     public class LookToCursorSystem: IEcsRunSystem
     {
+        [EcsPool] private EcsPool<Target> targetPointPool;
+        
         private readonly EcsFilterInject<Inc<Movement, Position>> entities = default;
-        private readonly EcsPoolInject<Target> targetPointPool = default;
 
         public void Run(IEcsSystems systems)
         {
@@ -28,13 +30,13 @@ namespace td.systems.behaviors
                 movable.vector = worldPos - positionLink.position;
                 movable.vector.Normalize();
 
-                if (targetPointPool.Value.Has(entity))
+                if (targetPointPool.Has(entity))
                 {
-                    targetPointPool.Value.Get(entity).target = worldPos;
+                    targetPointPool.Get(entity).target = worldPos;
                 }
                 else
                 {
-                    ref var targetPoint = ref targetPointPool.Value.Add(entity);
+                    ref var targetPoint = ref targetPointPool.Add(entity);
                     targetPoint.target = worldPos;
                     targetPoint.gap = Constants.DefaultGap;
                 } 

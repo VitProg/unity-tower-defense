@@ -3,7 +3,7 @@
 namespace td.features.impactsKernel
 {
     [Serializable]
-    public struct KernelHealCommand
+    public struct KernelHealOuterCommand
     {
         public float damage;
     }

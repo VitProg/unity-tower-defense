@@ -9,8 +9,8 @@ namespace td.features.enemyImpacts
 {
     public class TakeDamageExecutor : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<TakeDamageCommand>> eventEntities = Constants.Ecs.EventsWorldName;
-        private readonly EcsWorldInject world = default;
+        private readonly EcsFilterInject<Inc<TakeDamageOuterCommand>> eventEntities = Constants.Worlds.Outer;
+        [EcsWorld] private EcsWorld world;
 
         public void Run(IEcsSystems systems)
         {
@@ -18,25 +18,22 @@ namespace td.features.enemyImpacts
             {
                 var takeDamage = eventEntities.Pools.Inc1.Get(eventEntity);
 
-                if (!takeDamage.TargetEntity.Unpack(world.Value, out var enemyEntity) ||
-                    !EntityUtils.HasComponent<SpawnEnemyCommand>(systems, enemyEntity) ||
-                    EntityUtils.HasComponent<IsEnemyDead>(systems, enemyEntity)
+                if (!takeDamage.TargetEntity.Unpack(world, out var enemyEntity) ||
+                    !world.HasComponent<EnemyState>(enemyEntity) ||
+                    world.HasComponent<IsEnemyDead>(enemyEntity)
                 )
                 {
                     continue;
                 }
 
-                ref var enemyStat = ref EntityUtils.GetComponent<SpawnEnemyCommand>(systems, enemyEntity);
+                ref var enemyStat = ref world.GetComponent<EnemyState>(enemyEntity);
 
                 enemyStat.health -= takeDamage.damage;
 
                 if (enemyStat.health < 0)
                 {
-                    EntityUtils.AddComponent<IsEnemyDead>(world.Value, enemyEntity);
-                    EcsEventUtils.Send(systems, new EnemyDiedCommand()
-                    {
-                        EnemyEntity = world.Value.PackEntity(enemyEntity)
-                    });
+                    world.AddComponent<IsEnemyDead>(enemyEntity);
+                    world.AddComponent<EnemyDiedCommand>(enemyEntity);
                 }
             }
         }

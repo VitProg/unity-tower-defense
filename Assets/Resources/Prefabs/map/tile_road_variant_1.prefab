@@ -11,6 +11,7 @@ GameObject:
   - component: {fileID: 3879243148909897184}
   - component: {fileID: 283214779840025382}
   - component: {fileID: 6960670491131915429}
+  - component: {fileID: 9189261299949030925}
   m_Layer: 0
   m_Name: tile_road_variant_1
   m_TagString: Untagged
@@ -100,6 +101,26 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &9189261299949030925
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6431542188418213716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba0f1616a24b4c6cbf2890318cd854c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cellData:
+    walkable: 0
+    space: 0
+    buildEntity: 0
+    distanceToKernel: 0
+    spawn: 0
+    kernel: 0
+    gameObject: {fileID: 0}
 --- !u!1 &7981189008404657901
 GameObject:
   m_ObjectHideFlags: 0
@@ -200,7 +221,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &452183183912794200
 Transform:
   m_ObjectHideFlags: 0

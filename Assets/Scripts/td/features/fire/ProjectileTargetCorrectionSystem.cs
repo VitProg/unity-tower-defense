@@ -25,7 +25,7 @@ namespace td.features.fire
                     continue;
                 }
                 
-                ref var targetGameObject = ref EntityUtils.GetComponent<GameObjectLink>(systems, targetEntity);
+                ref var targetGameObject = ref world.GetComponent<GameObjectLink>(targetEntity);
                 target.target = targetGameObject.gameObject.transform.position;
             }
         }

@@ -2,24 +2,25 @@
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common;
+using td.common.messageBus;
 using td.services;
+using td.states;
 using td.utils;
+using td.utils.ecs;
 using UnityEditor;
 
 namespace td.features.impactsKernel
 {
     public class KernalChangeLivesExecutor : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<KernalDamageCommand>> damageCommands = Constants.Ecs.EventsWorldName;
-        private readonly EcsFilterInject<Inc<KernelHealCommand>> healCommands = Constants.Ecs.EventsWorldName;
-        private readonly EcsWorldInject world = default;
-        private readonly EcsSharedInject<SharedData> shared = default;
-        private readonly EcsCustomInject<LevelData> level = default;
-        private readonly EcsCustomInject<UI> ui = default;
+        [EcsInject] private LevelState levelState;
+        
+        private readonly EcsFilterInject<Inc<KernalDamageOuterCommand>> damageCommands = Constants.Worlds.Outer;
+        private readonly EcsFilterInject<Inc<KernelHealOuterCommand>> healCommands = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
-            var lives = level.Value.Lives;
+            var lives = levelState.Lives;
             
             foreach (var damage in damageCommands.Value)
             {
@@ -30,11 +31,10 @@ namespace td.features.impactsKernel
             {
                 lives -= healCommands.Pools.Inc1.Get(heal).damage;
             }
-
-            if (!FloatUtils.IsEquals(lives, level.Value.Lives))
+            
+            if (!FloatUtils.IsEquals(lives, levelState.Lives))
             {
-                level.Value.Lives = lives;
-                ui.Value.UpdateLives((int)lives);
+                levelState.Lives = lives;
             }
         }
     }
