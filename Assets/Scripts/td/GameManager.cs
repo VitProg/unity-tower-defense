@@ -131,7 +131,6 @@ namespace td
 
                 // обработка события достижения следующей клетки
                 .Add(new EnemyReachingCellHandler())
-                // .DelHere<ReachingTargetEvent>(Constants.Worlds.Events)
 
                 // обработка события смерти врага
                 .Add(new EnemyDiedExecutor())
