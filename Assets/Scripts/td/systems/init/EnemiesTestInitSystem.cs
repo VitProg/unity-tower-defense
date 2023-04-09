@@ -10,7 +10,7 @@ namespace td.systems.init
 {
     public class EnemiesTestInitSystem : IEcsInitSystem
     {
-        [EcsPool] private EcsPool<MoveToTarget> moveToTargetPointPool;
+        [EcsPool] private EcsPool<LinearMovementToTarget> moveToTargetPointPool;
 
         public void Init(IEcsSystems systems)
         {

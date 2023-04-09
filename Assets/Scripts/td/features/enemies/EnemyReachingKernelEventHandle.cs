@@ -15,20 +15,20 @@ namespace td.features.enemies
         [EcsInject] private LevelState levelState;
         [EcsWorld] private EcsWorld world;
         
-        private readonly EcsFilterInject<Inc<EnemyReachingKernelEvent, EnemyState>> entities = default;
+        private readonly EcsFilterInject<Inc<EnemyReachingKernelEvent, Enemy>> entities = default;
 
         public void Run(IEcsSystems systems)
         {
             foreach (var entity in entities.Value)
             {
-                ref var enemyState = ref entities.Pools.Inc2.Get(entity);
+                ref var enemy = ref entities.Pools.Inc2.Get(entity);
                 
                 //todo тут можно запустиить анимацию атаки на ядро, проподания врага, эфекты, вычитание жизней ядра и т.п.
                 world.AddComponent<RemoveGameObjectCommand>(entity);
                 
                 systems.SendOuter(new KernalDamageOuterCommand()
                 { 
-                    damage = enemyState.damage
+                    damage = enemy.damage
                 });
                     
                 // Debug.Log(">>> ENEMY IS REACHED KERNEL!!!!!");

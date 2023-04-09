@@ -93,13 +93,11 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 998348618968636748}
-  - component: {fileID: 7310491309076365728}
-  - component: {fileID: 7087024895233660477}
-  - component: {fileID: 3005229077480135958}
-  - component: {fileID: 7257139634440489424}
-  - component: {fileID: 5259331873808643739}
-  - component: {fileID: 1886105250952908865}
   - component: {fileID: 205893317375033773}
+  - component: {fileID: 7822391367270788799}
+  - component: {fileID: 5805145922860179848}
+  - component: {fileID: 2326377021758227763}
+  - component: {fileID: 1532636163647051076}
   m_Layer: 0
   m_Name: Enemy2
   m_TagString: Enemy
@@ -123,87 +121,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7310491309076365728
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2349924036512185576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 248d32a9388ced148bf5bf196318a019, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  <WorldName>k__BackingField: 
---- !u!114 &7087024895233660477
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2349924036512185576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ad3793fc69d4b5799638679d5ef5740, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  component:
-    distanceToKernel: 0
---- !u!114 &3005229077480135958
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2349924036512185576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4558afe818e449f3887402737ca2c15a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  component:
-    gameObject: {fileID: 2349924036512185576}
---- !u!114 &7257139634440489424
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2349924036512185576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e8375f37a373437792d62e63bcb0605e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  component:
-    speed: 100
---- !u!114 &5259331873808643739
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2349924036512185576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1237fab980d94207878d9644bb302a77, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  component:
-    offset: {x: 0, y: 0}
---- !u!114 &1886105250952908865
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2349924036512185576}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34fba6085ac04016b2decc7edb7f1881, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &205893317375033773
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -216,3 +133,67 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d38d1dfdea8440e8a7ba37486b555bc8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &7822391367270788799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2349924036512185576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 248d32a9388ced148bf5bf196318a019, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  <WorldName>k__BackingField: 
+--- !u!114 &5805145922860179848
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2349924036512185576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 34fba6085ac04016b2decc7edb7f1881, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2326377021758227763
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2349924036512185576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38eab2ec3717b6c458d9463316664913, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  component:
+    enemyName: speedy_walker
+    distanceToKernel: 0
+    position: {x: 0, y: 0}
+    rotation: {x: 0, y: 0, z: 0, w: 0}
+    scale: 0
+    offset: {x: 0, y: 0}
+    spawner: 0
+    speed: 0
+    angularSpeed: 0
+    health: 0
+    damage: 0
+    money: 0
+--- !u!114 &1532636163647051076
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2349924036512185576}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f8b4bc9bbf14ee59b51fd97ac134548, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  component:
+    reference: {fileID: 2349924036512185576}

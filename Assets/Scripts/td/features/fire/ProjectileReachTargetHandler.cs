@@ -3,7 +3,6 @@ using Leopotam.EcsLite.Di;
 using td.components.commands;
 using td.components.events;
 using td.features.enemyImpacts;
-using td.features.fire.components;
 using td.features.impactsEnemy;
 using td.utils.ecs;
 

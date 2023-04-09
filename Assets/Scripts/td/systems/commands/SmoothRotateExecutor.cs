@@ -1,15 +1,13 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.components;
 using td.components.commands;
-using td.components.links;
 using UnityEngine;
 
 namespace td.systems.commands
 {
     public class SmoothRotateExecutor : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<SmoothRotateCommand, GameObjectLink>> entities = default;
+        private readonly EcsFilterInject<Inc<SmoothRotation, Ref<GameObject>>> entities = default;
         
         public void Run(IEcsSystems systems)
         {
@@ -17,15 +15,15 @@ namespace td.systems.commands
             {
                 ref var smoothRotate = ref entities.Pools.Inc1.Get(entity);
                 ref var gameObjectLink = ref entities.Pools.Inc2.Get(entity);
-                var transform = gameObjectLink.gameObject.transform;
+                var transform = gameObjectLink.reference.transform;
 
-                var isStarted = smoothRotate.Time <= 0.0001f;
+                var isStarted = smoothRotate.Time <= Constants.ZeroFloat;
 
-                if (gameObjectLink.gameObject.transform.rotation.eulerAngles == smoothRotate.To.eulerAngles ||
+                if (gameObjectLink.reference.transform.rotation.eulerAngles == smoothRotate.To.eulerAngles ||
                     (
                         isStarted &&
                         (
-                            Quaternion.Angle(gameObjectLink.gameObject.transform.rotation, smoothRotate.To) < smoothRotate.Threshold ||
+                            Quaternion.Angle(gameObjectLink.reference.transform.rotation, smoothRotate.To) < smoothRotate.Threshold ||
                             smoothRotate.AngularSpeed > 99f
                         )
                     ))

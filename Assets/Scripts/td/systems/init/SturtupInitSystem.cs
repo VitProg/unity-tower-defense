@@ -21,7 +21,6 @@ namespace td.systems.init
         {
             // Debug.Log("SturtupInitSystem RUN...");
             
-            MakeGlobalEntity();
             LoadEnemiesData();
 
             systems.SendOuter(new LoadLevelOuterCommand()
@@ -32,13 +31,7 @@ namespace td.systems.init
             
             // Debug.Log("SturtupInitSystem FIN");
         }
-
-        private void MakeGlobalEntity()
-        {
-            var globalEntity = world.NewEntity();
-            world.GetPool<IsGlobal>().Add(globalEntity);
-        }
-
+        
         private void LoadEnemiesData()
         {
             var col = ResourcesUtils.LoadJson<EnemyConfigCollection>("Configs/enemies");

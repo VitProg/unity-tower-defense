@@ -1,15 +1,12 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common;
-using td.components.attributes;
 using td.components.behaviors;
-using td.components.links;
 using td.services;
 using td.states;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
-using Target = td.components.attributes.Target;
 
 namespace td.features.enemies
 {
@@ -50,18 +47,32 @@ namespace td.features.enemies
                 
                 enemyGameObject.transform.localScale = new Vector2(spawnCommand.scale, spawnCommand.scale);
 
-                world.GetComponent<MoveToTarget>(enemyEntity).speed = spawnCommand.speed;
-                world.GetComponent<MovableOffset>(enemyEntity).offset = spawnCommand.offset;
-                world.AddComponent(enemyEntity, EnemyState.CreateFromSpawnCommand(spawnCommand));
-                world.GetComponent<GameObjectLink>(enemyEntity).gameObject.transform.rotation = rotation;
+                enemyGameObject.transform.rotation = rotation;
                 
-                world.AddComponent( enemyEntity, new Target()
+                ref var go = ref world.GetComponent<Ref<GameObject>>(enemyEntity);
+                go.reference = enemyGameObject;
+
+                ref var enemy = ref world.GetComponent<Enemy>(enemyEntity);
+                enemy.position = position;
+                enemy.rotation = rotation;
+                enemy.enemyName = spawnCommand.enemyName;
+                enemy.spawner = spawnCommand.spawner;
+                enemy.speed = spawnCommand.speed;
+                enemy.angularSpeed = spawnCommand.angularSpeed;
+                enemy.health = spawnCommand.health;
+                enemy.damage = spawnCommand.damage;
+                enemy.scale = spawnCommand.scale;
+                enemy.offset = spawnCommand.offset;
+                enemy.money = spawnCommand.money;
+                
+                world.AddComponent( enemyEntity, new LinearMovementToTarget()
                 {
                     target = EnemyUtils.TargetPosition(
                         nextCell.Coordinates,
                         rotation,
                         spawnCommand.offset
                     ),
+                    speed = spawnCommand.speed,
                     gap = Constants.DefaultGap,
                 });
 

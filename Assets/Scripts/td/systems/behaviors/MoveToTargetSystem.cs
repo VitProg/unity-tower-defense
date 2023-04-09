@@ -1,10 +1,8 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.components.attributes;
 using td.components.behaviors;
 using td.components.commands;
 using td.components.events;
-using td.components.links;
 using td.utils.ecs;
 using Unity.Burst;
 using Unity.Collections;
@@ -13,13 +11,24 @@ using UnityEngine.Jobs;
 
 namespace td.systems.behaviors
 {
+    struct TargetPoint
+    {
+        public Vector2 Target;
+        public float Gap;
+    }
+    
     public class MoveToTargetSystem : IEcsRunSystem
     {
         [EcsWorld] private EcsWorld world;
         
+        // private readonly EcsFilterInject<
+            // Inc<GameObjectLink, TargetPoint, LinearMovementToTarget>,
+            // Exc<SmoothRotation, InertiaOfMovement>
+        // > entities = default;
+
         private readonly EcsFilterInject<
-            Inc<GameObjectLink, Target, MoveToTarget>,
-            Exc<SmoothRotateCommand, InertiaOfMovement>
+            Inc<Ref<GameObject>, LinearMovementToTarget>,
+            Exc<SmoothRotation>
         > entities = default;
 
         public void Run(IEcsSystems systems)
@@ -27,7 +36,7 @@ namespace td.systems.behaviors
             var entitiesCount = entities.Value.GetEntitiesCount();
 
             var entitiesNativeArray = new NativeArray<int>(entitiesCount, Allocator.TempJob);
-            var targetNativeArray = new NativeArray<Target>(entitiesCount, Allocator.TempJob);
+            var targetNativeArray = new NativeArray<TargetPoint>(entitiesCount, Allocator.TempJob);
             var speedNativeArray = new NativeArray<float>(entitiesCount, Allocator.TempJob);
             var transforms = new TransformAccessArray(entitiesCount, 3);
             var onTargetNativeList = new NativeList<int>(Allocator.TempJob);
@@ -38,12 +47,11 @@ namespace td.systems.behaviors
                 entitiesNativeArray[index] = entity;
 
                 ref var gameObjectLink = ref entities.Pools.Inc1.Get(entity);
-                ref var targetPoint = ref entities.Pools.Inc2.Get(entity);
-                ref var movement = ref entities.Pools.Inc3.Get(entity);
+                ref var movementToTarget = ref entities.Pools.Inc2.Get(entity);
 
-                targetNativeArray[index] = targetPoint;
-                speedNativeArray[index] = movement.speed;
-                transforms.Add(gameObjectLink.gameObject.transform);
+                targetNativeArray[index] = new TargetPoint { Target = movementToTarget.target, Gap = movementToTarget.gap };
+                speedNativeArray[index] = movementToTarget.speed;
+                transforms.Add(gameObjectLink.reference.transform);
 
                 index++;
             }
@@ -82,7 +90,7 @@ namespace td.systems.behaviors
     {
         public float DeltaTime;
 
-        [NativeDisableParallelForRestriction] public NativeArray<Target> TargetArray;
+        [NativeDisableParallelForRestriction] public NativeArray<TargetPoint> TargetArray;
         [NativeDisableParallelForRestriction] public NativeArray<float> SpeedArray;
         [NativeDisableParallelForRestriction] public NativeList<int> OnTargetNativeList;
 
@@ -93,12 +101,12 @@ namespace td.systems.behaviors
             
             //-----
             
-            transform.position = Vector3.MoveTowards(transform.position, target.target, DeltaTime * speed);
+            transform.position = Vector3.MoveTowards(transform.position, target.Target, DeltaTime * speed);
             
             //-----
 
-            var distance = (target.target - (Vector2)transform.position).sqrMagnitude;
-            var gap2 = target.gap * target.gap;
+            var distance = (target.Target - (Vector2)transform.position).sqrMagnitude;
+            var gap2 = target.Gap * target.Gap;
             
             if (distance <= gap2)
             {

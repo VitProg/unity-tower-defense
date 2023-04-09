@@ -14,18 +14,18 @@ namespace td.features.enemies
         [EcsInject] private LevelState levelState;
         [EcsWorld] private EcsWorld world;
         
-        private readonly EcsFilterInject<Inc<EnemyDiedCommand, EnemyState>> enteties = default;
+        private readonly EcsFilterInject<Inc<EnemyDiedCommand, Enemy>> enteties = default;
 
         public void Run(IEcsSystems systems)
         {
             foreach (var enemyEntity in enteties.Value)
             {
-                ref var enemyState = ref enteties.Pools.Inc2.Get(enemyEntity);
+                ref var enemy = ref enteties.Pools.Inc2.Get(enemyEntity);
 
                 //todo тут можно запустиить анимацию смерти, эфекты, добавление очков и т.п.
                 world.AddComponent<RemoveGameObjectCommand>(enemyEntity);
 
-                levelState.Money += enemyState.money;
+                levelState.Money += enemy.money;
 
                 // Debug.Log(">>> ENEMY IS DEAD!!");
             }

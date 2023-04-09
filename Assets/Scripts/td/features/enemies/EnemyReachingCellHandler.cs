@@ -1,13 +1,12 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.components.attributes;
+using td.components.behaviors;
 using td.components.commands;
 using td.components.events;
-using td.components.flags;
-using td.components.links;
 using td.services;
 using td.utils;
 using td.utils.ecs;
+using UnityEngine;
 
 namespace td.features.enemies
 {
@@ -16,17 +15,17 @@ namespace td.features.enemies
         [EcsInject] private LevelMap levelMap;
         [EcsWorld] private EcsWorld world;
         
-        private readonly EcsFilterInject<Inc<ReachingTargetEvent, IsEnemy>> entities;
+        private readonly EcsFilterInject<Inc<ReachingTargetEvent, Enemy, LinearMovementToTarget>> entities;
 
         public void Run(IEcsSystems systems)
         {
             foreach (var entity in entities.Value)
             {
-                ref var target = ref world.GetComponent<Target>(entity);
-                ref var movableOffset = ref world.GetComponent<MovableOffset>(entity);
-                ref var gameObjectLink = ref world.GetComponent<GameObjectLink>(entity);
+                ref var enemy = ref entities.Pools.Inc2.Get(entity);
+                ref var movementToTarget = ref entities.Pools.Inc3.Get(entity);
+                ref var gameObjectLink = ref world.GetComponent<Ref<GameObject>>(entity);
 
-                var cell = levelMap.GetCell(target.target);
+                var cell = levelMap.GetCell(movementToTarget.target);
                 var nextCell = levelMap.GetCell(cell.NextCellCoordinates);
 
                 if (cell.IsKernel)
@@ -39,7 +38,7 @@ namespace td.features.enemies
                 {
                     var rotation = EnemyUtils.LookToNextCell(cell.Coordinates, nextCell.Coordinates);
 
-                    var transform = gameObjectLink.gameObject.transform;
+                    var transform = gameObjectLink.reference.transform;
                     
                     if (transform.rotation != rotation)
                     {
@@ -47,7 +46,7 @@ namespace td.features.enemies
 
                         if (angularSpeed < Constants.Enemy.SmoothRotationThreshold)
                         {
-                            world.AddComponent(entity, new SmoothRotateCommand()
+                            world.AddComponent(entity, new SmoothRotation()
                             {
                                 From = transform.rotation,
                                 To = rotation,
@@ -60,10 +59,10 @@ namespace td.features.enemies
                         }
                     }
 
-                    target.target = EnemyUtils.TargetPosition(
+                    movementToTarget.target = EnemyUtils.TargetPosition(
                         nextCell.Coordinates,
                         rotation,
-                        movableOffset.offset
+                        enemy.offset
                     );;
                 }
             }

@@ -1,8 +1,5 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Unity.Ugui;
-using td.components.attributes;
-using td.components.behaviors;
-using td.components.links;
 using td.states;
 using td.utils.ecs;
 using UnityEngine;

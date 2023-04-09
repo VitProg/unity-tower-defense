@@ -26,17 +26,17 @@ namespace td.utils
         {
             var angularSpeed = Constants.Enemy.DefaultAngularSpeed;
                         
-            if (world.HasComponent<EnemyState>(ennemyEntity))
+            if (world.HasComponent<Enemy>(ennemyEntity))
             {
-                ref var spawConfig = ref world.GetComponent<EnemyState>(ennemyEntity);
-                angularSpeed = spawConfig.angularSpeed > Constants.Enemy.MinAngularSpeed 
-                    ? spawConfig.angularSpeed
+                ref var enemy = ref world.GetComponent<Enemy>(ennemyEntity);
+                angularSpeed = enemy.angularSpeed > Constants.Enemy.MinAngularSpeed 
+                    ? enemy.angularSpeed
                     : Constants.Enemy.DefaultAngularSpeed;
             }
 
             return angularSpeed;
         }
 
-        public static int GetEnemiesCount(EcsWorld world) => world.Filter<IsEnemy>().Exc<IsEnemyDead>().End().GetEntitiesCount();
+        public static int GetEnemiesCount(EcsWorld world) => world.Filter<Enemy>().Exc<IsEnemyDead>().End().GetEntitiesCount();
     }
 }

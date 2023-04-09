@@ -1,6 +1,7 @@
 ﻿using System;
 using Shapes2D;
 using td.components.flags;
+using td.features.towers;
 using UnityEngine;
 
 namespace td.monoBehaviours
@@ -11,7 +12,7 @@ namespace td.monoBehaviours
 #endif
     public class TowerRadius : MonoBehaviour
     {
-        private IsTowerProvider isTowerProvider;
+        private TowerProvider Tower;
         private float lastRadius = -1f;
         private Shape shape;
         private Transform radiusTransform;
@@ -21,7 +22,7 @@ namespace td.monoBehaviours
         {
             try
             {
-                isTowerProvider = GetComponent<IsTowerProvider>();
+                Tower = GetComponent<TowerProvider>();
                 radiusTransform = transform.Find("radius");
                 shape = radiusTransform.GetComponent<Shape>();
             }
@@ -30,27 +31,27 @@ namespace td.monoBehaviours
                 // ignored
             }
         }
-
+        
         private void Update()
         {
             try
             {
-                if (!isTowerProvider)
+                if (!Tower)
                 {
-                    isTowerProvider = GetComponent<IsTowerProvider>();
+                    Tower = GetComponent<TowerProvider>();
                 }
-
+        
                 if (!radiusTransform)
                 {
                     radiusTransform = transform.Find("radius");
                 }
-
+        
                 if (!shape)
                 {
                     shape = radiusTransform.GetComponent<Shape>();
                 }
             
-                var radius = isTowerProvider.component.radius;
+                var radius = Tower.component.radius;
                 if (Math.Abs(lastRadius - radius) > Constants.ZeroFloat)
                 {
                     lastRadius = radius;

@@ -1,6 +1,5 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.components.links;
 using td.services;
 using td.utils;
 using td.utils.ecs;
@@ -12,7 +11,7 @@ namespace td.features.enemies
     {
         [EcsInject] private LevelMap levelMap;
 
-        private readonly EcsFilterInject<Inc<IsEnemy, GameObjectLink>, Exc<IsEnemyDead>> entities = default;
+        private readonly EcsFilterInject<Inc<Enemy, Ref<GameObject>>, Exc<IsEnemyDead>> entities = default;
             
         public void Run(IEcsSystems systems)
         {
@@ -20,7 +19,7 @@ namespace td.features.enemies
             {
                 ref var enemy = ref entities.Pools.Inc1.Get(entity);
                 var enemyGameObject = entities.Pools.Inc2.Get(entity);
-                var enemyPosition = enemyGameObject.gameObject.transform.position;
+                var enemyPosition = enemyGameObject.reference.transform.position;
                 var enemyCoordinate = GridUtils.GetGridCoordinate(enemyPosition);
                 var cell = levelMap.GetCell(enemyCoordinate);
                 

@@ -15,7 +15,7 @@ namespace td.features.waves
         [EcsInject] private LevelState levelState;
         [EcsInject] private LevelMap levelMap;
         
-        private readonly EcsFilterInject<Inc<IsEnemy>> enemyEntities = default;
+        private readonly EcsFilterInject<Inc<Enemy>> enemyEntities = default;
         private readonly EcsFilterInject<Inc<AllEnemiesAreOverOuterWait>> outerEntities = Constants.Worlds.Outer;
         private readonly EcsFilterInject<Inc<SpawnSequence>> spawnSequenceEntities = default;
 

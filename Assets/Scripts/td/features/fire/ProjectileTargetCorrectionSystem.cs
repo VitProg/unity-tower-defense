@@ -1,15 +1,14 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.components.attributes;
-using td.components.links;
-using td.features.fire.components;
+using td.components.behaviors;
 using td.utils.ecs;
+using UnityEngine;
 
 namespace td.features.fire
 {
     public class ProjectileTargetCorrectionSystem : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<IsProjectile, FireTarget, Target, GameObjectLink>> entities = default;
+        private readonly EcsFilterInject<Inc<IsProjectile, FireTarget, LinearMovementToTarget, Ref<GameObject>>> entities = default;
 
         public void Run(IEcsSystems systems)
         {
@@ -25,8 +24,11 @@ namespace td.features.fire
                     continue;
                 }
                 
-                ref var targetGameObject = ref world.GetComponent<GameObjectLink>(targetEntity);
-                target.target = targetGameObject.gameObject.transform.position;
+                ref var targetGameObject = ref world.GetComponent<Ref<GameObject>>(targetEntity);
+                target.target = targetGameObject.reference.transform.position;
+
+                var a = world.GetComponent<Ref<GameObject>>(targetEntity);
+                var b = 1;
             }
         }
     }

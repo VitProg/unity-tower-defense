@@ -22,7 +22,7 @@ namespace td.features.impactsEnemy
                     continue;
                 }
                 
-                ref var enemyState = ref world.GetComponent<EnemyState>(enemyEntity);
+                ref var enemyState = ref world.GetComponent<Enemy>(enemyEntity);
                 
                 // ToDo
             }

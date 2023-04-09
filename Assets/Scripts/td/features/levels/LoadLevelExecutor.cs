@@ -1,33 +1,41 @@
 ﻿using System;
-using System.Diagnostics;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.common.decorators;
-using td.common.level;
 using td.components.commands;
+using td.components.flags;
+using td.features.ui;
+using td.features.waves;
 using td.services;
-using td.utils;
+using td.states;
 using td.utils.ecs;
-using UnityEngine;
-using Debug = UnityEngine.Debug;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 namespace td.features.levels
 {
     // todo rewrite to load level service
-    public class LoadLevelExecutor: IEcsRunSystem
+
+    public class LoadLevelExecutor : IEcsRunSystem
     {
         [EcsInject] private LevelMap levelMap;
-        
+        [EcsInject] private LevelState levelState;
+        [EcsInject] private LevelLoader levelLoader;
+        [EcsInject] private PathService pathService;
+
         private readonly EcsFilterInject<Inc<LoadLevelOuterCommand>> eventEntities = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
             foreach (var eventEntity in eventEntities.Value)
             {
-                RunInternal(systems, eventEntity);
-                
+                try
+                {
+                    RunInternal(systems, eventEntity);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e);
+                    throw;
+                }
+
                 systems.CleanupOuter(eventEntities);
                 break;
             }
@@ -35,33 +43,25 @@ namespace td.features.levels
 
         private void RunInternal(IEcsSystems systems, int entity)
         {
-            // Debug.Log("LoadLevelExecutor RUN...");
-
             var levelNumber = eventEntities.Pools.Inc1.Get(entity).levelNumber;
-            try
-            {
-                var levelConfig = ResourcesUtils.LoadJson<LevelConfig>($"Levels/{levelNumber}");
-                levelMap.LevelConfig = levelConfig;
-                // Debug.Log(levelConfig);
+            levelState.LevelNumber = levelNumber;
 
-                var levelPrefab = Resources.Load<GameObject>($"Levels/{levelNumber}");
-                Object.Instantiate(levelPrefab);
+            levelLoader.LoadLevel(levelNumber);
+            pathService.InitPath();
+            
+            systems.CleanupOuter<IsLoadingOuter>();
+            systems.SendSingleOuter(UpdateUIOuterCommand.FromLevelState(levelState));
 
-                // todo load prefab with level
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-            finally
-            {
-                systems.SendOuter<LevelInitOuterCommand>();
-                
-                systems.CleanupOuter<LoadLevelOuterCommand>();
+            var countdown = levelState.WaveNumber <= 0
+                ? levelMap.LevelConfig?.delayBeforeFirstWave
+                : levelMap.LevelConfig?.delayBetweenWaves;
 
-                // Debug.Log("LoadLevelExecutor FIN");
-            }
+            systems.SendSingleOuter(new NextWaveCountdownOuter()
+            {
+                countdown = countdown ?? 0,
+            });
+            
+            systems.SendOuter<LevelLoadedOuterEvent>();
         }
     }
 }

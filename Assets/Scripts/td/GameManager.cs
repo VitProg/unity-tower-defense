@@ -14,6 +14,7 @@ using td.features.impactsEnemy;
 using td.features.impactsKernel;
 using td.features.input;
 using td.features.levels;
+using td.features.towers;
 using td.features.ui;
 using td.features.waves;
 using td.services;
@@ -58,30 +59,22 @@ namespace td
             LevelState = new LevelState(systems, 1);
             LevelMap = new LevelMap(LevelState);
 
+            var levelLoader = new LevelLoader(LevelMap);
+            var pathService = new PathService(LevelMap);
+
             systems
                 .AddWorld(outerWorld, Constants.Worlds.Outer)
                 .AddWorld(uguiWorld, Constants.Worlds.UI)
 
                 #region Levels
-
-                // todo rewrite to load level service
                 .Add(new LoadLevelExecutor())
-                // .DelHere<LoadLevelOuterCommand>(Constants.Worlds.Outer)
-                .Add(new LevelInitExecutor())
-                // .DelHere<LevelInitOuterCommand>(Constants.Worlds.Outer)
-                .Add(new PathInitExecutor())
-                // .DelHere<PathInitOuterCommand>(Constants.Worlds.Outer)
-                .Add(new LevelLoadedHandler())
-                // .DelHere<LevelLoadedOuterEvent>(Constants.Worlds.Outer)
-                .Add(new BuildingsInitSystem())
-                // end todo
-
+                .DelHere<LevelLoadedOuterEvent>(Constants.Worlds.Outer)
                 #endregion
 
                 .Add(new MoveToTargetSystem())
                 .Add(new SmoothRotateExecutor())
 
-                #region Fire
+                #region Tower/Fire
 
                 .Add(new CalcDistanceToKernelSystem())
                 .Add(new FindTargetByRadiusSystem())
@@ -90,7 +83,7 @@ namespace td
                 .Add(new ProjectileReachTargetHandler())
 
                 #endregion
-
+                
                 #region Inpacts
 
                 // обработка команды получения урона вррагом
@@ -183,7 +176,7 @@ namespace td
                 .Add(new ConvertSceneSys())
                 .Add(new SturtupInitSystem())
                 .Inject()
-                .InjectLite(LevelState, LevelMap)
+                .InjectLite(LevelState, LevelMap, levelLoader, pathService)
                 .InjectUgui(uguiEmitter, Constants.Worlds.UI)
                 .Init();
         }

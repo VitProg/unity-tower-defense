@@ -19,18 +19,18 @@ namespace td.features.enemyImpacts
                 var takeDamage = eventEntities.Pools.Inc1.Get(eventEntity);
 
                 if (!takeDamage.TargetEntity.Unpack(world, out var enemyEntity) ||
-                    !world.HasComponent<EnemyState>(enemyEntity) ||
+                    !world.HasComponent<Enemy>(enemyEntity) ||
                     world.HasComponent<IsEnemyDead>(enemyEntity)
                 )
                 {
                     continue;
                 }
 
-                ref var enemyStat = ref world.GetComponent<EnemyState>(enemyEntity);
+                ref var enemy = ref world.GetComponent<Enemy>(enemyEntity);
 
-                enemyStat.health -= takeDamage.damage;
+                enemy.health -= takeDamage.damage;
 
-                if (enemyStat.health < 0)
+                if (enemy.health < 0)
                 {
                     world.AddComponent<IsEnemyDead>(enemyEntity);
                     world.AddComponent<EnemyDiedCommand>(enemyEntity);

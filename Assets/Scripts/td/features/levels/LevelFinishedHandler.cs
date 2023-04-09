@@ -2,7 +2,6 @@
 using Leopotam.EcsLite.Di;
 using td.features.enemies;
 using td.features.waves;
-using td.services;
 using td.states;
 using td.utils.ecs;
 using UnityEngine;
@@ -14,7 +13,7 @@ namespace td.features.levels
         [EcsInject] private LevelState levelState;
         [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
         
-        private readonly EcsFilterInject<Inc<IsEnemy>> enemyEntities = default;
+        private readonly EcsFilterInject<Inc<Enemy>> enemyEntities = default;
         private readonly EcsFilterInject<Inc<SpawnSequence>> spawnSequenceEntities = default;
 
         private readonly EcsFilterInject<Inc<LevelFinishedOuterEvent>> eventEntities = Constants.Worlds.Outer;

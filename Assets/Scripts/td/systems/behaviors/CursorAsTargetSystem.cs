@@ -1,6 +1,5 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.components.attributes;
 using td.components.behaviors;
 using td.utils.ecs;
 using UnityEngine;
@@ -11,7 +10,7 @@ namespace td.systems.behaviors
     {
         [EcsWorld] private EcsWorld world;
         
-        private readonly EcsFilterInject<Inc<MoveToTarget>> entities = default;
+        private readonly EcsFilterInject<Inc<LinearMovementToTarget>> entities = default;
 
         public void Run(IEcsSystems systems)
         {
@@ -23,16 +22,16 @@ namespace td.systems.behaviors
 
             foreach (var entity in entities.Value)
             {
-                if (world.HasComponent<Target>(entity))
+                if (world.HasComponent<TargetPoint>(entity))
                 {
-                    world.GetComponent<Target>(entity).target = worldPos;
+                    world.GetComponent<TargetPoint>(entity).Target = worldPos;
                 }
                 else
                 {
-                    world.AddComponent(entity, new Target()
+                    world.AddComponent(entity, new TargetPoint()
                     {
-                        target = worldPos,
-                        gap = Constants.DefaultGap,
+                        Target = worldPos,
+                        Gap = Constants.DefaultGap,
                     });
                 }
             }
