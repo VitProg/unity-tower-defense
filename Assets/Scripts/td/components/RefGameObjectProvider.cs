@@ -1,7 +1,7 @@
 ﻿using Mitfart.LeoECSLite.UniLeo.Providers;
 using UnityEngine;
 
-namespace td
+namespace td.components
 {
     public class RefGameObjectProvider : EcsProvider<Ref<GameObject>>
     {

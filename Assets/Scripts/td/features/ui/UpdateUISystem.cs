@@ -11,13 +11,13 @@ namespace td.features.ui
     {
         private readonly EcsFilterInject<Inc<UpdateUIOuterCommand>> entities = Constants.Worlds.Outer;
         
-        [EcsUguiNamed(Constants.UI.LivesLabel)] private TMP_Text livesLabelText;
-        [EcsUguiNamed(Constants.UI.MoneyLabel)] private TMP_Text moneyLabelText;
-        [EcsUguiNamed(Constants.UI.WaveCountdown)] private GameObject waveCountdownLabel;
-        [EcsUguiNamed(Constants.UI.WaveCountdownLabel)] private TMP_Text waveCountdownLabelText;
-        [EcsUguiNamed(Constants.UI.WaveLabel)] private GameObject waveLabel;
-        [EcsUguiNamed(Constants.UI.WaveLabel)] private TMP_Text waveLabelText;
-        [EcsUguiNamed(Constants.UI.EnemiesLabel)] private TMP_Text enemiesLabelText;
+        [EcsUguiNamed(Constants.UI.Components.LivesLabel)] private TMP_Text livesLabelText;
+        [EcsUguiNamed(Constants.UI.Components.MoneyLabel)] private TMP_Text moneyLabelText;
+        [EcsUguiNamed(Constants.UI.Components.WaveCountdown)] private GameObject waveCountdownLabel;
+        [EcsUguiNamed(Constants.UI.Components.WaveCountdownLabel)] private TMP_Text waveCountdownLabelText;
+        [EcsUguiNamed(Constants.UI.Components.WaveLabel)] private GameObject waveLabel;
+        [EcsUguiNamed(Constants.UI.Components.WaveLabel)] private TMP_Text waveLabelText;
+        [EcsUguiNamed(Constants.UI.Components.EnemiesLabel)] private TMP_Text enemiesLabelText;
         
         private readonly Regex oneNumberRegex = new(@"[\d#.-]+");
         private readonly Regex waveRegex = new(@"(\d+|#+)/(\d+|#+)");

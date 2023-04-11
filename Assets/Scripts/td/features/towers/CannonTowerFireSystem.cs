@@ -1,6 +1,8 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.components;
 using td.components.behaviors;
+using td.components.flags;
 using td.features.enemies;
 using td.features.fire;
 using td.utils.ecs;
@@ -10,7 +12,10 @@ namespace td.features.towers
 {
     public class CannonTowerFireSystem : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<CannonTower, Tower, Ref<GameObject>>> entities = default;
+        private readonly EcsFilterInject<
+            Inc<CannonTower, Tower, Ref<GameObject>>,
+            Exc<IsDragging>
+        > entities = default;
 
         public void Run(IEcsSystems systems)
         {
@@ -23,9 +28,9 @@ namespace td.features.towers
                 var connonGameObject = entities.Pools.Inc3.Get(entity);
 
                 connon.fireCountdown -= Time.deltaTime;
-                
+
                 var lunchProjectile = false;
-                
+
                 if (connon.fireCountdown < Constants.ZeroFloat)
                 {
                     connon.fireCountdown = 1f / connon.fireRate;
@@ -45,7 +50,7 @@ namespace td.features.towers
                     var enemy = world.GetComponent<Enemy>(enemyEntity);
                     var enemyGameObject = world.GetComponent<Ref<GameObject>>(enemyEntity);
                     var enemyTarget = world.GetComponent<LinearMovementToTarget>(enemyEntity);
-                    
+
                     var enemyPostiion = enemyGameObject.reference.transform.position;
 
                     var projectilePosition = connonGameObject.reference.transform.position;
@@ -63,7 +68,7 @@ namespace td.features.towers
                     enemyVector *= ((enemy.speed / 2f) + (connon.projectileSpeed / 2f)) * (distance / 10f);
 
                     projectileTarget += enemyVector; //todo
-                    
+
                     var projectileGameObject = Object.Instantiate(
                         (GameObject)Resources.Load("Prefabs/projectiles/bullet", typeof(GameObject)),
                         projectilePosition,
@@ -71,7 +76,7 @@ namespace td.features.towers
                         connonGameObject.reference.transform
                     );
                     var projectileEntity = world.ConvertToEntity(projectileGameObject);
-                    
+
                     world.GetComponent<IsProjectile>(projectileEntity).damage = connon.damage;
                     world.AddComponent<LinearMovementToTarget>(projectileEntity) = new LinearMovementToTarget()
                     {

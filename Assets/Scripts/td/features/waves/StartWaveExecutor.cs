@@ -12,7 +12,7 @@ namespace td.features.waves
     {
         [EcsInject] private LevelState levelState;
         [EcsInject] private LevelMap levelMap;
-        
+
         [EcsWorld] private EcsWorld world;        
         [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 

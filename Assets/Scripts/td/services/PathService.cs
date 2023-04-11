@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using td.common;
+using td.common.cells;
 using UnityEngine;
 
 namespace td.services
@@ -11,7 +12,7 @@ namespace td.services
         private readonly Int2 toTop = new(0, 1);
         private readonly Int2 toBottom = new(0, -1);
 
-        private readonly Queue<Cell> queue = new();
+        private readonly Queue<CellCanWalk> queue = new();
 
         private readonly LevelMap levelMap;
         
@@ -30,7 +31,7 @@ namespace td.services
             uint kernelIndex = 1;
             foreach (var kernel in kernels)
             {
-                var kernelCell = levelMap.GetCell(kernel.Coordinates);
+                var kernelCell = levelMap.GetCell<CellCanWalk>(kernel.Coordinates);
                 Debug.Assert(kernelCell != null);
                 kernelCell.kernel = kernelIndex;
                 kernelCell.distanceToKernel = 0;
@@ -47,16 +48,16 @@ namespace td.services
             queue.Clear();
         }
 
-        private void Tick(Cell cell)
+        private void Tick(CellCanWalk cell)
         {
             var even = cell.Coordinates.x % 2 == 0;
 
-            var nearestCells = new Cell[4]
+            var nearestCells = new CellCanWalk[4]
             {
-                levelMap.GetCell(cell.Coordinates - (even ? toLeft : toTop)),
-                levelMap.GetCell(cell.Coordinates - (even ? toBottom : toLeft)),
-                levelMap.GetCell(cell.Coordinates - (even ? toRight : toBottom)),
-                levelMap.GetCell(cell.Coordinates - (even ? toTop : toRight)),
+                levelMap.GetCell<CellCanWalk>(cell.Coordinates - (even ? toLeft : toTop)),
+                levelMap.GetCell<CellCanWalk>(cell.Coordinates - (even ? toBottom : toLeft)),
+                levelMap.GetCell<CellCanWalk>(cell.Coordinates - (even ? toRight : toBottom)),
+                levelMap.GetCell<CellCanWalk>(cell.Coordinates - (even ? toTop : toRight)),
             };
 
             foreach (var nearestCell in nearestCells)

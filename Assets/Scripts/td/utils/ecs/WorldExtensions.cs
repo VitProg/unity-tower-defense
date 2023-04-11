@@ -40,7 +40,7 @@ namespace td.utils.ecs
             }
             return ref pool.Get(entity);
         }
-
+        
         public static bool HasComponent<T>(this EcsWorld world, int entity) where T : struct
         {
             var pool = world.GetPool<T>();

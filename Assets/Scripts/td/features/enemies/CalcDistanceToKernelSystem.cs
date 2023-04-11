@@ -1,5 +1,7 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.common.cells;
+using td.components;
 using td.services;
 using td.utils;
 using td.utils.ecs;
@@ -21,11 +23,12 @@ namespace td.features.enemies
                 var enemyGameObject = entities.Pools.Inc2.Get(entity);
                 var enemyPosition = enemyGameObject.reference.transform.position;
                 var enemyCoordinate = GridUtils.GetGridCoordinate(enemyPosition);
-                var cell = levelMap.GetCell(enemyCoordinate);
-                
-                if (!cell.IsKernel)
-                {
-                    var nextCell = levelMap.GetCell(cell.NextCellCoordinates);
+
+                if (
+                    levelMap.TryGetCell<CellCanWalk>(enemyCoordinate, out var cell) &&
+                    !cell.IsKernel &&
+                    levelMap.TryGetCell<CellCanWalk>(cell.NextCellCoordinates, out var nextCell)
+                ) {
                     var numberOfCellsToKernel = cell.distanceToKernel;
                     var nextCellPosition = GridUtils.GetVector(nextCell.Coordinates);
 

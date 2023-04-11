@@ -16,5 +16,8 @@ namespace td.utils
                 coordinate.x * 2.0f,
                 coordinate.y * 2.0f
             );
+
+        public static Vector2 SnapToGrid(Vector2 position) =>
+            GetVector(GetGridCoordinate(position));
     }
 }

@@ -1,15 +1,13 @@
 ﻿using System;
 using UnityEngine;
 
-namespace td.common
+namespace td.common.cells
 {
     [Serializable]
-    public class Cell
+    public class CellCanWalk : ICell
     {
-        public Int2 Coordinates;
-        public bool walkable;
-        public bool space;
-        public int buildEntity;
+        public Int2 Coordinates { get; set; }
+        
         public Int2 NextCellCoordinates;
         public bool hasNext;
         public int distanceToKernel;

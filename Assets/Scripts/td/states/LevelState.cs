@@ -20,7 +20,6 @@ namespace td.states
         private int waveNumber;
         private int waveCount;
         private int enemiesCount;
-        private bool isLastWave;
 
         public LevelState(IEcsSystems systems, int levelNumber)
         {
@@ -129,9 +128,19 @@ namespace td.states
             get => isBuildingProcess;
             set
             {
+                if (isBuildingProcess == value) return;
                 isBuildingProcess = value;
                 systems.SendOuter(new BuildingProcess() { enabled = value });
             }
+        }
+
+        public void ClearForNewLevel()
+        {
+            EnemiesCount = 0;
+            WaveCount = 0;
+            WaveNumber = 0;
+            IsBuildingProcess = false;
+            nextWaveCountdown = 0;
         }
     }
 }

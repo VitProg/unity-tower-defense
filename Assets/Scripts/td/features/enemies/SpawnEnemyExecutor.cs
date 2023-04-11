@@ -1,6 +1,8 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common;
+using td.common.cells;
+using td.components;
 using td.components.behaviors;
 using td.services;
 using td.states;
@@ -10,13 +12,14 @@ using UnityEngine;
 
 namespace td.features.enemies
 {
-    public class SpawnEnemyExecutor : IEcsRunSystem
+    public class SpawnEnemyExecutor : IEcsRunSystem, IEcsInitSystem
     {
         [EcsInject] private LevelMap levelMap;
         [EcsInject] private LevelState levelState;
         [EcsShared] private SharedData shared;
-        
+
         private readonly EcsFilterInject<Inc<SpawnEnemyOuterCommand>> eventEntities = Constants.Worlds.Outer;
+        private GameObject containerForEnemies;
 
         public void Run(IEcsSystems systems)
         {
@@ -29,11 +32,12 @@ namespace td.features.enemies
                 var enemyConfig = shared.GetEnemyConfig(spawnCommand.enemyName);
 
                 var spawn = levelMap.Spawns[spawnCommand.spawner];
-                var spawnCell = levelMap.GetCell(spawn.Coordinates);
-                var nextCell = levelMap.GetCell(spawnCell.NextCellCoordinates);
-
-                var containerForEnemies = GameObject.FindGameObjectWithTag(Constants.Tags.EnemiesContainer);
                 
+                if (
+                    !levelMap.TryGetCell<CellCanWalk>(spawn.Coordinates, out var spawnCell) ||
+                    !levelMap.TryGetCell<CellCanWalk>(spawnCell.NextCellCoordinates, out var nextCell)
+                ) continue;
+
                 var position = GridUtils.GetVector(spawn.Coordinates) + spawnCommand.offset;
                 var rotation = EnemyUtils.LookToNextCell(spawnCell.Coordinates, nextCell.Coordinates);
 
@@ -44,11 +48,11 @@ namespace td.features.enemies
                     containerForEnemies.transform
                 );
                 var enemyEntity = world.ConvertToEntity(enemyGameObject);
-                
+
                 enemyGameObject.transform.localScale = new Vector2(spawnCommand.scale, spawnCommand.scale);
 
                 enemyGameObject.transform.rotation = rotation;
-                
+
                 ref var go = ref world.GetComponent<Ref<GameObject>>(enemyEntity);
                 go.reference = enemyGameObject;
 
@@ -64,8 +68,8 @@ namespace td.features.enemies
                 enemy.scale = spawnCommand.scale;
                 enemy.offset = spawnCommand.offset;
                 enemy.money = spawnCommand.money;
-                
-                world.AddComponent( enemyEntity, new LinearMovementToTarget()
+
+                world.AddComponent(enemyEntity, new LinearMovementToTarget()
                 {
                     target = EnemyUtils.TargetPosition(
                         nextCell.Coordinates,
@@ -80,6 +84,11 @@ namespace td.features.enemies
 
                 outerWorld.DelEntity(eventEntity);
             }
+        }
+
+        public void Init(IEcsSystems systems)
+        {
+            containerForEnemies = GameObject.FindGameObjectWithTag(Constants.Tags.EnemiesContainer);
         }
     }
 }

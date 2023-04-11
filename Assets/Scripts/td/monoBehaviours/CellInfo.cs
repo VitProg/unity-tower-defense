@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using td.common;
+using td.common.cells;
 using UnityEngine;
 
 namespace td.monoBehaviours
@@ -8,11 +9,11 @@ namespace td.monoBehaviours
     public class CellInfo : MonoBehaviour
     {
 #if UNITY_EDITOR
-        [SerializeField] public Cell CellData { get; private set; }
+        [SerializeField] public ICell CellData { get; private set; }
 
-        public void SetCell(Cell cell)
+        public void SetCell(ICell cell)
         {
-            this.CellData = cell;
+            CellData = cell;
         }
 #endif
     }

@@ -59,7 +59,7 @@ namespace td
             LevelState = new LevelState(systems, 1);
             LevelMap = new LevelMap(LevelState);
 
-            var levelLoader = new LevelLoader(LevelMap);
+            var levelLoader = new LevelLoader(LevelMap, LevelState);
             var pathService = new PathService(LevelMap);
 
             systems
@@ -156,6 +156,7 @@ namespace td
                 .Add(new UpdateUISystem())
                 .DelHere<UpdateUIOuterCommand>(Constants.Worlds.Outer)
                 .Add(new UIInputSystem())
+                .Add(new TowerDragAndDropSystem())
 
                 #endregion
 

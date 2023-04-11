@@ -8,6 +8,7 @@ using td.features.waves;
 using td.services;
 using td.states;
 using td.utils.ecs;
+using UnityEngine;
 
 namespace td.features.levels
 {
@@ -46,22 +47,30 @@ namespace td.features.levels
             var levelNumber = eventEntities.Pools.Inc1.Get(entity).levelNumber;
             levelState.LevelNumber = levelNumber;
 
-            levelLoader.LoadLevel(levelNumber);
-            pathService.InitPath();
-            
-            systems.CleanupOuter<IsLoadingOuter>();
-            systems.SendSingleOuter(UpdateUIOuterCommand.FromLevelState(levelState));
-
-            var countdown = levelState.WaveNumber <= 0
-                ? levelMap.LevelConfig?.delayBeforeFirstWave
-                : levelMap.LevelConfig?.delayBetweenWaves;
-
-            systems.SendSingleOuter(new NextWaveCountdownOuter()
+            if (levelLoader.HasLevel())
             {
-                countdown = countdown ?? 0,
-            });
-            
-            systems.SendOuter<LevelLoadedOuterEvent>();
+
+                levelLoader.LoadLevel(systems);
+                pathService.InitPath();
+
+                systems.CleanupOuter<IsLoadingOuter>();
+                systems.SendSingleOuter(UpdateUIOuterCommand.FromLevelState(levelState));
+
+                var countdown = levelState.WaveNumber <= 0
+                    ? levelMap.LevelConfig?.delayBeforeFirstWave
+                    : levelMap.LevelConfig?.delayBetweenWaves;
+
+                systems.SendSingleOuter(new NextWaveCountdownOuter()
+                {
+                    countdown = countdown ?? 0,
+                });
+
+                systems.SendOuter<LevelLoadedOuterEvent>();
+            }
+            else
+            {
+                Debug.Log("ALL LEVELS ARE FINISHED!");
+            }
         }
     }
 }

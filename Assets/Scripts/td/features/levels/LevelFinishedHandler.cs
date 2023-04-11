@@ -1,5 +1,7 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.components.commands;
+using td.components.flags;
 using td.features.enemies;
 using td.features.waves;
 using td.states;
@@ -30,6 +32,11 @@ namespace td.features.levels
                     enemiesCount <= 0)
                 {
                     Debug.Log("LEVEL COMPLETE!!!");
+                    systems.SendOuter(new LoadLevelOuterCommand()
+                    {
+                        levelNumber = levelState.LevelNumber + 1,
+                    });
+                    systems.SendOuter<IsLoadingOuter>();
                 }
             }
             systems.CleanupOuter(eventEntities);

@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.components;
 using td.components.behaviors;
 using td.components.commands;
 using td.components.events;
@@ -35,7 +36,7 @@ namespace td.systems.behaviors
         {
             var entitiesCount = entities.Value.GetEntitiesCount();
 
-            var entitiesNativeArray = new NativeArray<int>(entitiesCount, Allocator.TempJob);
+            var entitiesNativeArray = new NativeArray<EcsPackedEntity>(entitiesCount, Allocator.TempJob);
             var targetNativeArray = new NativeArray<TargetPoint>(entitiesCount, Allocator.TempJob);
             var speedNativeArray = new NativeArray<float>(entitiesCount, Allocator.TempJob);
             var transforms = new TransformAccessArray(entitiesCount, 3);
@@ -44,7 +45,7 @@ namespace td.systems.behaviors
             var index = 0;
             foreach (var entity in entities.Value)
             {
-                entitiesNativeArray[index] = entity;
+                entitiesNativeArray[index] = world.PackEntity(entity);
 
                 ref var gameObjectLink = ref entities.Pools.Inc1.Get(entity);
                 ref var movementToTarget = ref entities.Pools.Inc2.Get(entity);
@@ -69,7 +70,10 @@ namespace td.systems.behaviors
 
             foreach (var onTargetIndex in onTargetNativeList)
             {
-                world.AddComponent<ReachingTargetEvent>(entitiesNativeArray[onTargetIndex]);
+                if (entitiesNativeArray[onTargetIndex].Unpack(world, out var entity))
+                {
+                    world.AddComponent<ReachingTargetEvent>(entity);
+                }
                 // systems.SendEvent(new ReachingTargetEvent()
                 // {
                     // TargetEntity = world.PackEntity(entitiesNativeArray[onTargetIndex])

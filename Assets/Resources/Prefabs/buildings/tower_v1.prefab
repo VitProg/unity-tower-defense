@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 2752856155444044506}
   - component: {fileID: 5253363014788896961}
   - component: {fileID: 1367021634144627161}
+  - component: {fileID: 7987634918749641521}
   m_Layer: 0
   m_Name: tower_v1
   m_TagString: Building
@@ -149,6 +150,18 @@ MonoBehaviour:
     projectileSpeed: 20
     spread: 0
     fireCountdown: 0
+--- !u!114 &7987634918749641521
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3978727077000616010}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e1b1d8de6a431b479b5377f44000fad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4821102308514209650
 GameObject:
   m_ObjectHideFlags: 0

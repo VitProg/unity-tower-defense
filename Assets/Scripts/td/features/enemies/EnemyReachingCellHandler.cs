@@ -1,5 +1,7 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.common.cells;
+using td.components;
 using td.components.behaviors;
 using td.components.commands;
 using td.components.events;
@@ -25,9 +27,11 @@ namespace td.features.enemies
                 ref var movementToTarget = ref entities.Pools.Inc3.Get(entity);
                 ref var gameObjectLink = ref world.GetComponent<Ref<GameObject>>(entity);
 
-                var cell = levelMap.GetCell(movementToTarget.target);
-                var nextCell = levelMap.GetCell(cell.NextCellCoordinates);
-
+                if (
+                    !levelMap.TryGetCell<CellCanWalk>(movementToTarget.target, out var cell) ||
+                    !levelMap.TryGetCell<CellCanWalk>(cell.NextCellCoordinates, out var nextCell)
+                ) continue;
+                
                 if (cell.IsKernel)
                 {
                     // send event
@@ -39,7 +43,7 @@ namespace td.features.enemies
                     var rotation = EnemyUtils.LookToNextCell(cell.Coordinates, nextCell.Coordinates);
 
                     var transform = gameObjectLink.reference.transform;
-                    
+
                     if (transform.rotation != rotation)
                     {
                         var angularSpeed = EnemyUtils.GetAngularSpeed(world, entity);
@@ -63,7 +67,8 @@ namespace td.features.enemies
                         nextCell.Coordinates,
                         rotation,
                         enemy.offset
-                    );;
+                    );
+                    ;
                 }
             }
         }

@@ -1,6 +1,8 @@
 ﻿using System;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.common.cells;
+using td.components;
 using td.features.enemies;
 using td.features.fire;
 using td.services;
@@ -52,8 +54,8 @@ namespace td.features.towers
                         
                         //todo select method by tower settings
                         var enemyCoordinate = GridUtils.GetGridCoordinate(enemyPosition);
-                        var cell = levelMap.GetCell(enemyCoordinate);
-                        if (!cell.IsKernel && enemy.distanceToKernel > 0)
+                        var cell = levelMap.GetCell<CellCanWalk>(enemyCoordinate);
+                        if (cell is { IsKernel: false } && enemy.distanceToKernel > 0)
                         {
                             distanceToKernel = enemy.distanceToKernel;
                         }

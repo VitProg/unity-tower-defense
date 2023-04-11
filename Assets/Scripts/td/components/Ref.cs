@@ -1,7 +1,6 @@
 ﻿using System;
-using Mitfart.LeoECSLite.UniLeo.Providers;
 
-namespace td
+namespace td.components
 {
     [Serializable]
     public struct Ref<T>

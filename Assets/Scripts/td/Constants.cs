@@ -1,4 +1,6 @@
-﻿namespace td
+﻿using UnityEngine;
+
+namespace td
 {
     public static class Constants
     {
@@ -46,20 +48,31 @@
         public static class Worlds
         {
             public const string Default = default;
-            public const string Outer = "events";
-            public const string UI = "ui-events";
+            public const string Outer = "outer";
+            public const string UI = "ui";
         }
-        
+
         public static class UI
         {
-            public const string LivesLabel = "LivesLabel";
-            public const string MoneyLabel = "MoneyLabel";
-            public const string WaveCountdownLabel = "WaveCountdownLabel";
-            public const string WaveCountdown = "WaveCountdown";
-            public const string WaveLabel = "WaveLabel";
-            public const string EnemiesLabel = "EnemiesLabel";
+            public static class DragNDrop
+            {
+                public const double TimeForAwaitDown = 0.1d;
+                public const bool Smooth = true;
+                public const float SmoothSpeed = 15f;
 
-            public const string AddTowerButton = "AddTower";
+            }
+
+            public static class Components
+            {
+                public const string LivesLabel = "LivesLabel";
+                public const string MoneyLabel = "MoneyLabel";
+                public const string WaveCountdownLabel = "WaveCountdownLabel";
+                public const string WaveCountdown = "WaveCountdown";
+                public const string WaveLabel = "WaveLabel";
+                public const string EnemiesLabel = "EnemiesLabel";
+
+                public const string AddTowerButton = "AddTower";
+            }
         }
     }
 }
