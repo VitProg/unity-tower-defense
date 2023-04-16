@@ -5,6 +5,8 @@ using td.components.behaviors;
 using td.components.flags;
 using td.features.enemies;
 using td.features.fire;
+using td.features.fire.projectiles;
+using td.services;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -12,38 +14,42 @@ namespace td.features.towers
 {
     public class CannonTowerFireSystem : IEcsRunSystem
     {
+        [EcsInject] private LevelMap levelMap;
+        
         private readonly EcsFilterInject<
             Inc<CannonTower, Tower, Ref<GameObject>>,
             Exc<IsDragging>
-        > entities = default;
+        > cannonEntities = default;
 
         public void Run(IEcsSystems systems)
         {
             var world = systems.GetWorld();
 
-            foreach (var entity in entities.Value)
+            foreach (var cannonEntity in cannonEntities.Value)
             {
-                ref var connon = ref entities.Pools.Inc1.Get(entity);
-                ref var tower = ref entities.Pools.Inc2.Get(entity);
-                var connonGameObject = entities.Pools.Inc3.Get(entity);
-
-                connon.fireCountdown -= Time.deltaTime;
+                ref var cannon = ref cannonEntities.Pools.Inc1.Get(cannonEntity);
+                ref var tower = ref cannonEntities.Pools.Inc2.Get(cannonEntity);
+                var connonGameObject = cannonEntities.Pools.Inc3.Get(cannonEntity);
 
                 var lunchProjectile = false;
 
-                if (connon.fireCountdown < Constants.ZeroFloat)
+                if (cannon.fireCountdown > 0)
                 {
-                    connon.fireCountdown = 1f / connon.fireRate;
+                    cannon.fireCountdown -= Time.deltaTime;
+                }
+
+                if (cannon.fireCountdown < Constants.ZeroFloat)
+                {
                     lunchProjectile = true;
                 }
 
                 if (!lunchProjectile ||
-                    !world.HasComponent<FireTarget>(entity))
+                    !world.HasComponent<FireTarget>(cannonEntity))
                 {
                     continue;
                 }
 
-                var target = world.GetComponent<FireTarget>(entity);
+                var target = world.GetComponent<FireTarget>(cannonEntity);
 
                 if (target.TargetEntity.Unpack(world, out var enemyEntity))
                 {
@@ -65,7 +71,7 @@ namespace td.features.towers
 
                     var enemyVector = (Vector3)enemyTarget.target - enemyPostiion;
                     enemyVector.Normalize();
-                    enemyVector *= ((enemy.speed / 2f) + (connon.projectileSpeed / 2f)) * (distance / 10f);
+                    enemyVector *= ((enemy.speed / 2f) + (cannon.projectileSpeed / 2f)) * (distance / 10f);
 
                     projectileTarget += enemyVector; //todo
 
@@ -75,13 +81,33 @@ namespace td.features.towers
                         new Quaternion(0, 0, 0, 0),
                         connonGameObject.reference.transform
                     );
+                    projectileGameObject.transform.localScale = Vector2.one * levelMap.CellSize;
                     var projectileEntity = world.ConvertToEntity(projectileGameObject);
 
-                    world.GetComponent<IsProjectile>(projectileEntity).damage = connon.damage;
+                    world.GetComponent<IsProjectile>(projectileEntity).WhoFired = world.PackEntity(cannonEntity);
+                    
+                    // todo применять различный тип снаряда, в зависимости от находящихся внутри осколков
+                    world.AddComponent(projectileEntity, new DamageProjectile()
+                    {
+                        damage = cannon.damage,
+                    });
+                    world.AddComponent(projectileEntity, new SlowingProjectile()
+                    {
+                        duration = 5f,
+                        speedMultipler = 1.5f
+                    });
+                    world.AddComponent(projectileEntity, new PoisonProjectile()
+                    {
+                        duration = 8f,
+                        damageInterval = cannon.damage,
+                        interval = 1f,
+                    });
+                    // todo ^
+                    
                     world.AddComponent<LinearMovementToTarget>(projectileEntity) = new LinearMovementToTarget()
                     {
                         target = projectileTarget,
-                        speed = connon.projectileSpeed,
+                        speed = cannon.projectileSpeed,
                         gap = Constants.DefaultGap,
                     };
 
@@ -89,6 +115,8 @@ namespace td.features.towers
                     {
                         TargetEntity = world.PackEntity(enemyEntity),
                     });
+                    
+                    cannon.fireCountdown = 1f / cannon.fireRate;
                 }
             }
         }

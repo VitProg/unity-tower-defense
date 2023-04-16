@@ -1,23 +1,19 @@
 ﻿using td.common;
+using td.common.level;
+using td.services;
 using UnityEngine;
 
 namespace td.utils
 {
     public static class GridUtils
     {
-        public static Int2 GetGridCoordinate(Vector2 position) =>
-            new(
-                Mathf.RoundToInt(position.x / 2),
-                Mathf.RoundToInt(position.y / 2)
-            );
+        public static Int2 CoordsToCell(Vector2 position, LevelCellType cellType, float cellSize) =>
+            cellType == LevelCellType.Hex ? HexGridUtils.CoordsToCell(position, cellSize) : SquareGridUtils.CoordsToCell(position, cellSize);
 
-        public static Vector2 GetVector(Int2 coordinate) =>
-            new(
-                coordinate.x * 2.0f,
-                coordinate.y * 2.0f
-            );
+        public static Vector2 CellToCoords(Int2 coordinate, LevelCellType cellType, float cellSize) =>
+            cellType == LevelCellType.Hex ? HexGridUtils.CellToCoords(coordinate, cellSize) : SquareGridUtils.CellToCoords(coordinate, cellSize);
 
-        public static Vector2 SnapToGrid(Vector2 position) =>
-            GetVector(GetGridCoordinate(position));
+        public static Vector2 SnapToGrid(Vector2 position, LevelCellType cellType, float cellSize) =>
+            cellType == LevelCellType.Hex ? HexGridUtils.SnapToGrid(position, cellSize) : SquareGridUtils.SnapToGrid(position, cellSize);
     }
 }

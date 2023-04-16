@@ -16,8 +16,8 @@ namespace td
             public const float MaxSpeed = 20.0f;
             public const float MinSize = 0.4f;
             public const float MaxSize = 0.5f;
-            public const float OffsetMin = -0.5f;
-            public const float OffsetMax = 0.5f;
+            public const float OffsetMin = -0.35f;
+            public const float OffsetMax = 0.35f;
 
             public const float DefaultAngularSpeed = 5f;
             public const float MinAngularSpeed = 0.01f;
@@ -42,7 +42,6 @@ namespace td
             public const uint MaxMapArrayHeight = 100;
             public const uint MaxSpawns = 10;
             public const uint MaxTargets = 5;
-            public const float CellSize = 2f;
         }
         
         public static class Worlds

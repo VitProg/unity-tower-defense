@@ -7,8 +7,8 @@ using Mitfart.LeoECSLite.UniLeo;
 using td.common;
 using td.components.commands;
 using td.components.events;
+using td.features.camera;
 using td.features.enemies;
-using td.features.enemyImpacts;
 using td.features.fire;
 using td.features.impactsEnemy;
 using td.features.impactsKernel;
@@ -56,7 +56,7 @@ namespace td
 
             systems = new EcsSystems(world, sharedData);
 
-            LevelState = new LevelState(systems, 1);
+            LevelState = new LevelState(systems, 3);
             LevelMap = new LevelMap(LevelState);
 
             var levelLoader = new LevelLoader(LevelMap, LevelState);
@@ -75,31 +75,25 @@ namespace td
                 .Add(new SmoothRotateExecutor())
 
                 #region Tower/Fire
-
                 .Add(new CalcDistanceToKernelSystem())
                 .Add(new FindTargetByRadiusSystem())
                 .Add(new CannonTowerFireSystem())
                 .Add(new ProjectileTargetCorrectionSystem())
-                .Add(new ProjectileReachTargetHandler())
-
+                .Add(new ProjectileReachEnemyHandler())
+                .Add(new TowerBuySystem())
                 #endregion
                 
                 #region Inpacts
-
                 // обработка команды получения урона вррагом
-                .Add(new TakeDamageExecutor())
-                .DelHere<TakeDamageOuterCommand>(Constants.Worlds.Outer)
+                .Add(new TakeDamageSystem())
+                .DelHere<TakeDamageOuter>(Constants.Worlds.Outer)
 
                 // обработка события получение врагом бафа/дебафа
-                .Add(new TakeBuffDebuffExecutor())
-                .DelHere<TakeDebuffOuterCommand>(Constants.Worlds.Outer)
-
+                .Add(new SpeedDebuffSystem())
+                .Add(new PoisonDebuffSystem())
                 #endregion
 
                 #region Waves
-
-                // .DelHere<WaveChangedOuterEvent>(Constants.Worlds.Outer)
-
                 // отсчет до следующей волны
                 .Add(new NextWaveCountdownTimerSystem())
 
@@ -120,11 +114,9 @@ namespace td
                 // обработка события окончания уровня
                 .Add(new LevelFinishedHandler())
                 .DelHere<LevelFinishedOuterEvent>(Constants.Worlds.Outer)
-
                 #endregion
 
                 #region Enemies
-
                 // обработка команды спавна нового врага
                 .Add(new SpawnEnemyExecutor())
                 .DelHere<SpawnEnemyOuterCommand>(Constants.Worlds.Outer)
@@ -139,25 +131,21 @@ namespace td
                 // обработка события достижения врагом ядра
                 .Add(new EnemyReachingKernelEventHandle())
                 .DelHere<EnemyReachingKernelEvent>()
-
                 #endregion
 
                 #region Kernel
-
                 .Add(new KernalChangeLivesExecutor())
                 .DelHere<KernalDamageOuterCommand>(Constants.Worlds.Outer)
                 .DelHere<KernelHealOuterCommand>(Constants.Worlds.Outer)
-
                 #endregion
 
                 #region UI
-
-                // .Add(new UpdateUIToolkitSystem())
                 .Add(new UpdateUISystem())
                 .DelHere<UpdateUIOuterCommand>(Constants.Worlds.Outer)
-                .Add(new UIInputSystem())
-                .Add(new TowerDragAndDropSystem())
+                #endregion
 
+                #region Camera
+                .Add(new CameraFollowingCursorSystem())
                 #endregion
 
                 // обработка команды удаления GameObject сщ сцены

@@ -20,18 +20,38 @@ namespace td.utils.ecs
                 pool.Del(entity);
             }
 
-            ref var resultComponent = ref pool.Add(entity);
+            ref var newComponent = ref pool.Add(entity);
 
-            if (resultComponent is IEcsAutoMerge<T> merge)
+            if (newComponent is IEcsAutoMerge<T> merge)
             {
-                merge.AutoMerge(ref component, resultComponent);
+                merge.AutoMerge(ref component, newComponent);
             }
 
-            resultComponent = component;
+            newComponent = component;
 
-            return ref resultComponent;
+            return ref newComponent;
         }
 
+        public static ref T MergeComponent<T>(this EcsWorld world, int entity, T component) where T : struct
+        {
+            var pool = world.GetPool<T>();
+
+            if (!pool.Has(entity))
+            {
+                return ref AddComponent(world, entity, component);
+            }
+
+            ref var componentInPool = ref pool.Get(entity);
+            
+            if (componentInPool is IEcsAutoMerge<T> merge)
+            {
+                merge.AutoMerge(ref componentInPool, component);
+                return ref componentInPool;
+            }
+
+            return ref AddComponent(world, entity, component);
+        }
+        
         public static ref T GetComponent<T>(this EcsWorld world, int entity, bool addIfNotExist = false) where T : struct {
             var pool = world.GetPool<T>();
             if (addIfNotExist && !pool.Has(entity))
@@ -40,7 +60,20 @@ namespace td.utils.ecs
             }
             return ref pool.Get(entity);
         }
-        
+
+        public static bool TryGetComponent<T>(this EcsWorld world, int entity, out T component) where T : struct
+        {
+            if (!HasComponent<T>(world, entity))
+            {
+                component = default;
+                return false;
+            }
+
+            component = GetComponent<T>(world, entity);
+
+            return true;
+        }
+
         public static bool HasComponent<T>(this EcsWorld world, int entity) where T : struct
         {
             var pool = world.GetPool<T>();

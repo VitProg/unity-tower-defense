@@ -4,6 +4,7 @@ using td.components;
 using td.components.behaviors;
 using td.components.commands;
 using td.components.events;
+using td.components.flags;
 using td.utils.ecs;
 using Unity.Burst;
 using Unity.Collections;
@@ -12,7 +13,7 @@ using UnityEngine.Jobs;
 
 namespace td.systems.behaviors
 {
-    struct TargetPoint
+    internal struct TargetPoint
     {
         public Vector2 Target;
         public float Gap;
@@ -29,7 +30,7 @@ namespace td.systems.behaviors
 
         private readonly EcsFilterInject<
             Inc<Ref<GameObject>, LinearMovementToTarget>,
-            Exc<SmoothRotation>
+            Exc<SmoothRotation, IsDisabled>
         > entities = default;
 
         public void Run(IEcsSystems systems)

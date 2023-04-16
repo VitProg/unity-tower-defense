@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using td.utils;
+using UnityEngine;
 
 namespace td.monoBehaviours
 {
@@ -8,18 +9,20 @@ namespace td.monoBehaviours
 #endif
     public sealed class GridSnapping : MonoBehaviour
     {
-        public float step = Constants.Level.CellSize;
-
 #if UNITY_EDITOR
+        public float CellSize = 1f;
+        
         private void Update()
         {
             if (!Application.isPlaying && transform.hasChanged)
             {
-                var newPos = Vector3.zero;
-                var curPos = transform.localPosition;
-                newPos.x = Mathf.RoundToInt(curPos.x / step) * step;
-                newPos.y = Mathf.RoundToInt(curPos.y / step) * step;
-                transform.localPosition = newPos; // Магнитим клетку к сетке.
+                var pos = transform.localPosition;
+                var newPos = SquareGridUtils.SnapToGrid(pos, CellSize);
+
+                if (((Vector2)pos - newPos).sqrMagnitude > 0.0001f)
+                {
+                    transform.position = newPos; // Магнитим клетку к сетке.
+                }
             }
         }
 #endif

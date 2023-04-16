@@ -1,6 +1,7 @@
 ﻿using System;
 using Leopotam.EcsLite;
 using Mitfart.LeoECSLite.UniLeo;
+using td.components;
 using UnityEngine;
 
 namespace td.utils.ecs
@@ -15,10 +16,16 @@ namespace td.utils.ecs
             {
                 throw new NullReferenceException();
             }
-            
+
             convertable.Convert(world);
             convertable.TryGetEntity(out var entity);
-            
+
+            world.AddComponent(entity, new Ref<GameObject>()
+                {
+                    reference = gameObject,
+                }
+            );
+
             return entity;
         }
     }

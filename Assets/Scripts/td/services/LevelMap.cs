@@ -3,6 +3,7 @@ using System.Linq;
 using JetBrains.Annotations;
 using td.common;
 using td.common.cells;
+using td.common.cells.interfaces;
 using td.common.level;
 using td.monoBehaviours;
 using td.states;
@@ -23,6 +24,8 @@ namespace td.services
         private LevelConfig? levelConfig;
         private readonly LevelState levelState;
 
+        public float CellSize = 1f;
+        
         public LevelConfig? LevelConfig
         {
             get => levelConfig;
@@ -38,6 +41,8 @@ namespace td.services
                 levelState.WaveCount = levelConfig?.waves.Length ?? 0;
             }
         }
+
+        public LevelCellType CellType => levelConfig?.cellType ?? LevelCellType.Square;
 
         public int Width { get; private set; } = -1;
         public int Height { get; private set; } = -1;
@@ -121,12 +126,12 @@ namespace td.services
             }
 
 #if UNITY_EDITOR
-            if (cell.GetType() == typeof(CellCanWalk))
+            if (cell is ICellCanWalk walk)
             {
-                var cellInfo = ((CellCanWalk)cell).gameObject.GetComponent<CellInfo>();
+                var cellInfo = walk.GameObject.GetComponent<CellInfo>();
                 if (cellInfo != null)
                 {
-                    cellInfo.SetCell(cell);
+                    cellInfo.Init(walk, this);
                 }
             }
 #endif
@@ -150,7 +155,7 @@ namespace td.services
         [CanBeNull]
         public T GetCell<T>(Vector2 vector) where T : class, ICell
         {
-            var gridCoordinate = GridUtils.GetGridCoordinate(vector);
+            var gridCoordinate = GridUtils.CoordsToCell(vector, CellType, CellSize);
             return GetCell<T>(gridCoordinate);
         }
         
@@ -178,7 +183,7 @@ namespace td.services
         public T GetCell<T>(int x, int y) where T : class, ICell
         {
             var cell = GetCell(x, y);
-            return cell != null && cell.GetType() == typeof(T) ? (T)cell : null;
+            return cell as T;
         }
         
         public bool TryGetCell<T>(int x, int y, out T cell) where T : class, ICell
@@ -192,10 +197,10 @@ namespace td.services
         {
             spawns[spawnsLength] = spawn;
             spawnsLength++;
-            var cell = GetCell<CellCanWalk>(spawn.Coordinates);
+            var cell = GetCell<ICellCanWalk>(spawn.Coordinates);
             if (cell != null)
             {
-                cell.spawn = spawnsLength;
+                cell.Spawn = spawnsLength;
             }
         }
 
@@ -203,10 +208,10 @@ namespace td.services
         {
             kernels[kernelsLength] = kernel;
             kernelsLength++;
-            var cell = GetCell<CellCanWalk>(kernel.Coordinates);
+            var cell = GetCell<ICellCanWalk>(kernel.Coordinates);
             if (cell != null)
             {
-                cell.kernel = kernelsLength;
+                cell.Kernel = kernelsLength;
             }
         }
 
@@ -267,7 +272,7 @@ namespace td.services
                 line += Math.Abs(y).ToString("D2") + ": ";
                 for (var x = xFrom; x <= xTo; x++)
                 {
-                    line += FormatCell(GetCell<CellCanWalk>(x, y));
+                    line += FormatCell(GetCell<ICellCanWalk>(x, y));
                 }
 
                 line += '\n';
@@ -284,43 +289,59 @@ namespace td.services
                 for (var x = 0; x < Width; x++)
                 {
                     var cell = cells[x, y];
-                    if (cell != null && cell.GetType() == typeof(CellCanWalk))
+                    if (cell is ICellCanWalk walk)
                     {
-                        line += FormatCell((CellCanWalk)cell);
+                        line += FormatCell(walk);
+                    }
+                    else
+                    {
+                        line += FormatCell(null);
                     }
                 }
 
                 line += '\n';
             }
+            
+            // line += "\n\n---------------------------------------\n\nFrom array:\n";
+            // line += $"X: {0}...{Width - 1}\n";
+            // line += $"Y: {Height - 1}...{0}\n";
+            // for (var y = 99; y >= 0 ; y--)
+            // {
+            //     line += Math.Abs(y).ToString("D2") + ": ";
+            //     for (var x = 0; x < 100; x++)
+            //     {
+            //         var cell = cells[x, y];
+            //         if (cell is ICellCanWalk walk)
+            //         {
+            //             line += FormatCell(walk);
+            //         }
+            //         line += FormatCell(null);
+            //     }
+            //
+            //     line += '\n';
+            // }
 
             Debug.Log(line);
         }
 
-        private static char FormatCell(CellCanWalk cell)
+        private static char FormatCell(ICellCanWalk cell)
         {
             if (cell == null)
             {
                 return '□';
             }
 
-            if (cell.kernel > 0)
+            if (cell.Kernel > 0)
             {
                 return 'K';
             }
 
-            if (cell.spawn > 0)
+            if (cell.Spawn > 0)
             {
                 return 'S';
             }
 
             return '■';
         }
-    }
-
-    public enum CellType
-    {
-        CanWalk,
-        CanBuild,
-        WithBuilding,
     }
 }

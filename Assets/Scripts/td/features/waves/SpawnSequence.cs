@@ -26,11 +26,11 @@ namespace td.features.waves
 
         public void AutoMerge(ref SpawnSequence result, SpawnSequence def)
         {
-            if (result.delayBeforeCountdown < 0.0001f)
+            if (result.delayBeforeCountdown < Constants.ZeroFloat)
             {
                 result.delayBeforeCountdown = def.delayBeforeCountdown;
             }
-            if (result.delayBetweenCountdown < 0.0001f)
+            if (result.delayBetweenCountdown < Constants.ZeroFloat)
             {
                 result.delayBetweenCountdown = def.delayBetweenCountdown;
             }

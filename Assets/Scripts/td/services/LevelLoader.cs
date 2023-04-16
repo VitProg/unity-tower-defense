@@ -2,11 +2,10 @@
 using Leopotam.EcsLite;
 using td.common;
 using td.common.cells;
+using td.common.cells.hex;
 using td.common.level;
 using td.components;
 using td.components.flags;
-using td.features.enemies;
-using td.features.fire;
 using td.features.towers;
 using td.states;
 using td.utils;
@@ -120,16 +119,43 @@ namespace td.services
 
         private void InitTiles()
         {
+            float? cellSize = null;
+            
             var tiles = GameObject.FindGameObjectsWithTag(Constants.Tags.Tile);
             foreach (var tileGameObject in tiles)
             {
-                var cell = new CellCanWalk()
+                if (cellSize == null)
                 {
-                    Coordinates = GridUtils.GetGridCoordinate(tileGameObject.transform.position),
-                    gameObject = tileGameObject,
-                };
+                    // 1.82 * 10 = |18.2| = 18 / 10 = 1.8 / 2 = .9
+                    var sx = tileGameObject.transform.localScale.x;
+                    cellSize = (Mathf.Round(sx * 10f) / 10f);
+                    levelMap.CellSize = cellSize.Value;
+                }
+                
+                var coordinates = GridUtils.CoordsToCell(
+                    tileGameObject.transform.position,
+                    levelMap.CellType,
+                    levelMap.CellSize
+                );
 
-                levelMap.AddCell(cell);
+                if (levelMap.CellType == LevelCellType.Hex)
+                {
+                    var cell = new HexCellCanWalk()
+                    {
+                        Coordinates = coordinates,
+                        GameObject = tileGameObject,
+                    };
+                    levelMap.AddCell(cell);
+                }
+                else
+                {
+                    var cell = new CellCanWalk()
+                    {
+                        Coordinates = coordinates,
+                        GameObject = tileGameObject,
+                    };
+                    levelMap.AddCell(cell);
+                }
             }
         }
 
@@ -140,7 +166,11 @@ namespace td.services
             {
                 var spawn = new Spawn()
                 {
-                    Coordinates = GridUtils.GetGridCoordinate(spawnGameObject.transform.position),
+                    Coordinates = GridUtils.CoordsToCell(
+                        spawnGameObject.transform.position,
+                        levelMap.LevelConfig?.cellType ?? LevelCellType.Square,
+                        levelMap.CellSize
+                    ),
                 };
                 levelMap.AddSpawn(spawn);
             }
@@ -153,7 +183,11 @@ namespace td.services
             {
                 var kernel = new Kernel()
                 {
-                    Coordinates = GridUtils.GetGridCoordinate(targetGameObject.transform.position),
+                    Coordinates = GridUtils.CoordsToCell(
+                        targetGameObject.transform.position,
+                        levelMap.CellType,
+                        levelMap.CellSize
+                    ),
                 };
                 levelMap.AddKernel(kernel);
             }
@@ -172,7 +206,11 @@ namespace td.services
                 
                 levelMap.AddCell(new CellCanBuild()
                 {
-                    Coordinates = GridUtils.GetGridCoordinate(towerGameObject.reference.transform.position),
+                    Coordinates = GridUtils.CoordsToCell(
+                        towerGameObject.reference.transform.position,
+                        levelMap.CellType,
+                        levelMap.CellSize
+                    ),
                     BuildingPackedEntity = world.PackEntity(entity)
                 });
 

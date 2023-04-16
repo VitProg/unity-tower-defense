@@ -1,6 +1,7 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common.cells;
+using td.common.cells.interfaces;
 using td.components;
 using td.services;
 using td.utils;
@@ -22,18 +23,18 @@ namespace td.features.enemies
                 ref var enemy = ref entities.Pools.Inc1.Get(entity);
                 var enemyGameObject = entities.Pools.Inc2.Get(entity);
                 var enemyPosition = enemyGameObject.reference.transform.position;
-                var enemyCoordinate = GridUtils.GetGridCoordinate(enemyPosition);
+                var enemyCoordinate = GridUtils.CoordsToCell(enemyPosition, levelMap.CellType, levelMap.CellSize);
 
                 if (
-                    levelMap.TryGetCell<CellCanWalk>(enemyCoordinate, out var cell) &&
+                    levelMap.TryGetCell<ICellCanWalk>(enemyCoordinate, out var cell) &&
                     !cell.IsKernel &&
-                    levelMap.TryGetCell<CellCanWalk>(cell.NextCellCoordinates, out var nextCell)
+                    levelMap.TryGetCell<ICellCanWalk>(cell.NextCellCoordinates, out var nextCell)
                 ) {
-                    var numberOfCellsToKernel = cell.distanceToKernel;
-                    var nextCellPosition = GridUtils.GetVector(nextCell.Coordinates);
+                    var numberOfCellsToKernel = cell.DistanceToKernel;
+                    var nextCellPosition = GridUtils.CellToCoords(nextCell.Coordinates, levelMap.CellType, levelMap.CellSize);
 
                     var distanceToKernel = 
-                        (numberOfCellsToKernel - 1) * Constants.Level.CellSize +
+                        (numberOfCellsToKernel - 1) * levelMap.CellSize +
                         (enemyPosition - (Vector3)nextCellPosition).magnitude;
 
                     enemy.distanceToKernel = distanceToKernel;

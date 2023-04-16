@@ -2,6 +2,8 @@
 using Leopotam.EcsLite.Di;
 using td.common;
 using td.common.cells;
+using td.common.cells.interfaces;
+using td.common.level;
 using td.components;
 using td.components.behaviors;
 using td.services;
@@ -34,12 +36,12 @@ namespace td.features.enemies
                 var spawn = levelMap.Spawns[spawnCommand.spawner];
                 
                 if (
-                    !levelMap.TryGetCell<CellCanWalk>(spawn.Coordinates, out var spawnCell) ||
-                    !levelMap.TryGetCell<CellCanWalk>(spawnCell.NextCellCoordinates, out var nextCell)
+                    !levelMap.TryGetCell<ICellCanWalk>(spawn.Coordinates, out var spawnCell) ||
+                    !levelMap.TryGetCell<ICellCanWalk>(spawnCell.NextCellCoordinates, out var nextCell)
                 ) continue;
 
-                var position = GridUtils.GetVector(spawn.Coordinates) + spawnCommand.offset;
-                var rotation = EnemyUtils.LookToNextCell(spawnCell.Coordinates, nextCell.Coordinates);
+                var position = GridUtils.CellToCoords(spawn.Coordinates, levelMap.CellType, levelMap.CellSize) + spawnCommand.offset;
+                var rotation = EnemyUtils.LookToNextCell(spawnCell.Coordinates, nextCell.Coordinates, levelMap.CellType, levelMap.CellSize);
 
                 var enemyGameObject = Object.Instantiate(
                     enemyConfig.prefab,
@@ -49,32 +51,28 @@ namespace td.features.enemies
                 );
                 var enemyEntity = world.ConvertToEntity(enemyGameObject);
 
-                enemyGameObject.transform.localScale = new Vector2(spawnCommand.scale, spawnCommand.scale);
+                var etalonScale = levelMap.CellType == LevelCellType.Hex ? levelMap.CellSize / 1.1f : levelMap.CellSize;
+                enemyGameObject.transform.localScale = Vector2.one * (etalonScale * spawnCommand.scale);
 
                 enemyGameObject.transform.rotation = rotation;
 
                 ref var go = ref world.GetComponent<Ref<GameObject>>(enemyEntity);
                 go.reference = enemyGameObject;
 
-                ref var enemy = ref world.GetComponent<Enemy>(enemyEntity);
-                enemy.position = position;
-                enemy.rotation = rotation;
-                enemy.enemyName = spawnCommand.enemyName;
-                enemy.spawner = spawnCommand.spawner;
-                enemy.speed = spawnCommand.speed;
-                enemy.angularSpeed = spawnCommand.angularSpeed;
-                enemy.health = spawnCommand.health;
-                enemy.damage = spawnCommand.damage;
-                enemy.scale = spawnCommand.scale;
-                enemy.offset = spawnCommand.offset;
-                enemy.money = spawnCommand.money;
+                world.GetComponent<Enemy>(enemyEntity).Setup(
+                    position,
+                    rotation,
+                    spawnCommand
+                );
 
                 world.AddComponent(enemyEntity, new LinearMovementToTarget()
                 {
                     target = EnemyUtils.TargetPosition(
                         nextCell.Coordinates,
                         rotation,
-                        spawnCommand.offset
+                        spawnCommand.offset,
+                        levelMap.CellType,
+                        levelMap.CellSize
                     ),
                     speed = spawnCommand.speed,
                     gap = Constants.DefaultGap,

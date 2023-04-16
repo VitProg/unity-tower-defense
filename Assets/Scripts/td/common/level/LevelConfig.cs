@@ -6,10 +6,17 @@ namespace td.common.level
     public struct LevelConfig
     {
         public int levelNumber;
+        public LevelCellType cellType;
         public int delayBeforeFirstWave;
         public int delayBetweenWaves;
         public float lives;
         public int startedMoney;
         public WaveConfig[] waves;
+    }
+    
+    public enum LevelCellType
+    {
+        Square = 1,
+        Hex = 2
     }
 }

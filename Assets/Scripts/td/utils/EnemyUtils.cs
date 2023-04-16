@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using td.common;
+using td.common.level;
 using td.features.enemies;
 using td.utils.ecs;
 using Unity.Mathematics;
@@ -9,14 +10,13 @@ namespace td.utils
 {
     public static class EnemyUtils
     {
-        public static Vector2 TargetPosition(Int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
-            GridUtils.GetVector(cellCoordinates) +
-            (Vector2)(rotation * offset);
+        public static Vector2 TargetPosition(Int2 cellCoordinates, Quaternion rotation, Vector2 offset, LevelCellType cellType, float cellSize) =>
+            GridUtils.CellToCoords(cellCoordinates, cellType, cellSize) +  (Vector2)(rotation * offset);
 
-        public static Quaternion LookToNextCell(Int2 currentCellCoordinates, Int2 nextCellCoordinates)
+        public static Quaternion LookToNextCell(Int2 currentCellCoordinates, Int2 nextCellCoordinates, LevelCellType cellType, float cellSize)
         {
-            var toNextCellVector = GridUtils.GetVector(nextCellCoordinates) -
-                                   GridUtils.GetVector(currentCellCoordinates);
+            var toNextCellVector = GridUtils.CellToCoords(nextCellCoordinates, cellType, cellSize) -
+                                   GridUtils.CellToCoords(currentCellCoordinates, cellType, cellSize);
             toNextCellVector.Normalize();
             
             return Quaternion.LookRotation(Vector3.forward, toNextCellVector);

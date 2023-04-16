@@ -1,0 +1,92 @@
+﻿using System;
+using Leopotam.EcsLite;
+using Leopotam.EcsLite.Di;
+using td.components.behaviors;
+using td.features.enemies;
+using td.utils;
+using td.utils.ecs;
+using UnityEngine;
+
+namespace td.features.impactsEnemy
+{
+    public class SpeedDebuffSystem : IEcsRunSystem
+    {
+        [EcsWorld] private EcsWorld world;
+        
+        private readonly EcsFilterInject<Inc<SpeedDebuff, Enemy>> speedDebufEntities = default;
+
+        public void Run(IEcsSystems systems)
+        {
+            foreach (var enemyEntity in speedDebufEntities.Value)
+            {
+                ref var debuff = ref speedDebufEntities.Pools.Inc1.Get(enemyEntity);
+                ref var enemy = ref speedDebufEntities.Pools.Inc2.Get(enemyEntity);
+                
+                if (!debuff.started)
+                {
+                    debuff.Start();
+                }
+
+                var debafedSpeed = enemy.startingSpeed / Mathf.Max(1f, debuff.speedMultipler);
+
+                var startEndDuration = Math.Max(0.5f, debuff.duration / 10f);
+                var mainDuration = Math.Max(0.001f, debuff.duration - startEndDuration * 2);
+                
+                debuff.timeRemains -= Time.deltaTime;
+
+                var timePassed = debuff.duration - debuff.timeRemains;
+
+                ////////////////////////
+                
+                var inStartPhase = timePassed < startEndDuration;
+                var inMainPhase = timePassed >= startEndDuration &&
+                                  timePassed <= debuff.duration - startEndDuration;
+                var inEndPhase = timePassed > debuff.duration - startEndDuration;
+
+                ////////////////////////
+                
+                if (inStartPhase)
+                {
+                    debuff.phase = 1;
+                    var timePassedInPhase = timePassed;
+                    enemy.speed = Mathf.Lerp(
+                        enemy.startingSpeed,
+                        debafedSpeed,
+                        timePassedInPhase / startEndDuration
+                    );
+                }
+
+                if (inMainPhase)
+                {
+                    debuff.phase = 2;
+                    enemy.speed = debafedSpeed;
+                }
+
+                if (inEndPhase)
+                {
+                    debuff.phase = 3;
+                    var timePassedInPhase = timePassed - mainDuration - startEndDuration;
+                    enemy.speed = Mathf.Lerp(
+                        debafedSpeed,
+                        enemy.startingSpeed,
+                        timePassedInPhase / startEndDuration
+                    );
+                }
+               
+                ////////////////////////
+                
+                if (world.HasComponent<LinearMovementToTarget>(enemyEntity))
+                {
+                    world.GetComponent<LinearMovementToTarget>(enemyEntity).speed = enemy.speed;
+                }
+                
+                ////////////////////////
+
+                if (debuff.timeRemains < -0.001f)
+                {
+                    world.DelComponent<SpeedDebuff>(enemyEntity);
+                }
+            }
+        }
+    }
+}

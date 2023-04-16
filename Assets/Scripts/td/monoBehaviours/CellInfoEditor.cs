@@ -18,7 +18,7 @@ namespace td.monoBehaviours
 
             EditorGUI.BeginChangeCheck();
             
-            EditorUtils.RenderAllPropertiesOfObject(ref id, ((CellInfo)target).CellData, "*");
+            EditorUtils.RenderAllPropertiesOfObject(ref id, ((CellInfo)target).cell, "*");
 
             // EditorGUI.EndChangeCheck();
         }

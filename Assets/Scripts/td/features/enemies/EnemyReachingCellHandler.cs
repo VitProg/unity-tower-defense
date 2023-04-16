@@ -1,6 +1,7 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common.cells;
+using td.common.cells.interfaces;
 using td.components;
 using td.components.behaviors;
 using td.components.commands;
@@ -28,8 +29,8 @@ namespace td.features.enemies
                 ref var gameObjectLink = ref world.GetComponent<Ref<GameObject>>(entity);
 
                 if (
-                    !levelMap.TryGetCell<CellCanWalk>(movementToTarget.target, out var cell) ||
-                    !levelMap.TryGetCell<CellCanWalk>(cell.NextCellCoordinates, out var nextCell)
+                    !levelMap.TryGetCell<ICellCanWalk>(movementToTarget.target, out var cell) ||
+                    !levelMap.TryGetCell<ICellCanWalk>(cell.NextCellCoordinates, out var nextCell)
                 ) continue;
                 
                 if (cell.IsKernel)
@@ -40,7 +41,7 @@ namespace td.features.enemies
                 }
                 else
                 {
-                    var rotation = EnemyUtils.LookToNextCell(cell.Coordinates, nextCell.Coordinates);
+                    var rotation = EnemyUtils.LookToNextCell(cell.Coordinates, nextCell.Coordinates, levelMap.CellType, levelMap.CellSize);
 
                     var transform = gameObjectLink.reference.transform;
 
@@ -66,7 +67,9 @@ namespace td.features.enemies
                     movementToTarget.target = EnemyUtils.TargetPosition(
                         nextCell.Coordinates,
                         rotation,
-                        enemy.offset
+                        enemy.offset,
+                        levelMap.CellType,
+                        levelMap.CellSize
                     );
                     ;
                 }
