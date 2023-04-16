@@ -3,7 +3,7 @@ Shader "Shader/Hex2"
     Properties
     {
         _GridColor("Grid Color", Color) = (1,1,1,1)
-        _BgColor("BG Color", Color) = (0,0,0,0)
+        _BgColor("Back Ground Color", Color) = (0,0,0,0)
         _Colmun("Colmun", float) = 1
         _CellSize("CellSize", float) = 1
         _GridWidth("Grid Width", Range(0,1)) = 0

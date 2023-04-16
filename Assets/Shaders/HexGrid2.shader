@@ -4,12 +4,12 @@ Shader "Custom/HexFlat"
     {
         _GridColor("Grid Color", Color) = (1,1,1,1)
         _BgColor("BG Color", Color) = (0,0,0,0)
-        _CellSize("CellSize", Range(0,20)) = 1
-        _GridWidth("Grid Width", Range(0,20)) = 0
+        _CellSize("CellSize", Range(0,50)) = 1
+        _GridWidth("Grid Width", Range(0,50)) = 0
         _Shift("Shift", Vector) = (0,0,0,0)
         _LightPosition("Light Position", Vector) = (1, 1, 0, 0)
-        _LightRadius("Light Radius", Range(0, 10)) = 1
-        _LightPower("Light Power", Range(0, 10)) = 1
+        _LightRadius("Light Radius", Range(0, 20)) = 1
+        _LightPower("Light Power", Range(0, 20)) = 1
     }
 
     SubShader
@@ -62,11 +62,19 @@ Shader "Custom/HexFlat"
             fixed _LightRadius;
             fixed _LightPower;
 
-            const fixed sqr3 = 1.7320508076;
-            const fixed2 vec2_05 = fixed2(0.5, 0.5);
-            const fixed4 vec4_0 = fixed4(0, 0, 0, 1);
+            fixed sqr3 = 1.7320508076;
+            fixed2 vec2_05 = fixed2(0.5, 0.5);
+            fixed4 vec4_0 = fixed4(0, 0, 0, 1);
 
             /////////////////////////
+            
+            fixed2 get_shift()
+            {
+                return fixed2(
+                    (_Shift.x * _CellSize) - (_CellSize * 0.075),
+                    (_Shift.y * _CellSize) - (_CellSize * 0.035)
+                );
+            }
 
             fixed hex(fixed2 p, fixed h1)
             {
@@ -84,11 +92,11 @@ Shader "Custom/HexFlat"
             fixed4 hex_grid(const in fixed2 pos)
             {
                 const fixed space = _GridWidth;
-                const fixed outer_radius = _CellSize * 0.861;
+                const fixed outer_radius = _CellSize * 0.861 * 1.008059;
                 const fixed inner_radius = outer_radius - space;
                 const fixed inner_radius_sqr3 = inner_radius / 1.7320508076;
 
-                const fixed2 grid = fixed2(outer_radius * 1.73, outer_radius);
+                const fixed2 grid = fixed2(outer_radius * 1.7320508076, outer_radius);
 
                 const fixed2 p1 = fmod(pos, grid) - grid * 0.5;
                 const fixed d1 = hex(p1, inner_radius_sqr3);
@@ -102,7 +110,7 @@ Shader "Custom/HexFlat"
                 // const fixed4 c2 = d2 > 0.0 ? fixed4(0, .3, .2, 0.5) : vec4_0;
 
                 // todo
-                fixed lightDistance = distance(pos, _LightPosition + _Shift);
+                fixed lightDistance = distance(pos, _LightPosition + get_shift());
                 float lightIntensity = smoothstep(_LightRadius, 0, lightDistance);
                 lightIntensity = pow(lightIntensity, 1/_LightPower);
                 
@@ -128,7 +136,7 @@ Shader "Custom/HexFlat"
 
             fixed4 frag(const v2f input) : COLOR
             {
-                fixed4 col = hex_grid(input.worldSpacePos + _Shift);
+                fixed4 col = hex_grid(input.worldSpacePos + get_shift());
 
                 UNITY_APPLY_FOG(input.fogCoord, col);
 

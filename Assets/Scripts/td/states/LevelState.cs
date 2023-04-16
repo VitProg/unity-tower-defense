@@ -130,7 +130,7 @@ namespace td.states
             {
                 if (isBuildingProcess == value) return;
                 isBuildingProcess = value;
-                systems.SendOuter(new BuildingProcess() { enabled = value });
+                // systems.SendOuter(new BuildingProcess() { enabled = value });
             }
         }
 

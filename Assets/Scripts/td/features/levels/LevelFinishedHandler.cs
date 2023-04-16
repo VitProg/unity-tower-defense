@@ -36,7 +36,6 @@ namespace td.features.levels
                     {
                         levelNumber = levelState.LevelNumber + 1,
                     });
-                    systems.SendOuter<IsLoadingOuter>();
                 }
             }
             systems.CleanupOuter(eventEntities);

@@ -14,6 +14,7 @@ namespace td.features.camera
         
         private readonly EcsFilterInject<Inc<CursorFollowing, Ref<Transform>>> entities = default;
 
+        // TODO ограничить перемещение за пределы экраны или резкое перемещение
         public void Run(IEcsSystems systems)
         {            
             Debug.Assert(Camera.main != null, "Camera.main != null");

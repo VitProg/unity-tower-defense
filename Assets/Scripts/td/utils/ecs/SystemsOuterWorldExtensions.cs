@@ -24,7 +24,7 @@ namespace td.utils.ecs
             // }
             if (component is IEcsDoDebugLog<T> == false)
             {
-                Debug.Log($" -> {typeof(T)} {JsonUtility.ToJson(component)}");
+                // Debug.Log($" -> {typeof(T)} {JsonUtility.ToJson(component)}");
             }
 #endif
         }

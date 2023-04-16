@@ -12,44 +12,50 @@ using UnityEngine;
 
 namespace td.features.levels
 {
-    // todo rewrite to load level service
-
     public class LoadLevelExecutor : IEcsRunSystem
     {
+        [EcsWorld] private EcsWorld world;
+        
         [EcsInject] private LevelMap levelMap;
         [EcsInject] private LevelState levelState;
         [EcsInject] private LevelLoader levelLoader;
         [EcsInject] private PathService pathService;
 
-        private readonly EcsFilterInject<Inc<LoadLevelOuterCommand>> eventEntities = Constants.Worlds.Outer;
+        private readonly EcsFilterInject<Inc<LoadLevelOuterCommand>> loadCommandEntities = Constants.Worlds.Outer;
+        private readonly EcsFilterInject<Inc<LevelLoadedOuterEvent>> loadedEventEntities = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
-            foreach (var eventEntity in eventEntities.Value)
+            try
             {
-                try
+                foreach (var entity in loadCommandEntities.Value)
                 {
-                    RunInternal(systems, eventEntity);
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e);
-                    throw;
+                    Load(systems, entity);
+                    systems.CleanupOuter<LoadLevelOuterCommand>();
+                    break;
                 }
 
-                systems.CleanupOuter(eventEntities);
-                break;
+                foreach (var entity in loadedEventEntities.Value)
+                {
+                    levelLoader.InitBuildings(world);
+                    systems.CleanupOuter<LevelLoadedOuterEvent>();
+                    break;
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
             }
         }
 
-        private void RunInternal(IEcsSystems systems, int entity)
+        private void Load(IEcsSystems systems, int entity)
         {
-            var levelNumber = eventEntities.Pools.Inc1.Get(entity).levelNumber;
+            var levelNumber = loadCommandEntities.Pools.Inc1.Get(entity).levelNumber;
             levelState.LevelNumber = levelNumber;
 
             if (levelLoader.HasLevel())
             {
-
                 levelLoader.LoadLevel(systems);
                 pathService.InitPath();
 

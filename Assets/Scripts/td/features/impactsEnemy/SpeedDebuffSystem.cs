@@ -49,10 +49,13 @@ namespace td.features.impactsEnemy
                 {
                     debuff.phase = 1;
                     var timePassedInPhase = timePassed;
+                    var t = timePassedInPhase / startEndDuration;
+                    // todo
+                    t = t * t * (3f - 2f * t);;
                     enemy.speed = Mathf.Lerp(
                         enemy.startingSpeed,
                         debafedSpeed,
-                        timePassedInPhase / startEndDuration
+                        t
                     );
                 }
 
@@ -66,10 +69,13 @@ namespace td.features.impactsEnemy
                 {
                     debuff.phase = 3;
                     var timePassedInPhase = timePassed - mainDuration - startEndDuration;
+                    var t = timePassedInPhase / startEndDuration;
+                    // todo
+                    t =  t * t * (3f - 2f * t);;
                     enemy.speed = Mathf.Lerp(
                         debafedSpeed,
                         enemy.startingSpeed,
-                        timePassedInPhase / startEndDuration
+                        t
                     );
                 }
                

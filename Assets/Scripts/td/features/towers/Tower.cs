@@ -1,5 +1,6 @@
 ﻿using System;
 using td.common;
+using UnityEngine;
 
 namespace td.features.towers
 {
@@ -8,6 +9,8 @@ namespace td.features.towers
     public struct Tower
     {
         public float radius;
-        // todo
+        public int cost;
+
+        public GameObject radiusGameObject;
     }
 }

@@ -68,7 +68,8 @@ namespace td
 
                 #region Levels
                 .Add(new LoadLevelExecutor())
-                .DelHere<LevelLoadedOuterEvent>(Constants.Worlds.Outer)
+                .Add(new LevelFinishedHandler())
+                .DelHere<LevelFinishedOuterEvent>(Constants.Worlds.Outer)
                 #endregion
 
                 .Add(new MoveToTargetSystem())
@@ -81,6 +82,7 @@ namespace td
                 .Add(new ProjectileTargetCorrectionSystem())
                 .Add(new ProjectileReachEnemyHandler())
                 .Add(new TowerBuySystem())
+                .Add(new TowerShowRadiusSystem())
                 #endregion
                 
                 #region Inpacts
@@ -110,10 +112,6 @@ namespace td
                 .Add(new SpawnSequenceSystem())
                 .Add(new SpawnSequenceFinishedHandler())
                 .DelHere<SpawnSequenceFinishedOuterEvent>(Constants.Worlds.Outer)
-
-                // обработка события окончания уровня
-                .Add(new LevelFinishedHandler())
-                .DelHere<LevelFinishedOuterEvent>(Constants.Worlds.Outer)
                 #endregion
 
                 #region Enemies
@@ -142,6 +140,12 @@ namespace td
                 #region UI
                 .Add(new UpdateUISystem())
                 .DelHere<UpdateUIOuterCommand>(Constants.Worlds.Outer)
+                #endregion
+                
+                #region Input
+                .DelHere<DragStartEvent>()
+                .DelHere<DragEndEvent>()
+                .Add(new DragNDropSystem())
                 #endregion
 
                 #region Camera

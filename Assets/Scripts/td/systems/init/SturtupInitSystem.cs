@@ -45,8 +45,6 @@ namespace td.systems.init
                         typeof(GameObject)
                     );
             }
-
-            Debug.Log(sharedData.EnemyConfigs);
         }
     }
 }

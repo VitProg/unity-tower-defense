@@ -34,6 +34,9 @@ namespace td
             public const string Target = "Target";
             public const string Tile = "Tile";
             public const string Projectile = "projectile";
+            public const string CanWalk = "CanWalk";
+            public const string CanBuild = "CanBuild";
+            public const string GridRenderer = "GridRenderer";
         }
         
         public static class Level

@@ -15,6 +15,8 @@ TagManager:
   - Building
   - UI
   - CanBuild
+  - CanWalk
+  - GridRenderer
   layers:
   - Default
   - TransparentFX

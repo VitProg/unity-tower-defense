@@ -3,10 +3,12 @@ using Leopotam.EcsLite;
 using td.common;
 using td.common.cells;
 using td.common.cells.hex;
+using td.common.cells.interfaces;
 using td.common.level;
 using td.components;
 using td.components.flags;
 using td.features.towers;
+using td.monoBehaviours;
 using td.states;
 using td.utils;
 using td.utils.ecs;
@@ -19,7 +21,7 @@ namespace td.services
     {
         private readonly LevelMap levelMap;
         private readonly LevelState levelState;
-        
+
         private GameObject levelGameObject;
 
         public LevelLoader(LevelMap levelMap, LevelState levelState)
@@ -50,11 +52,14 @@ namespace td.services
                 LoadLevelConfig();
                 LoadLevelPrefab();
 
-                InitTiles();
+                InitCanWalkTiles();
+                InitCanBuildTiles();
                 InitSpawns();
                 InitKernels();
 
-                InitBuildings(world);
+                // InitBuildings(world);
+
+                InitGridRenderer();
 
 #if UNITY_EDITOR
                 Debug.Log("FINAL MAP");
@@ -68,10 +73,11 @@ namespace td.services
             }
         }
 
+
         private void ClearLastLevelData(IEcsSystems systems)
         {
             if (levelMap.LevelConfig == null) return;
-            
+
             levelMap.Clear();
 
             var world = systems.GetWorld();
@@ -82,7 +88,8 @@ namespace td.services
             outerWorld.GetAllEntities(ref outerEntities);
             foreach (var outerEntity in outerEntities)
             {
-                world.DelEntity(outerEntity);;
+                world.DelEntity(outerEntity);
+                ;
             }
 
             // удаляем все ентити которые живут только на уровне
@@ -99,7 +106,7 @@ namespace td.services
                 world.DelEntity(entity);
             }
         }
-        
+
         private void LoadLevelConfig()
         {
             levelMap.LevelConfig = ResourcesUtils.LoadJson<LevelConfig>($"Levels/{levelState.LevelNumber}");
@@ -117,21 +124,20 @@ namespace td.services
             );
         }
 
-        private void InitTiles()
+        private void InitCanWalkTiles()
         {
             float? cellSize = null;
-            
-            var tiles = GameObject.FindGameObjectsWithTag(Constants.Tags.Tile);
+
+            var tiles = GameObject.FindGameObjectsWithTag(Constants.Tags.CanWalk);
             foreach (var tileGameObject in tiles)
             {
                 if (cellSize == null)
                 {
-                    // 1.82 * 10 = |18.2| = 18 / 10 = 1.8 / 2 = .9
                     var sx = tileGameObject.transform.localScale.x;
                     cellSize = (Mathf.Round(sx * 10f) / 10f);
                     levelMap.CellSize = cellSize.Value;
                 }
-                
+
                 var coordinates = GridUtils.CoordsToCell(
                     tileGameObject.transform.position,
                     levelMap.CellType,
@@ -153,6 +159,38 @@ namespace td.services
                     {
                         Coordinates = coordinates,
                         GameObject = tileGameObject,
+                    };
+                    levelMap.AddCell(cell);
+                }
+            }
+        }
+
+        private void InitCanBuildTiles()
+        {
+            var tiles = GameObject.FindGameObjectsWithTag(Constants.Tags.CanBuild);
+            foreach (var tileGameObject in tiles)
+            {
+                var coordinates = GridUtils.CoordsToCell(
+                    tileGameObject.transform.position,
+                    levelMap.CellType,
+                    levelMap.CellSize
+                );
+
+                if (levelMap.CellType == LevelCellType.Hex)
+                {
+                    var cell = new HexCellCanBuild()
+                    {
+                        Coordinates = coordinates,
+                        // GameObject = tileGameObject,
+                    };
+                    levelMap.AddCell(cell);
+                }
+                else
+                {
+                    var cell = new CellCanBuild()
+                    {
+                        Coordinates = coordinates,
+                        // GameObject = tileGameObject,
                     };
                     levelMap.AddCell(cell);
                 }
@@ -193,30 +231,57 @@ namespace td.services
             }
         }
 
-        private void InitBuildings(EcsWorld world)
+        public void InitBuildings(EcsWorld world)
         {
             var towerPool = world.GetPool<Tower>();
             var goPool = world.GetPool<Ref<GameObject>>();
-            var entities = world.Filter<Tower>().Inc<Ref<GameObject>>().End();
+            // var entities = world.Filter<Tower>().Inc<Ref<GameObject>>().End();
+            // foreach (var entity in entities)
 
-            foreach (var entity in entities)
+            foreach (var toerTransform in Object.FindObjectsOfType<TowerProvider>())
             {
+                var entity = world.ConvertToEntity(toerTransform.gameObject);
+
                 var tower = towerPool.Get(entity);
                 var towerGameObject = goPool.Get(entity);
-                
-                levelMap.AddCell(new CellCanBuild()
+
+                var cellCoordinates = GridUtils.CoordsToCell(
+                    towerGameObject.reference.transform.position,
+                    levelMap.CellType,
+                    levelMap.CellSize
+                );
+
+                var cell = levelMap.GetCell<ICellCanBuild>(cellCoordinates);
+
+                if (cell != null)
                 {
-                    Coordinates = GridUtils.CoordsToCell(
-                        towerGameObject.reference.transform.position,
-                        levelMap.CellType,
-                        levelMap.CellSize
-                    ),
-                    BuildingPackedEntity = world.PackEntity(entity)
-                });
+                    cell.BuildingPackedEntity = world.PackEntity(entity);
+                }
+
+                if (tower.radiusGameObject == null)
+                {
+                    var radiusTransform = towerGameObject.reference.transform.Find("radius");
+                    if (radiusTransform != null)
+                    {
+                        tower.radiusGameObject = radiusTransform.gameObject;
+                        tower.radiusGameObject.SetActive(false);
+                    }
+                }
 
                 // var radius = towerGameObject.reference.transform.Find("radius");
                 // radius.gameObject.hideFlags = HideFlags.None;
                 // radius.localScale = new Vector3(tower.radius, tower.radius, tower.radius) * 1.3f;
+            }
+        }
+
+        private void InitGridRenderer()
+        {
+            levelMap.GridRenderer = null;
+            var go = GameObject.FindGameObjectWithTag(Constants.Tags.GridRenderer);
+            if (go)
+            {
+                var hl = go.GetComponent<HightlightGridByCursor>();
+                levelMap.GridRenderer = hl;
             }
         }
     }

@@ -6,6 +6,7 @@ using td.components.flags;
 using td.features.enemies;
 using td.features.fire;
 using td.features.fire.projectiles;
+using td.features.input;
 using td.services;
 using td.utils.ecs;
 using UnityEngine;

@@ -15,7 +15,7 @@ using System.Collections.Generic;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.Utilities;
 
-namespace td.features.input
+namespace td.features.input.actions
 {
     public partial class @Input: IInputActionCollection2, IDisposable
     {

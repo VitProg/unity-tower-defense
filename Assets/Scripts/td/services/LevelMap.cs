@@ -2,7 +2,6 @@
 using System.Linq;
 using JetBrains.Annotations;
 using td.common;
-using td.common.cells;
 using td.common.cells.interfaces;
 using td.common.level;
 using td.monoBehaviours;
@@ -52,6 +51,7 @@ namespace td.services
         public Spawn[] Spawns => spawns.Where(spawn => spawn != null).ToArray();
         public Kernel[] Kernels => kernels.Where(target => target != null).ToArray();
 
+        public HightlightGridByCursor GridRenderer { get; set; }
 
         public LevelMap(LevelState levelState)
         {
@@ -69,6 +69,7 @@ namespace td.services
             kernelsLength = 0;
             Width = -1;
             Height = -1;
+            GridRenderer = null;
         }
 
         public void AddCell(ICell cell)
@@ -302,25 +303,6 @@ namespace td.services
                 line += '\n';
             }
             
-            // line += "\n\n---------------------------------------\n\nFrom array:\n";
-            // line += $"X: {0}...{Width - 1}\n";
-            // line += $"Y: {Height - 1}...{0}\n";
-            // for (var y = 99; y >= 0 ; y--)
-            // {
-            //     line += Math.Abs(y).ToString("D2") + ": ";
-            //     for (var x = 0; x < 100; x++)
-            //     {
-            //         var cell = cells[x, y];
-            //         if (cell is ICellCanWalk walk)
-            //         {
-            //             line += FormatCell(walk);
-            //         }
-            //         line += FormatCell(null);
-            //     }
-            //
-            //     line += '\n';
-            // }
-
             Debug.Log(line);
         }
 
