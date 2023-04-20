@@ -5,7 +5,6 @@ Shader "Shader/Hex2"
         _GridColor("Grid Color", Color) = (1,1,1,1)
         _BgColor("Back Ground Color", Color) = (0,0,0,0)
         _Colmun("Colmun", float) = 1
-        _CellSize("CellSize", float) = 1
         _GridWidth("Grid Width", Range(0,1)) = 0
         _Center("Center(xy) OffsetX(zw)", Vector) = (0,0,0,0)
 
@@ -55,7 +54,6 @@ Shader "Shader/Hex2"
             fixed4 _BgColor;
             fixed4 _GridColor;
             fixed _Colmun;
-            fixed _CellSize;
             fixed _GridWidth;
 
             fixed4 _Target;
@@ -80,7 +78,7 @@ Shader "Shader/Hex2"
 
             fixed4 frag(v2f input) : COLOR
             {
-                float size = _CellSize;
+                float size = 1.0;
                 float2 pixel = input.worldSpacePos + _Shift;
                 
                 fixed q = (pixel.x * 0.57735026918963 - pixel.y * 0.33333333333) / size;

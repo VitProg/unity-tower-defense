@@ -1,6 +1,5 @@
 ﻿{
-  "levelNumber": 3,
-  "cellType": 2,
+  "levelNumber": 1,
   "delayBeforeFirstWave": 3,
   "delayBetweenWaves": 3,
   "lives": 10.0,

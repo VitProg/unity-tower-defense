@@ -10,11 +10,10 @@ GameObject:
   m_Component:
   - component: {fileID: 3710382914229085691}
   - component: {fileID: 9019620020201760552}
-  - component: {fileID: 3181735774136613360}
-  - component: {fileID: 2864018999550963944}
-  - component: {fileID: 639336398679119555}
-  - component: {fileID: 7534291201059824420}
-  - component: {fileID: 685255479335895023}
+  - component: {fileID: 3836634058103155629}
+  - component: {fileID: 5483514733010992593}
+  - component: {fileID: 249834887035534913}
+  - component: {fileID: 613599551960942206}
   m_Layer: 0
   m_Name: bullet
   m_TagString: Untagged
@@ -51,7 +50,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   <WorldName>k__BackingField: 
---- !u!114 &3181735774136613360
+--- !u!114 &3836634058103155629
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -60,65 +59,52 @@ MonoBehaviour:
   m_GameObject: {fileID: 1628625227721413391}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01362ac24d8855d4bb8300399bd29b4e, type: 3}
+  m_Script: {fileID: 11500000, guid: f9514082a72f79f4aaa47715576b1348, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &5483514733010992593
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1628625227721413391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 64ee5d443eacffb4e8591ccc043318d0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &249834887035534913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1628625227721413391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2672283d374b2b40841e6c99e9c8dc6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &613599551960942206
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1628625227721413391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8cb0069396a6584faf2430a51771c58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   component:
-    damage: 0
---- !u!114 &2864018999550963944
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1628625227721413391}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f8b4bc9bbf14ee59b51fd97ac134548, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  component:
-    reference: {fileID: 1628625227721413391}
---- !u!114 &639336398679119555
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1628625227721413391}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 34fba6085ac04016b2decc7edb7f1881, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &7534291201059824420
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1628625227721413391}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 90fe1bc3b985f3546a1e6cd4b2ff8aa8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  component:
-    target: {x: 0, y: 0}
-    gap: 0
-    speed: 0
---- !u!114 &685255479335895023
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1628625227721413391}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e1b1d8de6a431b479b5377f44000fad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+    turnSpeed: 0
+    maxEnergy: 0
+    energyUsage: 0
+    maxSpeed: 0
+    currentEnergy: 0
+    velocity: {x: 0, y: 0}
 --- !u!1 &1797496278459417294
 GameObject:
   m_ObjectHideFlags: 0
