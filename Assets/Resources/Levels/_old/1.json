@@ -1,6 +1,5 @@
 ﻿{
-  "levelNumber": 3,
-  "cellType": 2,
+  "levelNumber": 1,
   "delayBeforeFirstWave": 3,
   "delayBetweenWaves": 3,
   "lives": 10.0,
@@ -14,10 +13,10 @@
             "simple_walker"
           ],
           "quantity": 10,
-          "speed": 1.1,
-          "health": 5.5,
-          "delayBetween": 0.7,
-          "scale": [0.5, 0.8]
+          "speed": 2.0,
+          "health": 0.5,
+          "delayBetween": 1.0,
+          "scale": [0.6, 0.8]
         }
       ]
     },
@@ -33,30 +32,11 @@
             "speedy_walker"
           ],
           "selectMethod": 2,
-          "quantity": 10,
+          "quantity": 5,
           "speed": 4.0,
-          "health": 1.5,
+          "health": 1.0,
           "delayBetween": 0.5,
-          "scale": [0.5, 0.8]
-        }
-      ]
-    },
-    {
-      "spawns": [
-        {
-          "spawner": 0,
-          "enemies": [
-            "simple_walker",
-            "speedy_walker",
-            "speedy_walker",
-            "speedy_walker"
-          ],
-          "selectMethod": 2,
-          "quantity": 15,
-          "speed": 5.0,
-          "health": 1.2,
-          "delayBetween": 0.7,
-          "scale": [0.5, 0.8]
+          "scale": [0.6, 0.99]
         }
       ]
     }
