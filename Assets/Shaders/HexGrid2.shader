@@ -4,12 +4,12 @@ Shader "Custom/HexFlat"
     {
         _GridColor("Grid Color", Color) = (1,1,1,1)
         _BgColor("BG Color", Color) = (0,0,0,0)
-        _CellSize("CellSize", Range(0,50)) = 1
         _GridWidth("Grid Width", Range(0,50)) = 0
         _Shift("Shift", Vector) = (0,0,0,0)
         _LightPosition("Light Position", Vector) = (1, 1, 0, 0)
         _LightRadius("Light Radius", Range(0, 20)) = 1
         _LightPower("Light Power", Range(0, 20)) = 1
+        _YCompress("Compress by Y", Range(1, 1.75)) = 1
     }
 
     SubShader
@@ -53,7 +53,6 @@ Shader "Custom/HexFlat"
 
             fixed4 _BgColor;
             fixed4 _GridColor;
-            fixed _CellSize;
             fixed _GridWidth;
 
             fixed4 _Shift;
@@ -61,6 +60,7 @@ Shader "Custom/HexFlat"
             fixed2 _LightPosition;
             fixed _LightRadius;
             fixed _LightPower;
+            fixed _YCompress;
 
             fixed sqr3 = 1.7320508076;
             fixed2 vec2_05 = fixed2(0.5, 0.5);
@@ -71,8 +71,8 @@ Shader "Custom/HexFlat"
             fixed2 get_shift()
             {
                 return fixed2(
-                    (_Shift.x * _CellSize) - (_CellSize * 0.075),
-                    (_Shift.y * _CellSize) - (_CellSize * 0.035)
+                    _Shift.x - 0.075,
+                    _Shift.y - 0.035
                 );
             }
 
@@ -89,10 +89,12 @@ Shader "Custom/HexFlat"
                 );
             }
 
-            fixed4 hex_grid(const in fixed2 pos)
+            fixed4 hex_grid(const in fixed2 _pos)
             {
+                fixed2 pos = fixed2(_pos.x, _pos.y * _YCompress);
+                
                 const fixed space = _GridWidth;
-                const fixed outer_radius = _CellSize * 0.861 * 1.008059;
+                const fixed outer_radius = 0.867938799; //0.861 * 1.008059;
                 const fixed inner_radius = outer_radius - space;
                 const fixed inner_radius_sqr3 = inner_radius / 1.7320508076;
 

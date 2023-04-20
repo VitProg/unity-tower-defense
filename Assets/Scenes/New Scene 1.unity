@@ -250,12 +250,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 430189398}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3d0b723b5eca4d94db873533b59c8d40, type: 3}
+  m_Script: {fileID: 11500000, guid: 8ab7f79d9d47d544f9d395738a333d75, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fineColor: {r: 0.31384832, g: 0.7169812, b: 0.3803686, a: 0}
-  errorColor: {r: 0.6627451, g: 0.19607843, b: 0.21568628, a: 0}
-  State: 0
+  fineColor: {r: 0.34117648, g: 0.73333335, b: 1, a: 1}
+  fineColorBackground: {r: 0.34117648, g: 0.73333335, b: 1, a: 0.043137256}
+  errorColor: {r: 1, g: 0.04872053, b: 0, a: 0.78431374}
+  errorColorBackground: {r: 1, g: 0.047058824, b: 0, a: 0.078431375}
+  lightPower: 1.5
+  lightRadius: 3
+  cellSize: 1.8
+  gridWight: 0.08
+  shift: {x: 120, y: 122}
+  State: 1
 --- !u!64 &430189400
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -290,7 +297,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 447b4b8ed9494964183c34c0d607567a, type: 2}
+  - {fileID: 1427003664}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -453,3 +460,63 @@ MonoBehaviour:
   m_RequiresDepthTexture: 0
   m_RequiresColorTexture: 0
   m_Version: 2
+--- !u!21 &1427003664
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: HexGrid (Instance)
+  m_Shader: {fileID: 4800000, guid: 5c55eaef83f34eec9e9aa2addebec909, type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _DissolveTexture:
+        m_Texture: {fileID: 2800000, guid: 0b793f873a7195d48acd013e6d41c90f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: c3c34e396a46f4439925b24e67779a5d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTexture:
+        m_Texture: {fileID: 2800000, guid: 92bcecb5c67d84e49b0176c888b9ba6e, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _CellSize: 1.8
+    - _Colmun: 3.16
+    - _Column: 0.89
+    - _DissolveCutoff: 0.021
+    - _Edge: 0.12
+    - _ExtrudeAmount: 0
+    - _Glossiness: 0.5
+    - _GridWidth: 0.08
+    - _LightIntensity: 0.5
+    - _LightPower: 1.5
+    - _LightRadius: 2.6999998
+    - _Metallic: 0
+    - __CellSize: 1
+    m_Colors:
+    - _BgColor: {r: 1, g: 0.047058824, b: 0, a: 0.078431375}
+    - _Center: {r: 0, g: 0, b: 0, a: 0}
+    - _Color: {r: 0, g: 0, b: 0, a: 0}
+    - _Colour: {r: 0, g: 0, b: 0, a: 1}
+    - _Cursor: {r: 1, g: 1, b: 0, a: 0}
+    - _EdgeColor: {r: 0.49056602, g: 0.49056602, b: 0.49056602, a: 1}
+    - _GridColor: {r: 1, g: 0.04872053, b: 0, a: 0.78431374}
+    - _Light: {r: 12.02, g: 4.91, b: 0, a: 0}
+    - _LightPosition: {r: 9.04, g: 5.71, b: 0, a: 0}
+    - _Shift: {r: 120, g: 122, b: 0, a: 0}
+    - _Target: {r: 0.36, g: 4.3, b: 2.08, a: 0.94}
+  m_BuildTextureStacks: []

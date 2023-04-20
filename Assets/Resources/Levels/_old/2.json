@@ -1,0 +1,79 @@
+﻿{
+  "levelNumber": 2,
+  "delayBeforeFirstWave": 5,
+  "delayBetweenWaves": 5,
+  "lives": 10.0,
+  "startedMoney": 40,
+  "waves": [
+    {
+      "spawns": [
+        {
+          "spawner": 0,
+          "enemies": [
+            "simple_walker",
+            "speedy_walker"
+          ],
+          "selectMethod": 2,
+          "quantity": 5,
+          "speed": 2.0,
+          "health": 1.2,
+          "delayBetween": 1.0,
+          "scale": [0.5, 0.8]
+        }
+      ]
+    },
+    {
+      "spawns": [
+        {
+          "spawner": 1,
+          "enemies": [
+            "simple_walker",
+            "speedy_walker"
+          ],
+          "selectMethod": 2,
+          "quantity": 5,
+          "speed": 2.0,
+          "health": 1.0,
+          "delayBetween": 1.0,
+          "scale": [0.5, 0.8]
+        }
+      ]
+    },
+    {
+      "spawns": [
+        {
+          "spawner": 0,
+          "enemies": [
+            "simple_walker",
+            "speedy_walker",
+            "speedy_walker",
+            "simple_walker",
+            "speedy_walker"
+          ],
+          "selectMethod": 2,
+          "quantity": 8,
+          "speed": 3.0,
+          "health": 1.5,
+          "delayBetween": 1.0,
+          "scale": [0.5, 0.8]
+        },
+        {
+          "spawner": 1,
+          "enemies": [
+            "simple_walker",
+            "speedy_walker",
+            "speedy_walker",
+            "simple_walker",
+            "speedy_walker"
+          ],
+          "selectMethod": 2,
+          "quantity": 8,
+          "speed": 3.0,
+          "health": 1.5,
+          "delayBetween": 1.0,
+          "scale": [0.5, 0.8]
+        }
+      ]
+    }
+  ]
+}
