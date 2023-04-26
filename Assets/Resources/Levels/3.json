@@ -1,0 +1,39 @@
+﻿{
+  "levelNumber": 2,
+  "delayBeforeFirstWave": 3,
+  "delayBetweenWaves": 3,
+  "lives": 10.0,
+  "startedMoney": 20,
+  "waves": [
+    {
+      "spawns": [
+        {
+          "spawner": 666,
+          "enemies": [
+            "speedy_walker"
+          ],
+          "quantity": 10,
+          "speed": 1.6,
+          "health": 2.0,
+          "delayBetween": 0.7,
+          "scale": [0.5, 0.8]
+        }
+      ]
+    },
+    {
+      "spawns": [
+        {
+          "spawner": 666,
+          "enemies": [
+            "speedy_walker"
+          ],
+          "quantity": 100,
+          "speed": 1.6,
+          "health": 2.0,
+          "delayBetween": 0.1,
+          "scale": [0.5, 0.8]
+        }
+      ]
+    }
+  ]
+}

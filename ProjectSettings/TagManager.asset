@@ -7,6 +7,17 @@ TagManager:
   - Enemy
   - Platform
   - projectile
+  - EnemiesContainer
+  - Spawn
+  - Target
+  - Tile
+  - BuildingsContainer
+  - Building
+  - UI
+  - CanBuild
+  - CanWalk
+  - GridRenderer
+  - Debug
   layers:
   - Default
   - TransparentFX
@@ -14,7 +25,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - HexGrid
   - 
   - 
   - 
@@ -55,4 +66,7 @@ TagManager:
     locked: 0
   - name: Enemies
     uniqueID: 4106095789
+    locked: 0
+  - name: Projectiles
+    uniqueID: 3092497609
     locked: 0

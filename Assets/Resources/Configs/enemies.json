@@ -1,0 +1,81 @@
+﻿{
+  "enemies": [
+    {
+      "name": "simple_walker",
+      "prefabPath": "Enemy",
+      "baseSpeed": 1,
+      "baseHealth": 10,
+      "baseDamage": 1,
+      "angularSpeed": 10
+    },
+    {
+      "name": "speedy_walker",
+      "prefabPath": "Enemy2",
+      "baseSpeed": 1.25,
+      "baseHealth": 2,
+      "baseDamage": 0.5,
+      "angularSpeed": 100
+    },
+    {
+      "name": "creep-1-blue",
+      "prefabPath": "creep-1-blue",
+      "baseSpeed": 1,
+      "baseHealth": 5,
+      "baseDamage": 1,
+      "angularSpeed": 10,
+      "animated": true
+    },
+    {
+      "name": "creep-1-red",
+      "prefabPath": "creep-1-red",
+      "baseSpeed": 1,
+      "baseHealth": 5,
+      "baseDamage": 1,
+      "angularSpeed": 10,
+      "animated": true
+    },
+    {
+      "name": "creep-1-green",
+      "prefabPath": "creep-1-green",
+      "baseSpeed": 1,
+      "baseHealth": 5,
+      "baseDamage": 1,
+      "angularSpeed": 10,
+      "animated": true
+    },
+    {
+      "name": "creep-1-yellow",
+      "prefabPath": "creep-1-yellow",
+      "baseSpeed": 1,
+      "baseHealth": 5,
+      "baseDamage": 1,
+      "angularSpeed": 10,
+      "animated": true
+    },
+    {
+      "name": "creep",
+      "prefabPath": "creep",
+      "types": [
+        {
+          "baseSpeed": 1.5,
+          "baseHealth": 5,
+          "baseDamage": 1,
+          "angularSpeed": 20
+        },
+        {
+          "baseSpeed": 1.25,
+          "baseHealth": 8,
+          "baseDamage": 1.2,
+          "angularSpeed": 15
+        },
+        {
+          "baseSpeed": 1,
+          "baseHealth": 12,
+          "baseDamage": 2,
+          "angularSpeed": 10
+        }
+      ],
+      "animated": true
+    }
+  ]
+}

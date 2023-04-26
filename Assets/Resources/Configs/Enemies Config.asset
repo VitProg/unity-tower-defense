@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e327990a3994124abeb66a1bf270703, type: 3}
+  m_Name: Enemies Config
+  m_EditorClassIdentifier: 
+  creepSmallBlueSprites: {fileID: 7108339969198208228, guid: db4b6e79b5ab1a241ad6e7c7c49fed47, type: 3}
+  creepSmallGreenSprites: {fileID: 7108339969198208228, guid: 337ff8f0c5063574f999dfa28d4da1fa, type: 3}
+  creepSmallRedSprites: {fileID: 7108339969198208228, guid: 3fbe80ac7e8d48c4b99c2d1952aae3e3, type: 3}
+  creepSmallYellowSprites: {fileID: 7108339969198208228, guid: b07cb16d07b76cd48a87c1f37a297942, type: 3}
+  creepSmallAnimatorController: {fileID: 9100000, guid: aab3c4095ad2ce94aa64e66b9508a95e, type: 2}
+  creepMiddleBlueSprites: {fileID: 7108339969198208228, guid: 9e185c2f5dc656c469e9723d2c6c0389, type: 3}
+  creepMiddleGreenSprites: {fileID: 7108339969198208228, guid: eeda7780f9bd147459a2fcf0eb8d1d11, type: 3}
+  creepMiddleRedSprites: {fileID: 7108339969198208228, guid: 48302c387d3cb4b439cf02be34c54eab, type: 3}
+  creepMiddleYellowSprites: {fileID: 7108339969198208228, guid: 57765d5cae9b7ae4fb02cbd89045af5c, type: 3}
+  creepMiddleAnimatorController: {fileID: 9100000, guid: 175ad2ce6ef68dd4ea91b180ad15494e, type: 2}
+  creepLargeBlueSprites: {fileID: 7108339969198208228, guid: 342f6cd5f10b9484bac5dcabdccc3154, type: 3}
+  creepLargeGreenSprites: {fileID: 7108339969198208228, guid: 2b24f99c7ec856f4db01c7dfed2b44e4, type: 3}
+  creepLargeRedSprites: {fileID: 7108339969198208228, guid: b3940063dc06e414ba6a0479338be5af, type: 3}
+  creepLargeYellowSprites: {fileID: 7108339969198208228, guid: a99ad58ac664f574294e2083c1f314ea, type: 3}
+  creepLargeAnimatorController: {fileID: 9100000, guid: a37df4289f1016043b98cdee9ef15759, type: 2}
