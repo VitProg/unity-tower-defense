@@ -2,7 +2,6 @@
 using Leopotam.EcsLite.Di;
 using td.common;
 using td.services;
-using td.states;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -10,11 +9,11 @@ namespace td.features.waves
 {
     public class StartWaveExecutor : IEcsRunSystem
     {
-        [EcsInject] private LevelState levelState;
-        [EcsInject] private LevelMap levelMap;
+        [Inject] private LevelState levelState;
+        [Inject] private LevelMap levelMap;
 
-        [EcsWorld] private EcsWorld world;        
-        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
+        [InjectWorld] private EcsWorld world;        
+        [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
         private readonly EcsFilterInject<Inc<StartWaveOuterCommand>> eventEntities = Constants.Worlds.Outer;
 
@@ -33,17 +32,14 @@ namespace td.features.waves
             {
                 foreach (var spawn in waveConfig.Value.spawns)
                 {
-                    world.AddComponent(
-                        world.NewEntity(),
-                        new SpawnSequence()
-                        {
-                            config = spawn,
-                            enemyCounter = 0,
-                            delayBeforeCountdown = spawn.delayBefore,
-                            delayBetweenCountdown = 0,
-                            lastSpawner = -1,
-                        }
-                    );
+                    var entity = world.NewEntity();
+                    // Debug.Log($">> NewEntity {entity} - StartWaveExecutor - Run Spawn Sequence");
+                    ref var spawnSequence = ref world.GetComponent<SpawnSequence>(entity);
+                    spawnSequence.config = spawn;
+                    spawnSequence.enemyCounter = 0;
+                    spawnSequence.delayBeforeCountdown = spawn.delayBefore;
+                    spawnSequence.delayBetweenCountdown = 0;
+                    spawnSequence.lastSpawner = -1;
                 }
             }
             

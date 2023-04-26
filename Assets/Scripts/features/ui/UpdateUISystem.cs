@@ -41,15 +41,12 @@ namespace td.features.ui
                 }
                 
                 //
-                if (waveLabelText != null && data.wave != null)
+                if (waveLabelText != null && data is { WaveNumber: not null, WaveCount: not null })
                 {
-                    var waveNumber = data.wave[0];
-                    var maxWaves = data.wave[1];
-                
-                    if (waveNumber != 0 && maxWaves != 0)
+                    if (data.WaveNumber != 0 && data.WaveCount != 0)
                     {
                         waveLabel.SetActive(true);
-                        waveLabelText.text = waveRegex.Replace(waveLabelText.text, $@"{waveNumber}/{maxWaves}");
+                        waveLabelText.text = waveRegex.Replace(waveLabelText.text, $@"{data.WaveNumber}/{data.WaveCount}");
                     }
                     else
                     {
@@ -62,8 +59,7 @@ namespace td.features.ui
                     if (data.NextWaveCountdown > 0)
                     {
                         waveCountdownLabel.SetActive(true);
-                        waveCountdownLabelText.text =
-                            oneNumberRegex.Replace(waveCountdownLabelText.text, data.NextWaveCountdown.ToString());
+                        waveCountdownLabelText.text = oneNumberRegex.Replace(waveCountdownLabelText.text, data.NextWaveCountdown.ToString());
                     }
                     else
                     {

@@ -1,6 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.states;
+using td.services;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -8,8 +8,8 @@ namespace td.features.waves
 {
     public class NextWaveCountdownTimerSystem : IEcsRunSystem
     {
-        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
-        [EcsInject] private LevelState levelSatate;
+        [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
+        [Inject] private LevelState levelSatate;
         
         private readonly EcsFilterInject<Inc<NextWaveCountdownOuter>> eventEntities = Constants.Worlds.Outer;
 
@@ -42,7 +42,7 @@ namespace td.features.waves
             if (countdown.countdown < Constants.ZeroFloat)
             {
                 systems.CleanupOuter(eventEntities);
-                systems.SendSingleOuter<IncreaseWaveOuterCommand>();
+                systems.OuterSingle<IncreaseWaveOuterCommand>();
                 levelSatate.NextWaveCountdown = 0;
             }
         }

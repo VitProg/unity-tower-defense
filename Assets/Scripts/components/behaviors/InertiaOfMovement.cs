@@ -1,6 +1,4 @@
 ﻿using System;
-using Leopotam.EcsLite;
-using Mitfart.LeoECSLite.UniLeo.Providers;
 using td.common;
 using UnityEngine;
 

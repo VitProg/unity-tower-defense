@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using Leopotam.EcsLite;
 using td.common.level;
 using td.components.flags;
 using td.components.refs;
 using td.features.towers;
 using td.monoBehaviours;
-using td.states;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -15,17 +15,13 @@ namespace td.services
 {
     public class LevelLoader
     {
-        private readonly LevelMap levelMap;
-        private readonly LevelState levelState;
+        [Inject] private LevelMap levelMap;
+        [Inject] private LevelState levelState;
+        // [Inject] private EntityConverters converters;
 
         private GameObject levelGameObject;
-
-        public LevelLoader(LevelMap levelMap, LevelState levelState)
-        {
-            this.levelMap = levelMap;
-            this.levelState = levelState;
-        }
-
+        
+        
         public bool HasLevel()
         {
             var check1 = Resources.Load<TextAsset>($"Levels/{levelState.LevelNumber}") != null;
@@ -52,8 +48,6 @@ namespace td.services
                 levelMap.BuildMap();
 
                 FixSpawnPoints();
-                
-                InitGridRenderer();
 
 #if UNITY_EDITOR
                 Debug.Log("FINAL MAP");
@@ -137,48 +131,43 @@ namespace td.services
                 levelMap.PreAddCell(cell);
             }
         }
-        
-        public void InitBuildings(EcsWorld world)
-        {
-            var towerPool = world.GetPool<Tower>();
-            var goPool = world.GetPool<Ref<GameObject>>();
 
-            foreach (var toerTransform in Object.FindObjectsOfType<TowerProvider>())
-            {
-                var entity = world.ConvertToEntity(toerTransform.gameObject);
 
-                var tower = towerPool.Get(entity);
-                var towerGameObject = goPool.Get(entity);
-
-                var cellCoordinates = HexGridUtils.PositionToCell(towerGameObject.reference.transform.position);
-
-                var cell = levelMap.GetCell(cellCoordinates, CellTypes.CanBuild);
-
-                if (cell != null)
-                {
-                    // ToDo
-                    cell.Buildings[0] = world.PackEntity(entity);
-                }
-
-                if (tower.radiusGameObject == null)
-                {
-                    var radiusTransform = towerGameObject.reference.transform.Find("radius");
-                    if (radiusTransform != null)
-                    {
-                        tower.radiusGameObject = radiusTransform.gameObject;
-                        tower.radiusGameObject.SetActive(false);
-                    }
-                }
-            }
-        }
-
-        private void InitGridRenderer()
-        {
-            if (levelMap.GridRenderer != null) return;
-            var go = GameObject.FindGameObjectWithTag(Constants.Tags.GridRenderer);
-            if (!go) return;
-            var hl = go.GetComponent<HightlightGridByCursor>();
-            levelMap.GridRenderer = hl;
-        }
+        // public void InitBuildings(EcsWorld world)
+        // {
+        //     var towerPool = world.GetPool<Tower>();
+        //     var goPool = world.GetPool<Ref<GameObject>>();
+        //
+        //     foreach (var towerTransform in Object.FindObjectsOfType<TowerProvider>())
+        //     {
+        //         // var entity = world.ConvertToEntity(toerTransform.gameObject);
+        //         var entity = world.NewEntity();
+        //         if (converters.Convert<Tower>(towerTransform.gameObject, entity))
+        //         {
+        //             var tower = towerPool.Get(entity);
+        //             var towerGameObject = goPool.Get(entity);
+        //
+        //             var cellCoordinates = HexGridUtils.PositionToCell(towerGameObject.reference.transform.position);
+        //
+        //             var cell = levelMap.GetCell(cellCoordinates, CellTypes.CanBuild);
+        //
+        //             if (cell != null)
+        //             {
+        //                 // ToDo
+        //                 cell.Buildings[0] = world.PackEntity(entity);
+        //             }
+        //
+        //             if (tower.radiusGameObject == null)
+        //             {
+        //                 var radiusTransform = towerGameObject.reference.transform.Find("radius");
+        //                 if (radiusTransform != null)
+        //                 {
+        //                     tower.radiusGameObject = radiusTransform.gameObject;
+        //                     tower.radiusGameObject.SetActive(false);
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 }

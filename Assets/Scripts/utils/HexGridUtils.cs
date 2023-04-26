@@ -8,17 +8,18 @@ namespace td.utils
     {
         public const float HexOffsetX = 0.75f;
         public const float HexOffsetY = 0.8660254f;
+        public const float SkewY = 0.85f;
 
         public static Vector2 CellToPosition(Int2 cell) {
             var x = HexOffsetX * (cell.x + 0.5f);
-            var y = HexOffsetY * (cell.y + (Math.Abs(cell.x) % 2) / 2f + 0.5f);
+            var y = HexOffsetY * (cell.y + (Math.Abs(cell.x) % 2) / 2f + 0.5f) * SkewY;
             return new Vector2 {x = x, y = y};
         }
 
         public static Int2 PositionToCell(Vector2 position) {
             
             var x = Mathf.FloorToInt(position.x / HexOffsetX);
-            var y = Mathf.FloorToInt((position.y - (Math.Abs(x) % 2) * HexOffsetY / 2) / HexOffsetY);
+            var y = Mathf.FloorToInt(((position.y / SkewY) - (Math.Abs(x) % 2) * HexOffsetY / 2) / HexOffsetY);
             return new Int2() { x = x, y = y };
         }
 

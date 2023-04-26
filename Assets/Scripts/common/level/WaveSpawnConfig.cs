@@ -8,7 +8,7 @@ namespace td.common.level
     public struct WaveSpawnConfig
     {
         public int spawner;
-        public string[] enemies;
+        public WaveSpawnConfigEnemy[] enemies;
         public MethodOfSelectNextEnemy selectMethod;
         public int quantity;
         public float speed;
@@ -20,9 +20,17 @@ namespace td.common.level
         public float[] offset;
     }
 
+    [Serializable]
+    public struct WaveSpawnConfigEnemy
+    {
+        public string name;
+        public int type;
+        public int variant;
+    }
+
     public enum MethodOfSelectNextEnemy
     {
-        Random = 1,
-        Sequence = 2
+        Random = 0,
+        Sequence = 1
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using td.utils;
+using td.utils.ecs;
 using UnityEditor;
 
 namespace td.monoBehaviours
@@ -17,12 +18,13 @@ namespace td.monoBehaviours
             EditorGUI.BeginChangeCheck();
             
             var info = (EcsComponentsInfo)target;
+            var world = DI.GetWorld();
             
             /**/
-            if (info.World != null && info.PackedEntity.Unpack(info.World, out var entity))
+            if (world != null && info.ecsEntity.TryGetEntity(out var entity))
             {
                 var components = new object[] { };
-                info.World.GetComponents(entity, ref components);
+                world.GetComponents(entity, ref components);
 
                 foreach (var component in components)
                 {

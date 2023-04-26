@@ -1,9 +1,9 @@
-﻿using Mitfart.LeoECSLite.UniLeo.Providers;
-using UnityEngine;
-
-namespace td.components.refs
-{
-    public class RefTransformProvider : EcsProvider<Ref<Transform>>
-    {
-    }
-}
+﻿// using td.common;
+// using UnityEngine;
+//
+// namespace td.components.refs
+// {
+//     public class RefTransformProvider : EcsProvider<Ref<Transform>>
+//     {
+//     }
+// }

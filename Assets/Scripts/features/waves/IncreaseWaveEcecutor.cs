@@ -2,7 +2,6 @@
 using Leopotam.EcsLite.Di;
 using td.features.levels;
 using td.services;
-using td.states;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -10,7 +9,7 @@ namespace td.features.waves
 {
     public class IncreaseWaveEcecutor: IEcsRunSystem
     {
-        [EcsInject] private LevelState levelState;
+        [Inject] private LevelState levelState;
         
         private readonly EcsFilterInject<Inc<IncreaseWaveOuterCommand>> eventEntities = Constants.Worlds.Outer;
 
@@ -26,24 +25,21 @@ namespace td.features.waves
 
             if (levelState.IsLastWave)
             {
-                systems.SendOuter<LevelFinishedOuterEvent>();
+                systems.Outer<LevelFinishedOuterEvent>();
                 return;
             }
 
             waveNumber++;
 
-            // systems.SendOuter(new WaveChangedOuterEvent()
+            // systems.Outer(new WaveChangedOuterEvent()
             // {
                 // WaveNumber = waveNumber,
             // });
-            systems.SendOuter(new StartWaveOuterCommand()
-            {
-                WaveNumber = waveNumber,
-            });
+            systems.OuterSingle<StartWaveOuterCommand>().WaveNumber = waveNumber;
 
             levelState.WaveNumber = waveNumber;
             
-            // systems.CleanupOuter(eventEntities);
+            // systems.DelOuter(eventEntities);
             
             // Debug.Log("IncreaseWaveHanndler FIN");
         }

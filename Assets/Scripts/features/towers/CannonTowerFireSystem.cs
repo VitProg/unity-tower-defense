@@ -1,13 +1,12 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.components;
 using td.components.behaviors;
 using td.components.flags;
 using td.components.refs;
-using td.features.enemies;
-using td.features.fire;
-using td.features.fire.projectiles;
+using td.features.enemies.components;
 using td.features.input;
+using td.features.projectiles;
+using td.features.projectiles.attributes;
 using td.services;
 using td.utils.ecs;
 using UnityEngine;
@@ -16,11 +15,13 @@ namespace td.features.towers
 {
     public class CannonTowerFireSystem : IEcsRunSystem
     {
-        [EcsInject] private LevelMap levelMap;
+        [Inject] private LevelMap levelMap;
+        [Inject] private ProjectileService projectileService;
+        // [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
         
         private readonly EcsFilterInject<
             Inc<CannonTower, Tower, Ref<GameObject>>,
-            Exc<IsDragging>
+            Exc<IsDragging, IsDisabled, IsDestroyed>
         > cannonEntities = default;
 
         public void Run(IEcsSystems systems)
@@ -46,77 +47,72 @@ namespace td.features.towers
                 }
 
                 if (!lunchProjectile ||
-                    !world.HasComponent<FireTarget>(cannonEntity))
+                    !world.HasComponent<ProjectileTarget>(cannonEntity))
                 {
                     continue;
                 }
 
-                var target = world.GetComponent<FireTarget>(cannonEntity);
+                var sqrRadius = tower.radius * tower.radius;
+                
+                var target = world.GetComponent<ProjectileTarget>(cannonEntity);
 
                 if (target.TargetEntity.Unpack(world, out var enemyEntity))
                 {
-                    var enemy = world.GetComponent<Enemy>(enemyEntity);
-                    var enemyGameObject = world.GetComponent<Ref<GameObject>>(enemyEntity);
-                    var enemyTarget = world.GetComponent<LinearMovementToTarget>(enemyEntity);
+                    if (world.HasComponent<IsDisabled>(enemyEntity) ||
+                        world.HasComponent<IsDestroyed>(enemyEntity))
+                    {
+                        continue;
+                    }
+                    
+                    ref var enemyGameObject = ref world.GetComponent<Ref<GameObject>>(enemyEntity);
+                    
+                    var enemyPostiion = (Vector2)enemyGameObject.reference.transform.position;
 
-                    var enemyPostiion = enemyGameObject.reference.transform.position;
-
-                    var projectilePosition = connonGameObject.reference.transform.position;
+                    var projectilePosition = (Vector2)connonGameObject.reference.transform.position + tower.barrel;
                     var projectileTarget = enemyPostiion;
 
-                    var distance = (projectilePosition - projectileTarget).magnitude;
+                    var sqrDistance = (projectilePosition - projectileTarget).sqrMagnitude;
 
-                    if (distance > tower.radius)
+                    if (sqrDistance > sqrRadius)
                     {
                         continue;
                     }
 
-                    var enemyVector = (Vector3)enemyTarget.target - enemyPostiion;
-                    enemyVector.Normalize();
-                    enemyVector *= ((enemy.speed / 2f) + (cannon.projectileSpeed / 2f)) * (distance / 10f);
+                    // var enemyVector = (Vector3)enemyTargetPoint.target - enemyPostiion;
+                    // enemyVector.Normalize();
+                    // enemyVector *= ((enemy.speed / 2f) + (cannon.projectileSpeed / 2f)) * (distance / 10f);
 
-                    projectileTarget += enemyVector; //todo
+                    // projectileTarget += enemyVector; //todo
 
-                    var projectileGameObject = Object.Instantiate(
-                        (GameObject)Resources.Load("Prefabs/projectiles/bullet", typeof(GameObject)),
-                        projectilePosition,
-                        new Quaternion(0, 0, 0, 0),
-                        connonGameObject.reference.transform
+                    var projectileEntity = projectileService.SpawnProjectile(
+                        name: "bullet",
+                        position: projectilePosition,
+                        targetEntity: enemyEntity,
+                        speed: cannon.projectileSpeed,
+                        whoFired: cannonEntity
                     );
-                    projectileGameObject.transform.localScale = Vector2.one;
-                    var projectileEntity = world.ConvertToEntity(projectileGameObject);
-
-                    world.GetComponent<IsProjectile>(projectileEntity).WhoFired = world.PackEntity(cannonEntity);
                     
-                    // todo применять различный тип снаряда, в зависимости от находящихся внутри осколков
-                    world.AddComponent(projectileEntity, new DamageProjectile()
-                    {
-                        damage = cannon.damage,
-                    });
-                    world.AddComponent(projectileEntity, new SlowingProjectile()
-                    {
-                        duration = 5f,
-                        speedMultipler = 1.5f
-                    });
-                    world.AddComponent(projectileEntity, new PoisonProjectile()
-                    {
-                        duration = 8f,
-                        damageInterval = cannon.damage,
-                        interval = 1f,
-                    });
-                    // todo ^
+                    // ref var spawnCommand = ref systems.Outer<SpawnProjectileOuterCommand>(out var spawnCommandEntity);
+                    // spawnCommand.prefab = "bullet";
+                    // spawnCommand.TargetEntity = world.PackEntity(enemyEntity);
+                    // spawnCommand.startedPosition = projectilePosition;
+                    // spawnCommand.targetPosition = projectileTarget;
+                    // spawnCommand.speed = cannon.projectileSpeed;
+                    // spawnCommand.WhoFired = world.PackEntity(cannonEntity);
                     
-                    world.AddComponent<LinearMovementToTarget>(projectileEntity) = new LinearMovementToTarget()
-                    {
-                        target = projectileTarget,
-                        speed = cannon.projectileSpeed,
-                        gap = Constants.DefaultGap,
-                    };
-
-                    world.AddComponent(projectileEntity, new FireTarget()
-                    {
-                        TargetEntity = world.PackEntity(enemyEntity),
-                    });
+                    // start todo
+                    ref var damage = ref world.GetComponent<DamageAttribute>(projectileEntity);
+                    damage.damage = cannon.damage; // todo add random damage in range
+                    
+                    ref var slowing = ref world.GetComponent<SlowingAttribute>(projectileEntity);
+                    slowing.duration = 5f;
+                    slowing.speedMultipler = 1.5f;
+                    
+                    ref var poison = ref world.GetComponent<PoisonAttribute>(projectileEntity);
+                    poison.duration = 8f;
+                    poison.damageInterval = cannon.damage / 5f;
+                    poison.interval = 1f;
+                    // end todo
                     
                     cannon.fireCountdown = 1f / cannon.fireRate;
                 }

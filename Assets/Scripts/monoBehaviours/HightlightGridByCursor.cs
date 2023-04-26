@@ -1,5 +1,9 @@
+using JetBrains.Annotations;
 using NaughtyAttributes;
+using td.common;
+using td.utils.ecs;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td.monoBehaviours
 {
@@ -17,6 +21,11 @@ namespace td.monoBehaviours
         private static readonly int SLightPower = Shader.PropertyToID("_LightPower");
         private static readonly int SLightRadius = Shader.PropertyToID("_LightRadius");
 
+        [SerializeField] private GameObject DebugMarker;
+
+        [Header("For Perspective Camera")]
+        [SerializeField] private LayerMask layerMask;
+
         [Header("Fine Status")]
         [SerializeField] private Color fineColor; // SGridColor
         [SerializeField] private Color fineColorBackground; // SBgColor
@@ -33,10 +42,14 @@ namespace td.monoBehaviours
         [SerializeField] private float gridWight;
         [SerializeField] private Vector2 shift;
         
-        [Space(15)]
-        public GridHightlightState State = GridHightlightState.Fine;
+        [FormerlySerializedAs("State")] [Space(15)]
+        public GridHightlightState state = GridHightlightState.Fine;
 
-        private Camera Camera;
+        private Plane plane;
+        
+        //
+        [InjectShared] private SharedData shared;
+        //
 
         // Start is called before the first frame update
         void Start()
@@ -44,16 +57,41 @@ namespace td.monoBehaviours
             renderer = GetComponent<Renderer>();
             renderer.material.SetColor(SGridColor, fineColor);
             renderer.material.SetColor(SBgColor, fineColorBackground);
-            Camera = Camera.main;
+            plane = new Plane(Vector3.forward, transform.position);
         }
 
         // Update is called once per frame
         void Update()
         {
+            if (shared == null && DI.IsReady)
+            {
+                DI.Resolve(this);
+            } 
             var mousePressed = Input.GetMouseButton(0);
             
             var mousePosition = Input.mousePosition;
-            var worldPosition = Camera.ScreenToWorldPoint(mousePosition);
+            var worldPosition = Vector3.zero;
+
+            var mainCamera = shared.MainCamera;
+            
+            if (shared.IsPerspectiveCameraMode)
+            {
+                var ray = mainCamera.ScreenPointToRay(mousePosition);
+
+                if (plane.Raycast(ray, out var distance))
+                {
+                    worldPosition = ray.GetPoint(distance);
+                }
+            }
+            else
+            {
+                worldPosition = mainCamera.ScreenToWorldPoint(mousePosition);
+            }
+
+            if (DebugMarker)
+            {
+                DebugMarker.transform.position = worldPosition;
+            }
 
             var (color, bgColor, lr, lp) = GetByStatus(lightRadius, lightPower);
             
@@ -66,7 +104,7 @@ namespace td.monoBehaviours
 
         private (Color, Color, float, float) GetByStatus(float lr, float lp)
         {
-            return State switch
+            return state switch
             {
                 GridHightlightState.Fine => (fineColor, fineColorBackground, lr, lp),
                 GridHightlightState.Error => (errorColor, errorColorBackground, lr * 0.9f, lp * 1.2f),

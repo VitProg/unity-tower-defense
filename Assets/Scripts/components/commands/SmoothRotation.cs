@@ -3,38 +3,39 @@ using Leopotam.EcsLite;
 using td.common;
 using td.common.ecs;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td.components.commands
 {
     [Serializable]
     public struct SmoothRotation: IEcsAutoReset<SmoothRotation>, IEcsAutoMerge<SmoothRotation>
     {
-        public Quaternion From;
-        public Quaternion To;
-        public float AngularSpeed;
-        public float Time;
-        public float Threshold;
+        public Quaternion from;
+        public Quaternion to;
+        public float angularSpeed;
+        public float time;
+        public float threshold;
 
         public void AutoReset(ref SmoothRotation c)
         {
-            c.Time = 0f;
-            c.AngularSpeed = 5f;
-            c.Threshold = 30f;
+            c.time = 0f;
+            c.angularSpeed = 5f;
+            c.threshold = 30f;
         }
 
         public void AutoMerge(ref SmoothRotation result, SmoothRotation def)
         {
-            if (result.AngularSpeed <= 0f)
+            if (result.angularSpeed <= 0f)
             {
-                result.AngularSpeed = def.AngularSpeed;
+                result.angularSpeed = def.angularSpeed;
             }
-            if (result.Time <= 0f)
+            if (result.time <= 0f)
             {
-                result.Time = def.Time;
+                result.time = def.time;
             }
-            if (result.Threshold <= 0f)
+            if (result.threshold <= 0f)
             {
-                result.Threshold = def.Threshold;
+                result.threshold = def.threshold;
             }
         }
     }

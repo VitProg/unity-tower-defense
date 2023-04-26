@@ -53,21 +53,26 @@ namespace td
             public const string Outer = "outer";
             public const string UI = "ui";
         }
-
+        
         public static class Camera
         {
-            public const float MaxZoom = 1f;
-            public const float MinZoom = 6.5f;
-            public const float DefaultZoom = 4.5f;
+            public const float MaxOrthographicZoom = 1f;
+            public const float MinOrthographicZoom = 6.5f;
+            public const float OrthographicZoomStep = 0.5f;
+            public const float OrthographicZoomSpeed = 5f;
             
-            public const float ZoomSpeed = 5f;
-            public const float ZoomIncreaseAmount  = 1f;
+            public const float MaxPerspectiveZoom = -4f;
+            public const float MinPerspectiveZoom = -20f;
+            public const float PerspectiveZoomStep = 1f;
+            public const float PerspectiveZoomSpeed = 5f;
             
+
             public const float MoveSpeedMouse  = 3.0f;
             public const float MaxMoveSpeedMouse  = 10.0f;
             
             public const float MoveSpeedKeyborad = 25f;
             
+            public const float MoveMouseAttenuation = 0.8f;
             public const float MoveMouseInertiatiaAttenuation = 0.8f;
             public const float MoveKeyboardInertiatiaAttenuation = 0.8f;
             
@@ -95,6 +100,14 @@ namespace td
 
                 public const string AddTowerButton = "AddTower";
             }
+        }
+
+        public static class Pools
+        {
+            public const int ProjectileDefaultCopacity = 50;
+            public const int ProjectileMaxCopacity = 100;
+            public const int EnemyDefaultCopacity = 20;
+            public const int EnemyMaxCopacity = 100;
         }
     }
 }

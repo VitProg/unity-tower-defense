@@ -4,7 +4,6 @@ using td.common;
 using td.components.commands;
 using td.components.flags;
 using td.services;
-using td.states;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -13,9 +12,9 @@ namespace td.systems.init
 {
     public class SturtupInitSystem : IEcsPreInitSystem
     {
-        [EcsWorld] private EcsWorld world;
-        [EcsShared] private SharedData sharedData;
-        [EcsInject] private LevelState levelState;
+        [InjectWorld] private EcsWorld world;
+        [InjectShared] private SharedData sharedData;
+        [Inject] private LevelState levelState;
 
         public void PreInit(IEcsSystems systems)
         {
@@ -23,11 +22,8 @@ namespace td.systems.init
             
             LoadEnemiesData();
 
-            systems.SendOuter(new LoadLevelOuterCommand()
-            {
-                levelNumber = levelState.LevelNumber
-            });
-            systems.SendOuter<IsLoadingOuter>();
+            systems.Outer<LoadLevelOuterCommand>().levelNumber = levelState.LevelNumber;
+            systems.Outer<IsLoadingOuter>();
             
             // Debug.Log("SturtupInitSystem FIN");
         }

@@ -4,22 +4,26 @@ using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
 using Leopotam.EcsLite.Unity.Ugui;
 using Leopotam.EcsLite.UnityEditor;
-using Mitfart.LeoECSLite.UniLeo;
+// using Mitfart.LeoECSLite.UniLeo;
+using NaughtyAttributes;
 using td.common;
 using td.components.commands;
 using td.components.events;
 using td.features.camera;
 using td.features.enemies;
-using td.features.fire;
+using td.features.enemies.components;
+using td.features.enemies.systems;
 using td.features.impactsEnemy;
 using td.features.impactsKernel;
 using td.features.input;
 using td.features.levels;
+using td.features.projectiles;
 using td.features.towers;
 using td.features.ui;
 using td.features.waves;
+using td.monoBehaviours;
 using td.services;
-using td.states;
+using td.services.ecsConverter;
 using td.systems.behaviors;
 using td.systems.commands;
 using td.systems.init;
@@ -34,41 +38,40 @@ namespace td
     {
         [SerializeField] private EcsUguiEmitter uguiEmitter;
         [SerializeField] private CinemachineVirtualCamera virtualCamera;
+        [SerializeField] private HightlightGridByCursor hightlightGridByCursor;
 
-        public LevelState LevelState { get; private set; }
-        public LevelMap LevelMap { get; private set; }
-
+        [MinValue(1), MaxValue(4)]
         public uint levelNumber;
 
-        private EcsWorld world;
-        private EcsWorld outerWorld;
-        private EcsWorld uguiWorld;
-
-        private EcsSystems systems;
-        private SharedData sharedData;
-
-        // [FormerlySerializedAs("LevelNumber")] [SerializeField]
-        // public int levelNumber;
+        private IEcsSystems systems;
+        
+        [Inject] private LevelMap levelMap;
+        [Inject] private LevelState levelState;
 
         private void Start()
         {
-            sharedData = new SharedData()
+            var sharedData = new SharedData()
             {
                 UGUIEmitter = uguiEmitter,
-                VirtualCamera = virtualCamera
+                VirtualCamera = virtualCamera,
+                MainCamera = Camera.main,
+                HightlightGrid = hightlightGridByCursor
             };
 
-            world = new EcsWorld();
-            outerWorld = new EcsWorld();
-            uguiWorld = new EcsWorld();
+            var world = new EcsWorld();
+            var outerWorld = new EcsWorld();
+            var uguiWorld = new EcsWorld();
+
+            // converters
+            var converters = new EntityConverters();
+            converters
+                .Add(new EnemyEntityConverter())
+                .Add(new ProjectileEntityConverter())
+                .Add(new TowerEntityConverter())
+                ;
+            // ---
 
             systems = new EcsSystems(world, sharedData);
-
-            LevelState = new LevelState(systems, levelNumber);
-            LevelMap = new LevelMap(LevelState);
-
-            var levelLoader = new LevelLoader(LevelMap, LevelState);
-            IPathService pathService = new PathServiceV2();
 
             systems
                 .AddWorld(outerWorld, Constants.Worlds.Outer)
@@ -83,14 +86,19 @@ namespace td
                 .Add(new MoveToTargetSystem())
                 .Add(new SmoothRotateExecutor())
 
-                #region Tower/Fire
+                #region Tower
                 .Add(new CalcDistanceToKernelSystem())
                 .Add(new FindTargetByRadiusSystem())
                 .Add(new CannonTowerFireSystem())
-                .Add(new ProjectileTargetCorrectionSystem())
-                .Add(new ProjectileReachEnemyHandler())
                 .Add(new TowerBuySystem())
                 .Add(new TowerShowRadiusSystem())
+                #endregion
+                
+                #region Fire/Projectile
+                // .Add(new SpawnProjectileExecuter())
+                .Add(new ProjectileTargetCorrectionSystem())
+                .Add(new ProjectileReachEnemyHandler())
+                // .DelHere<SpawnProjectileOuterCommand>(Constants.Worlds.Outer)
                 #endregion
                 
                 #region Inpacts
@@ -174,10 +182,18 @@ namespace td
                 .Add(new EcsWorldDebugSystem(Constants.Worlds.Outer))
                 .Add(new EcsWorldDebugSystem(Constants.Worlds.UI))
 #endif
-                .Add(new ConvertSceneSys())
+                // .Add(new ConvertSceneSys())
                 .Add(new SturtupInitSystem())
+                .InjectLite(
+                    new LevelState(levelNumber),
+                    new LevelMap(),
+                    new LevelLoader(),
+                    new PathService(),
+                    new GameObjectPoolService(),
+                    new ProjectileService(),
+                    converters
+                )
                 .Inject()
-                .InjectLite(LevelState, LevelMap, levelLoader, pathService)
                 .InjectUgui(uguiEmitter, Constants.Worlds.UI)
                 .Init();
         }
@@ -190,9 +206,9 @@ namespace td
         private void OnDestroy()
         {
             systems?.GetWorld(Constants.Worlds.UI).Destroy();
-            systems?.Destroy();
             systems?.GetWorld()?.Destroy();
-            outerWorld?.Destroy();
+            systems?.GetWorld(Constants.Worlds.Outer).Destroy();;
+            systems?.Destroy();
             systems = null;
         }
     }
@@ -209,12 +225,10 @@ namespace td
         {
             base.OnInspectorGUI();
 
-            var gm = ((GameManager)target);
-
             EditorGUI.BeginChangeCheck();
             EditorUtils.RenderAllPropertiesOfObject(
                 ref idLevelState,
-                gm.LevelState,
+                DI.GetCustom<LevelState>(),
                 "Level State");
             EditorGUI.EndChangeCheck();
 
@@ -223,7 +237,7 @@ namespace td
             EditorGUI.BeginChangeCheck();
             EditorUtils.RenderAllPropertiesOfObject(
                 ref idLevelMap,
-                gm.LevelMap,
+                DI.GetCustom<LevelMap>(),
                 "Level Map");
             EditorGUI.EndChangeCheck();
 
@@ -241,7 +255,7 @@ namespace td
             {
                 // EditorGUILayout.LabelField("Level Json", EditorStyles.boldLabel);
                 EditorGUI.BeginDisabledGroup(true);
-                EditorGUILayout.TextArea(JsonUtility.ToJson(((GameManager)target).LevelMap.LevelConfig, true));
+                EditorGUILayout.TextArea(JsonUtility.ToJson(DI.GetCustom<LevelMap>()?.LevelConfig, true));
                 EditorGUI.EndDisabledGroup();
             }
 

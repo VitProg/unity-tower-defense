@@ -2,6 +2,6 @@
 {
     public interface IPathService
     {
-        void InitPath(LevelMap levelMap);
+        void InitPath();
     }
 }

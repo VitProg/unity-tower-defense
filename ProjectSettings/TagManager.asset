@@ -17,6 +17,7 @@ TagManager:
   - CanBuild
   - CanWalk
   - GridRenderer
+  - Debug
   layers:
   - Default
   - TransparentFX
@@ -24,7 +25,7 @@ TagManager:
   - 
   - Water
   - UI
-  - 
+  - HexGrid
   - 
   - 
   - 

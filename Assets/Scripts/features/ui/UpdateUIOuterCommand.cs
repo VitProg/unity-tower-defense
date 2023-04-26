@@ -1,6 +1,6 @@
 ﻿using System;
 using JetBrains.Annotations;
-using td.states;
+using td.services;
 
 namespace td.features.ui
 {
@@ -13,20 +13,21 @@ namespace td.features.ui
         public int? Money;
         public int? NextWaveCountdown;
         public int? EnemiesCount;
-        [CanBeNull] public int[] wave;
+        public int? WaveNumber;
+        public int? WaveCount;
         public bool? IsLastWave;
 
-        public static UpdateUIOuterCommand FromLevelState(LevelState levelState) =>
-            new()
-            {
-                Lives = levelState.Lives,
-                MaxLives = levelState.MaxLives,
-                Money = levelState.Money,
-                LevelNumber = levelState.LevelNumber,
-                EnemiesCount = levelState.EnemiesCount,
-                IsLastWave = levelState.IsLastWave,
-                NextWaveCountdown = levelState.NextWaveCountdown,
-                wave = new[] { levelState.WaveNumber, levelState.WaveCount },
-            };
+        // public static UpdateUIOuterCommand FromLevelState(LevelState levelState) =>
+        //     new()
+        //     {
+        //         Lives = levelState.Lives,
+        //         MaxLives = levelState.MaxLives,
+        //         Money = levelState.Money,
+        //         LevelNumber = levelState.LevelNumber,
+        //         EnemiesCount = levelState.EnemiesCount,
+        //         IsLastWave = levelState.IsLastWave,
+        //         NextWaveCountdown = levelState.NextWaveCountdown,
+        //         wave = new[] { levelState.WaveNumber, levelState.WaveCount },
+        //     };
     }
 }

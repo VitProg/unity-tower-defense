@@ -8,8 +8,9 @@ namespace td.features.camera
 {
     public class CameraMoveSystem : IEcsRunSystem, IEcsInitSystem
     {
-        [EcsShared] private SharedData shared;
+        [InjectShared] private SharedData shared;
 
+        private Vector3 startCursorScreenPosition;
         private Vector3 lastCursorScreenPosition;
         private Vector3 startCameraPosition;
         private Vector3 currentCameraPosition;
@@ -99,7 +100,7 @@ namespace td.features.camera
                 mouseTime += Time.deltaTime;
 
                 var speed = (mouseVector.magnitude + keyboardVector.magnitude) *
-                            (shared.VirtualCamera.m_Lens.OrthographicSize / Constants.Camera.MinZoom) *
+                            (shared.VirtualCamera.m_Lens.OrthographicSize / Constants.Camera.MinOrthographicZoom) *
                             (Mathf.Max(Screen.width, Screen.height) / 1000f);
 
                 speed = Mathf.Clamp(speed, 0, Constants.Camera.MaxMoveSpeed);

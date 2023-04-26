@@ -2,6 +2,7 @@
 using Leopotam.EcsLite.Di;
 using td.components;
 using td.components.commands;
+using td.components.flags;
 using td.components.refs;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace td.systems.commands
 {
     public class SmoothRotateExecutor : IEcsRunSystem
     {
-        private readonly EcsFilterInject<Inc<SmoothRotation, Ref<GameObject>>> entities = default;
+        private readonly EcsFilterInject<Inc<SmoothRotation, Ref<GameObject>>, Exc<IsDestroyed>> entities = default;
         
         public void Run(IEcsSystems systems)
         {
@@ -19,28 +20,28 @@ namespace td.systems.commands
                 ref var gameObjectLink = ref entities.Pools.Inc2.Get(entity);
                 var transform = gameObjectLink.reference.transform;
 
-                var isStarted = smoothRotate.Time <= Constants.ZeroFloat;
+                var isStarted = smoothRotate.time <= Constants.ZeroFloat;
 
-                if (gameObjectLink.reference.transform.rotation.eulerAngles == smoothRotate.To.eulerAngles ||
+                if (gameObjectLink.reference.transform.rotation.eulerAngles == smoothRotate.to.eulerAngles ||
                     (
                         isStarted &&
                         (
-                            Quaternion.Angle(gameObjectLink.reference.transform.rotation, smoothRotate.To) < smoothRotate.Threshold ||
-                            smoothRotate.AngularSpeed > 99f
+                            Quaternion.Angle(gameObjectLink.reference.transform.rotation, smoothRotate.to) < smoothRotate.threshold ||
+                            smoothRotate.angularSpeed > 99f
                         )
                     ))
                 {
-                    transform.rotation = smoothRotate.To;
+                    transform.rotation = smoothRotate.to;
                     entities.Pools.Inc1.Del(entity);
                 }
                 else
                 {
-                    smoothRotate.Time += smoothRotate.AngularSpeed * Time.deltaTime;
+                    smoothRotate.time += smoothRotate.angularSpeed * Time.deltaTime;
 
                     var newRotate = Quaternion.Lerp(
-                        smoothRotate.From,
-                        smoothRotate.To,
-                        smoothRotate.Time
+                        smoothRotate.from,
+                        smoothRotate.to,
+                        smoothRotate.time
                     );
 
                     transform.rotation = newRotate;

@@ -1,6 +1,5 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.components;
 using td.components.behaviors;
 using td.components.commands;
 using td.components.events;
@@ -19,19 +18,14 @@ namespace td.systems.behaviors
         public Vector2 Target;
         public float Gap;
     }
-    
+
     public class MoveToTargetSystem : IEcsRunSystem
     {
-        [EcsWorld] private EcsWorld world;
-        
-        // private readonly EcsFilterInject<
-            // Inc<GameObjectLink, TargetPoint, LinearMovementToTarget>,
-            // Exc<SmoothRotation, InertiaOfMovement>
-        // > entities = default;
+        [InjectWorld] private EcsWorld world;
 
         private readonly EcsFilterInject<
             Inc<Ref<GameObject>, LinearMovementToTarget>,
-            Exc<SmoothRotation, IsDisabled>
+            Exc<SmoothRotation, IsDisabled, RemoveGameObjectCommand, IsDestroyed>
         > entities = default;
 
         public void Run(IEcsSystems systems)
@@ -52,10 +46,14 @@ namespace td.systems.behaviors
                 ref var gameObjectLink = ref entities.Pools.Inc1.Get(entity);
                 ref var movementToTarget = ref entities.Pools.Inc2.Get(entity);
 
-                targetNativeArray[index] = new TargetPoint { Target = movementToTarget.target, Gap = movementToTarget.gap };
+                targetNativeArray[index] = new TargetPoint
+                    { Target = movementToTarget.target, Gap = movementToTarget.gap };
                 speedNativeArray[index] = movementToTarget.speed;
-                // todo иногда вылетает
-                transforms.Add(gameObjectLink.reference.transform);
+
+                if (gameObjectLink.reference && gameObjectLink.reference.activeSelf)
+                {
+                    transforms.Add(gameObjectLink.reference.transform);
+                }
 
                 index++;
             }
@@ -76,12 +74,8 @@ namespace td.systems.behaviors
                 if (onTargetIndex >= 0 && onTargetIndex < entitiesNativeArray.Length &&
                     entitiesNativeArray[onTargetIndex].Unpack(world, out var entity))
                 {
-                    world.AddComponent<ReachingTargetEvent>(entity);
+                    world.GetComponent<ReachingTargetEvent>(entity);
                 }
-                // systems.SendEvent(new ReachingTargetEvent()
-                // {
-                    // TargetEntity = world.PackEntity(entitiesNativeArray[onTargetIndex])
-                // });
             }
 
             targetNativeArray.Dispose();
@@ -92,7 +86,7 @@ namespace td.systems.behaviors
         }
     }
 
-    
+
     [BurstCompile]
     internal struct MoveToTargetSystemJob : IJobParallelForTransform
     {
@@ -106,16 +100,16 @@ namespace td.systems.behaviors
         {
             var target = TargetArray[index];
             var speed = SpeedArray[index];
-            
+
             //-----
-            
+
             transform.position = Vector3.MoveTowards(transform.position, target.Target, DeltaTime * speed);
-            
+
             //-----
 
             var distance = (target.Target - (Vector2)transform.position).sqrMagnitude;
             var gap2 = target.Gap * target.Gap;
-            
+
             if (distance <= gap2)
             {
                 OnTargetNativeList.Add(index);
@@ -123,3 +117,4 @@ namespace td.systems.behaviors
         }
     }
 }
+    

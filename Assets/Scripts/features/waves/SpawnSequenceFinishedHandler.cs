@@ -2,6 +2,7 @@
 using Leopotam.EcsLite.Di;
 using td.common;
 using td.features.enemies;
+using td.features.enemies.components;
 using td.services;
 using td.utils.ecs;
 using UnityEngine;
@@ -10,7 +11,7 @@ namespace td.features.waves
 {
     public class SpawnSequenceFinishedHandler : IEcsRunSystem
     {
-        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
+        [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
         
         private readonly EcsFilterInject<Inc<SpawnSequenceFinishedOuterEvent>> eventEntities = Constants.Worlds.Outer;
 
@@ -27,7 +28,7 @@ namespace td.features.waves
 
             if (numberOfActiveSpawn <= 0)
             {
-                systems.SendOuter<AllEnemiesAreOverOuterWait>();
+                systems.Outer<AllEnemiesAreOverOuterWait>();
             }
         
             // Debug.Log("SpawnSequenceFinishedHandler FIN");

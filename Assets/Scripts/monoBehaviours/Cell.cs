@@ -1,9 +1,9 @@
 ﻿using Leopotam.EcsLite;
 using NaughtyAttributes;
 using td.services;
-using td.states;
 using td.common;
 using td.utils;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.monoBehaviours
@@ -45,9 +45,8 @@ namespace td.monoBehaviours
         [BoxGroup("Main Parapeters")] [ShowIf("type", CellTypes.CanWalk)] [EnableIf("isSpawn")]
         public uint spawnNumber = 0;
 
-        private LevelMap levelMap;
-        private LevelState levelState;
-        private GameManager gameManager;
+        [Inject] private LevelMap levelMap;
+        [Inject] private LevelState levelState;
 
         [ShowNativeProperty]
         public bool HasDirectionToNext => type == CellTypes.CanWalk && directionToNext != HexDirections.NONE &&
@@ -95,17 +94,16 @@ namespace td.monoBehaviours
             {
                 coords = HexGridUtils.PositionToCell(this.transform.position);
             }
-        }
 
+            if (levelMap == null && DI.IsReady)
+            {
+                DI.Resolve(this);
+            }
+        }
+        
         private void Start()
         {
-            gameManager = GameObject.FindObjectOfType<GameManager>();
-            // Debug.Assert(gameManager != null, "GameManager Not Found On Scene");
-            if (gameManager != null)
-            {
-                levelMap = gameManager.LevelMap;
-                levelState = gameManager.LevelState;
-            }
+            // DI.Resolve(this);
             
             coords = HexGridUtils.PositionToCell(this.transform.position);
 

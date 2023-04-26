@@ -5,7 +5,7 @@ using td.common.ecs;
 namespace td.features.impactsEnemy
 {
     [Serializable]
-    public struct SpeedDebuff : IEcsAutoMerge<SpeedDebuff>
+    public struct SpeedDebuff
     {
         public float speedMultipler;
         public float duration;
@@ -14,27 +14,27 @@ namespace td.features.impactsEnemy
         public bool started;
         public uint phase;
 
-        public void AutoMerge(ref SpeedDebuff result, SpeedDebuff def)
-        {
-            if (result.speedMultipler < def.speedMultipler)
-            {
-                result.speedMultipler = def.speedMultipler;
-            }
+        // public void AutoMerge(ref SpeedDebuff result, SpeedDebuff def)
+        // {
+        //     if (result.speedMultipler < def.speedMultipler)
+        //     {
+        //         result.speedMultipler = def.speedMultipler;
+        //     }
+        //
+        //     if (result.duration < def.duration)
+        //     {
+        //         result.duration = def.duration;
+        //         if (result.timeRemains > 0f)
+        //         {
+        //             result.timeRemains = result.duration;
+        //         }
+        //     }
+        // }
 
-            if (result.duration < def.duration)
-            {
-                result.duration = def.duration;
-                if (result.timeRemains > 0f)
-                {
-                    result.timeRemains = result.duration;
-                }
-            }
-        }
-
-        public void Start()
-        {
-            timeRemains = duration;
-            started = true;
-        }
+        // public void Start()
+        // {
+            // timeRemains = duration;
+            // started = true;
+        // }
     }
 }

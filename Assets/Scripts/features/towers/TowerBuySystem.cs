@@ -1,6 +1,8 @@
-﻿using Leopotam.EcsLite;
+﻿using System;
+using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.Unity.Ugui;
+using td.common;
 using td.components.commands;
 using td.components.events;
 using td.components.flags;
@@ -8,7 +10,7 @@ using td.components.refs;
 using td.features.input;
 using td.monoBehaviours;
 using td.services;
-using td.states;
+using td.services.ecsConverter;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -19,17 +21,19 @@ namespace td.features.towers
 {
     public class TowerBuySystem : EcsUguiCallbackSystem, IEcsInitSystem
     {
-        [EcsInject] private LevelState levelState;
-        [EcsInject] private LevelMap levelMap;
+        [Inject] private LevelState levelState;
+        [Inject] private LevelMap levelMap;
+        [Inject] private EntityConverters converters;
+        [InjectShared] private SharedData sharedData;
 
-        [EcsWorld] private EcsWorld world;
-        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
+        [InjectWorld] private EcsWorld world;
+        [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
         [EcsUguiNamed(Constants.UI.Components.AddTowerButton)]
         private GameObject addTowerButton;
 
-        private readonly EcsFilterInject<Inc<Tower, DragEndEvent, Ref<GameObject>>> dragEndEventEntities = default;
-        private readonly EcsFilterInject<Inc<Tower, IsDragging, Ref<GameObject>>> draggableEntities = default;
+        private readonly EcsFilterInject<Inc<Tower, DragEndEvent, Ref<GameObject>>, Exc<IsDestroyed>> dragEndEventEntities = default;
+        private readonly EcsFilterInject<Inc<Tower, IsDragging, Ref<GameObject>>, Exc<IsDestroyed>> draggableEntities = default;
 
         private IEcsSystems systems;
         private GameObject buildingsContainer;
@@ -53,9 +57,9 @@ namespace td.features.towers
                 //     spriteRenderer.color = cell == null ? Color.red : Color.white;
                 // }
 
-                if (levelMap.GridRenderer)
+                if (sharedData.HightlightGrid)
                 {
-                    levelMap.GridRenderer.State = canBuild ? GridHightlightState.Fine : GridHightlightState.Error;
+                    sharedData.HightlightGrid.state = canBuild ? GridHightlightState.Fine : GridHightlightState.Error;
                 }
                 
                 if (canBuild)
@@ -64,7 +68,7 @@ namespace td.features.towers
                 }
                 else
                 {
-                    world.AddComponent<IsUnableToDrop>(draggableEntity);
+                    world.GetComponent<IsUnableToDrop>(draggableEntity);
                 }
             }
             
@@ -87,8 +91,8 @@ namespace td.features.towers
                 }
                 else
                 {
-                    world.AddComponent<IsDisabled>(draggableEntity);
-                    world.AddComponent<RemoveGameObjectCommand>(draggableEntity);
+                    world.GetComponent<IsDisabled>(draggableEntity);
+                    world.GetComponent<RemoveGameObjectCommand>(draggableEntity);
                 }
 
                 world.DelComponent<DragEndEvent>(draggableEntity);
@@ -108,25 +112,31 @@ namespace td.features.towers
             {
                 buildingsContainer = GameObject.FindGameObjectWithTag(Constants.Tags.BuildingsContainer);
             }
-
+            
+            // todo
             var position = CameraUtils.ToWorldPoint(e.Position);
-            var prefab = Resources.Load<GameObject>("Prefabs/buildings/tower_v1");
+            var prefab = Resources.Load<GameObject>("Prefabs/buildings/cannon_tower");
             var gameObject = Object.Instantiate(prefab, position, Quaternion.identity, buildingsContainer.transform);
-            var entity = world.ConvertToEntity(gameObject);
-            ref var tower = ref world.GetComponent<Tower>(entity);
 
+            if (!converters.Convert<Tower>(gameObject, out var entity))
+            {
+                throw new NullReferenceException($"Failed to convert GameObject {gameObject.name}");
+            }
+            
+            ref var tower = ref world.GetComponent<Tower>(entity);
+            
             // todo
             tower.cost = 5;
             
-            var radiusTransform = gameObject.transform.Find("radius");
-            if (radiusTransform != null)
-            {
-                tower.radiusGameObject = radiusTransform.gameObject;
-                tower.radiusGameObject.SetActive(false);
-            }
-
+            // var radiusTransform = gameObject.transform.Find("radius");
+            // if (radiusTransform != null)
+            // {
+            //     tower.radiusGameObject = radiusTransform.gameObject;
+            //     tower.radiusGameObject.SetActive(false);
+            // }
+            
             gameObject.transform.localScale = Vector3.one;
-
+            
             DragNDropSystem.BeginDrag(
                 systems,
                 entity,

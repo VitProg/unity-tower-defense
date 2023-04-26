@@ -1,51 +1,49 @@
 ﻿using System.Collections.Generic;
 using Leopotam.EcsLite;
-using Mitfart.LeoECSLite.UniLeo;
+using td.utils.ecs;
+// using Mitfart.LeoECSLite.UniLeo;
 using UnityEngine;
 
 namespace td.monoBehaviours
 {
     [DisallowMultipleComponent]
-    [RequireComponent(typeof(ConvertToEntity))]
+    [RequireComponent(typeof(EcsEntity))]
     public class EcsComponentsInfo : MonoBehaviour
     {
 #if UNITY_EDITOR
-        [HideInInspector] public ConvertToEntity ConvertToEntity { get; private set; }
-        [HideInInspector] public EcsWorld World { get; private set; }
-        [HideInInspector] public EcsPackedEntity PackedEntity { get; private set; }
-        [SerializeField] public bool Initialized { get; private set; }
-
-        [HideInInspector] public string Data { get; private set; }
-        [HideInInspector] public readonly Dictionary<string, object> Componnents = new Dictionary<string, object>();
+        [InjectWorld] private EcsWorld world;
+        
+        public EcsEntity ecsEntity { get; private set; }
+        private string data;
+        private readonly Dictionary<string, object> componnents = new();
 
         private void Start()
         {
-            ConvertToEntity = GetComponent<ConvertToEntity>();
-
+            ecsEntity = GetComponent<EcsEntity>();
         }
 
         private void Update()
         {
-            if (!Initialized)
+            if (world == null)
             {
+                DI.Resolve(this);
                 Initialize();
-                return;
             }
             
-            Componnents.Clear();
+            componnents.Clear();
 
-            if (PackedEntity.Unpack(World, out var entity))
+            if (ecsEntity.TryGetEntity(out var entity))
             {
                 var components = new object[] { };
-                World.GetComponents(entity, ref components);
+                world.GetComponents(entity, ref components);
 
                 foreach (var component in components)
                 {
                     if (component != null)
                     {
                         var nname = component.GetType().Name;
-                        Componnents.Remove(name);
-                        Componnents.Add(name, component);
+                        componnents.Remove(name);
+                        componnents.Add(name, component);
                         // Data += "-----\n" +
                         // component.GetType().Name +
                         // ":\n" +
@@ -57,15 +55,16 @@ namespace td.monoBehaviours
 
         private void Initialize()
         {
-            if (!ConvertToEntity.IsConverted)
-            {
-                return;
-            }
-
-            Initialized = true;
-
-            World = ConvertToEntity.World;
-            PackedEntity = ConvertToEntity.PackedEntity;
+            
+            // if (!ConvertToEntity.IsConverted)
+            // {
+            //     return;
+            // }
+            //
+            // Initialized = true;
+            //
+            // World = ConvertToEntity.World;
+            // PackedEntity = ConvertToEntity.PackedEntity;
         }
 #endif
     }

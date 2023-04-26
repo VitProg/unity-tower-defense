@@ -5,7 +5,7 @@ using td.common.ecs;
 namespace td.components.events
 {
     [Serializable]
-    public struct ReachingTargetEvent : IEcsDoDebugLog<ReachingTargetEvent>
+    public struct ReachingTargetEvent
     {
         // public EcsPackedEntity TargetEntity;
     }

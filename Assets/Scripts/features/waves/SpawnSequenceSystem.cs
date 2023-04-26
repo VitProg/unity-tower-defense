@@ -5,19 +5,22 @@ using Leopotam.EcsLite.Di;
 using td.common;
 using td.common.level;
 using td.features.enemies;
+using td.features.enemies.components;
+using td.features.enemies.mb;
 using td.services;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
+using EnemyUtils = td.features.enemies.EnemyUtils;
 
 namespace td.features.waves
 {
     public class SpawnSequenceSystem : IEcsRunSystem
     {
-        [EcsInject] private LevelMap levelMap;
-        [EcsShared] private SharedData shared;
-        [EcsWorld] private EcsWorld world;
-        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
+        [Inject] private LevelMap levelMap;
+        [InjectShared] private SharedData shared;
+        [InjectWorld] private EcsWorld world;
+        [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
         private readonly EcsFilterInject<Inc<SpawnSequence>> entities = default;
 
@@ -82,22 +85,29 @@ namespace td.features.waves
 
             foreach (var spawner in spawners)
             {
-                var enemyConfig = GetNextEnemy(ref spawnData);
-                var spawnConfig = new SpawnEnemyOuterCommand()
+                var (enemyConfig, spawnedEnemy) = GetNextEnemy(ref spawnData);
+
+                ref var spawnCommand = ref systems.Outer<SpawnEnemyOuterCommand>();
+                spawnCommand.enemyName = enemyConfig.name;
+                spawnCommand.enemyType = spawnedEnemy.type;
+                spawnCommand.enemyVariant = spawnedEnemy.variant;
+                spawnCommand.spawner = spawner;
+                spawnCommand.speed = /*enemyConfig.baseSpeed * */FloatUtils.DefaultIfZero(spawnData.config.speed, 1f);
+                spawnCommand.health = /*enemyConfig.baseHealth * */FloatUtils.DefaultIfZero(spawnData.config.health, 1f);
+                spawnCommand.damage = /*enemyConfig.baseDamage * */FloatUtils.DefaultIfZero(spawnData.config.damage, 1f);
+                spawnCommand.angularSpeed = enemyConfig.angularSpeed;
+                spawnCommand.scale = RandomUtils.Range(spawnData.config.scale ?? new[] { Constants.Enemy.MinSize, Constants.Enemy.MaxSize });
+                spawnCommand.offset = RandomUtils.Vector2(spawnData.config.offset ?? new[] { Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax });
+                spawnCommand.offset.x = Mathf.Clamp(spawnCommand.offset.x, Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax);
+                spawnCommand.offset.y = Mathf.Clamp(spawnCommand.offset.y, Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax);
+                spawnCommand.money = Math.Max((int)(spawnCommand.health * spawnCommand.damage * spawnCommand.speed * spawnCommand.scale) / 5, 1);
+                
+                if (!EnemySpawnUtils.PrepareSpawnCommand(enemyConfig, ref spawnedEnemy, ref spawnCommand))
                 {
-                    enemyName = enemyConfig.name,
-                    spawner = spawner,
-                    speed = enemyConfig.baseSpeed * FloatUtils.DefaultIfZero(spawnData.config.speed, 1f),
-                    health = enemyConfig.baseHealth * FloatUtils.DefaultIfZero(spawnData.config.health, 1f),
-                    damage = enemyConfig.baseDamage * FloatUtils.DefaultIfZero(spawnData.config.damage, 1f),
-                    angularSpeed = enemyConfig.angularSpeed,
-                    scale = RandomUtils.Range(spawnData.config.scale ?? new[] { Constants.Enemy.MinSize, Constants.Enemy.MaxSize }),
-                    offset = RandomUtils.Vector2(spawnData.config.offset ?? new[] { Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax }),
-                };
-                spawnConfig.offset.x = Mathf.Clamp(spawnConfig.offset.x, Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax);
-                spawnConfig.offset.y = Mathf.Clamp(spawnConfig.offset.y, Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax);
-                spawnConfig.money = Math.Max((int)(spawnConfig.health * spawnConfig.damage * spawnConfig.speed * spawnConfig.scale) / 5, 1);
-                systems.SendOuter(spawnConfig);
+                    spawnCommand.speed *= enemyConfig.baseSpeed;
+                    spawnCommand.health *= enemyConfig.baseHealth;
+                    spawnCommand.damage *= enemyConfig.baseDamage;
+                }
 
                 spawnData.lastSpawner = spawner;
             }
@@ -105,28 +115,28 @@ namespace td.features.waves
             return spawnData;
         }
 
-        private EnemyConfig GetNextEnemy(ref SpawnSequence spawnData)
+        private (EnemyConfig Value, WaveSpawnConfigEnemy spawnedEnemy) GetNextEnemy(ref SpawnSequence spawnData)
         {
             var selectMethod = spawnData.config.selectMethod;
 
-            var needEnemyName = selectMethod == MethodOfSelectNextEnemy.Random
+            var spawnedEnemy = selectMethod == MethodOfSelectNextEnemy.Random
                 ? RandomUtils.RandomArrayItem(spawnData.config.enemies)
                 : spawnData.config.enemies[spawnData.enemyCounter % spawnData.config.enemies.Length]; // todo
 
-            var enemy = shared.GetEnemyConfig(needEnemyName);
+            var enemy = shared.GetEnemyConfig(spawnedEnemy.name);
 
             if (enemy == null)
             {
-                throw new NullReferenceException($"Enemy with name '{needEnemyName}' not found on enemies config.");
+                throw new NullReferenceException($"Enemy with name '{spawnedEnemy.name}' not found on enemies config.");
             }
 
-            return enemy.Value;
+            return (enemy.Value, spawnedEnemy);
         }
-
+    
         private void Finish(int entity, IEcsSystems systems)
         {
             world.DelEntity(entity);
-            systems.SendOuter<SpawnSequenceFinishedOuterEvent>();
+            systems.Outer<SpawnSequenceFinishedOuterEvent>();
         }
     }
 }

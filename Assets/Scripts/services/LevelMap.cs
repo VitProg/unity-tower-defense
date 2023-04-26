@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using td.common;
 using td.common.level;
 using td.monoBehaviours;
-using td.states;
 using td.utils;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.services
@@ -20,28 +20,31 @@ namespace td.services
         private Int2?[] kernels = new Int2?[Constants.Level.MaxTargets];
 
         private LevelConfig? levelConfig;
-        private readonly LevelState levelState;
 
         private int minX = 999;
         private int minY = 999;
         private int maxX = -999;
         private int maxY = -999;
         private List<Cell> prebuildedCells = new();
-
-
+        
         public LevelConfig? LevelConfig
         {
             get => levelConfig;
             set
             {
+                //todo
                 levelConfig = value;
-                levelState.MaxLives = levelConfig?.lives ?? 0;
-                levelState.Lives = levelState.MaxLives;
-                levelState.LevelNumber = levelConfig?.levelNumber ?? 0;
-                levelState.Money = levelConfig?.startedMoney ?? 10;
-                levelState.NextWaveCountdown = 0;
-                levelState.WaveNumber = 0;
-                levelState.WaveCount = levelConfig?.waves.Length ?? 0;
+                var levelState = DI.GetCustom<LevelState>();
+                if (levelState != null)
+                {
+                    levelState.MaxLives = levelConfig?.lives ?? 0;
+                    levelState.Lives = levelState.MaxLives;
+                    levelState.LevelNumber = levelConfig?.levelNumber ?? 0;
+                    levelState.Money = levelConfig?.startedMoney ?? 10;
+                    levelState.NextWaveCountdown = 0;
+                    levelState.WaveNumber = 0;
+                    levelState.WaveCount = levelConfig?.waves.Length ?? 0;
+                } 
             }
         }
 
@@ -55,11 +58,10 @@ namespace td.services
         public Int2[] Kernels => ArrayUtils.NotNullable(kernels);
         public int[] KernelsIndexse => ArrayUtils.GetIndexes(kernels, ArrayUtils.IsNotNull);
 
-        public HightlightGridByCursor GridRenderer { get; set; }
+        public Rect Rect { get; private set; }
 
-        public LevelMap(LevelState levelState)
+        public LevelMap()
         {
-            this.levelState = levelState;
         }
 
         public void Clear()
@@ -73,12 +75,12 @@ namespace td.services
             kernelsLength = 0;
             Width = -1;
             Height = -1;
-            GridRenderer = null;
             prebuildedCells.Clear();
             minX = 999;
             minY = 999;
             maxX = -999;
             maxY = -999;
+            Rect = new Rect(0, 0, 0, 0);
         }
         public void PreAddCell(Cell cell)
         {
@@ -91,6 +93,17 @@ namespace td.services
             if (minY > cell.Coords.y) minY = cell.Coords.y;
             if (maxX < cell.Coords.x) maxX = cell.Coords.x;
             if (maxY < cell.Coords.y) maxY = cell.Coords.y;
+
+            if (minX <= maxX && minY <= maxY)
+            {
+                var c1 = HexGridUtils.CellToPosition(new Int2 { x = minX, y = minY });
+                var c2 = HexGridUtils.CellToPosition(new Int2 { x = maxX, y = maxY });
+                Rect = new Rect(
+                    c1.x, c1.y,
+                    c2.x - c1.x, c2.y - c1.y
+                );
+                // Debug.Log($"> Rect: {Rect} [{c1}; {c2}] [{Width}x{Height}] [{minX}-{maxX};{minY}-{maxY}]");
+            }
         }
 
         public void BuildMap()

@@ -2,7 +2,9 @@
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.components.behaviors;
+using td.components.flags;
 using td.features.enemies;
+using td.features.enemies.components;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -11,9 +13,9 @@ namespace td.features.impactsEnemy
 {
     public class SpeedDebuffSystem : IEcsRunSystem
     {
-        [EcsWorld] private EcsWorld world;
+        [InjectWorld] private EcsWorld world;
         
-        private readonly EcsFilterInject<Inc<SpeedDebuff, Enemy>> speedDebufEntities = default;
+        private readonly EcsFilterInject<Inc<SpeedDebuff, Enemy>, Exc<IsDestroyed>> speedDebufEntities = default;
 
         public void Run(IEcsSystems systems)
         {
@@ -24,7 +26,8 @@ namespace td.features.impactsEnemy
                 
                 if (!debuff.started)
                 {
-                    debuff.Start();
+                    debuff.timeRemains = debuff.duration;
+                    debuff.started = true;
                 }
 
                 var debafedSpeed = enemy.startingSpeed / Mathf.Max(1f, debuff.speedMultipler);

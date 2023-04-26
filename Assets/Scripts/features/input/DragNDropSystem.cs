@@ -3,9 +3,9 @@ using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.components.behaviors;
 using td.components.events;
+using td.components.flags;
 using td.components.refs;
 using td.services;
-using td.states;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -14,13 +14,13 @@ namespace td.features.input
 {
     public class DragNDropSystem : IEcsRunSystem
     {
-        [EcsInject] private LevelState levelState;
-        [EcsInject] private LevelMap levelMap;
+        [Inject] private LevelState levelState;
+        [Inject] private LevelMap levelMap;
         
-        [EcsWorld] private EcsWorld world;
-        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
+        [InjectWorld] private EcsWorld world;
+        [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
-        private readonly EcsFilterInject<Inc<IsDragging, Ref<GameObject>>> entities = default;
+        private readonly EcsFilterInject<Inc<IsDragging, Ref<GameObject>>, Exc<IsDestroyed>> entities = default;
         
         public void Run(IEcsSystems systems)
         {
@@ -115,13 +115,14 @@ namespace td.features.input
 
                 if (removeIsDraging)
                 {
-                    world.AddComponent<DragEndEvent>(entity);
-                    if (
-                        isSmooth && 
-                        world.TryGetComponent<IsSmoothDragging>(entity, out var smooth) &&
-                        smooth.removeLinearMovementWhenFinished
-                    ) {
-                        world.DelComponent<LinearMovementToTarget>(entity);
+                    world.GetComponent<DragEndEvent>(entity);
+                    if (isSmooth && world.HasComponent<IsSmoothDragging>(entity))
+                    {
+                        ref var smooth = ref world.GetComponent<IsSmoothDragging>(entity);
+                        if (smooth.removeLinearMovementWhenFinished)
+                        {
+                            world.DelComponent<LinearMovementToTarget>(entity);
+                        }
                     }
                     world.DelComponent<IsSmoothDragging>(entity);
                     world.DelComponent<IsDragging>(entity);
@@ -142,34 +143,30 @@ namespace td.features.input
             
             var entity = entityWithGameObjectRef;
 
-            if (!world.TryGetComponent<Ref<GameObject>>(entity, out var refGameObject)) return;
+            if (!world.HasComponent<Ref<GameObject>>(entity)) return;
+            ref var refGameObject = ref world.GetComponent<Ref<GameObject>>(entity);
 
-            var isDragging = world.AddComponent(entity, new IsDragging()
-            {
-                startedTime = Time.timeSinceLevelLoadAsDouble,
-                isGridSnapping = snapToGrid,
-                mode = Input.GetMouseButtonDown(0) ? IsDraggingMode.None : IsDraggingMode.Down
-            });
-            world.AddComponent<DragStartEvent>(entity);
+            ref var isDragging = ref world.GetComponent<IsDragging>(entity);
+            isDragging.startedTime = Time.timeSinceLevelLoadAsDouble;
+            isDragging.isGridSnapping = snapToGrid;
+            isDragging.mode = Input.GetMouseButtonDown(0) ? IsDraggingMode.None : IsDraggingMode.Down;
+
+            world.GetComponent<DragStartEvent>(entity);
             
             // Debug.Log($"> DnD: mode={isDragging.mode.ToString()}; mb={(Input.GetMouseButtonDown(0) ? "DOWN" : "UP")}");
 
             if (smoothDragging)
             {
                 var hasLinearMovement = world.HasComponent<LinearMovementToTarget>(entity);
-                
-                world.AddComponent(entity, new IsSmoothDragging()
-                {
-                    speed = smoothSpeed,
-                    removeLinearMovementWhenFinished = !hasLinearMovement,
-                });
-                
-                world.AddComponent(entity, new LinearMovementToTarget()
-                {
-                    target = refGameObject.reference.transform.position,
-                    gap = Constants.DefaultGap,
-                    speed = Constants.UI.DragNDrop.SmoothSpeed,
-                });
+
+                ref var isSmoothDragging = ref world.GetComponent<IsSmoothDragging>(entity);
+                isSmoothDragging.speed = smoothSpeed;
+                isSmoothDragging.removeLinearMovementWhenFinished = !hasLinearMovement;
+
+                ref var linearMovementToTarget = ref world.GetComponent<LinearMovementToTarget>(entity);
+                linearMovementToTarget.target = refGameObject.reference.transform.position;
+                linearMovementToTarget.gap = Constants.DefaultGap;
+                linearMovementToTarget.speed = Constants.UI.DragNDrop.SmoothSpeed;
             }
         }
     }

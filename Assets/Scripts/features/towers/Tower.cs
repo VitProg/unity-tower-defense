@@ -10,6 +10,7 @@ namespace td.features.towers
     {
         public float radius;
         public int cost;
+        public Vector2 barrel;
 
         public GameObject radiusGameObject;
     }

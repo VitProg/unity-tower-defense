@@ -39,15 +39,12 @@ namespace td.features.ui
                 }
 
                 //
-                if (waveLabel != null && data.wave != null)
+                if (waveLabel != null && data is { WaveNumber: not null, WaveCount: not null })
                 {
-                    var waveNumber = data.wave[0];
-                    var maxWaves = data.wave[1];
-
-                    if (waveNumber != 0 && maxWaves != 0)
+                    if (data.WaveNumber != 0 && data.WaveCount != 0)
                     {
                         waveLabel.visible = true;
-                        waveLabel.text = waveRegex.Replace(waveLabel.text, $@"{waveNumber}/{maxWaves}");
+                        waveLabel.text = waveRegex.Replace(waveLabel.text, $@"{data.WaveNumber}/{data.WaveCount}");
                     }
                     else
                     {

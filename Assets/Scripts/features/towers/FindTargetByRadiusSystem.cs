@@ -1,9 +1,11 @@
 ﻿using System;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.components.commands;
+using td.components.flags;
 using td.components.refs;
-using td.features.enemies;
-using td.features.fire;
+using td.features.enemies.components;
+using td.features.projectiles;
 using td.monoBehaviours;
 using td.services;
 using td.utils;
@@ -14,21 +16,22 @@ namespace td.features.towers
 {
     public class FindTargetByRadiusSystem : IEcsRunSystem
     {
-        [EcsInject] private LevelMap levelMap;
+        [Inject] private LevelMap levelMap;
         
-        private readonly EcsFilterInject<Inc<Tower, Ref<GameObject>>> entities = default;
-        private readonly EcsFilterInject<Inc<Enemy, Ref<GameObject>>> enemyEntities = default;
+        private readonly EcsFilterInject<Inc<Tower, Ref<GameObject>>, Exc<IsDisabled, RemoveGameObjectCommand, IsDestroyed>> towerEntities = default;
+        private readonly EcsFilterInject<Inc<Enemy, Ref<GameObject>>, Exc<IsDisabled, RemoveGameObjectCommand, IsDestroyed>> enemyEntities = default;
 
         public void Run(IEcsSystems systems)
         {
             var world = systems.GetWorld();
             
-            foreach (var entity in entities.Value)
+            foreach (var towerEntity in towerEntities.Value)
             {
-                var tower = entities.Pools.Inc1.Get(entity);
-                var towerGameObject = entities.Pools.Inc2.Get(entity);
+                var tower = towerEntities.Pools.Inc1.Get(towerEntity);
+                var towerGameObject = towerEntities.Pools.Inc2.Get(towerEntity);
 
                 var towerPosition = towerGameObject.reference.transform.position;
+                var towerSqrRadius = tower.radius * tower.radius;
 
                 // var sortedList = new SortedList<double, int>();
                 var maxDistanceFromSpawn = 0f;
@@ -48,7 +51,7 @@ namespace td.features.towers
                         continue;
                     }
 
-                    if ((enemyPosition - towerPosition).sqrMagnitude < tower.radius * tower.radius)
+                    if ((enemyPosition - towerPosition).sqrMagnitude < towerSqrRadius)
                     {
                         var distanceFromSpawn = 999f; //Math.Sqrt(sqrDistance);
                         
@@ -70,11 +73,7 @@ namespace td.features.towers
 
                 if (targetEntity >= 0)
                 {
-                    world.DelComponent<FireTarget>(entity);
-                    world.AddComponent(entity, new FireTarget()
-                    {
-                        TargetEntity = world.PackEntity(targetEntity),
-                    });
+                    world.GetComponent<ProjectileTarget>(towerEntity).TargetEntity = world.PackEntity(targetEntity);
                 }
             }
         }

@@ -2,9 +2,9 @@
 using Leopotam.EcsLite.Di;
 using td.components.flags;
 using td.features.enemies;
+using td.features.enemies.components;
 using td.features.levels;
 using td.services;
-using td.states;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -12,10 +12,10 @@ namespace td.features.waves
 {
     public class WaitForWaveComliteSystem : IEcsRunSystem
     {
-        [EcsInject] private LevelState levelState;
-        [EcsInject] private LevelMap levelMap;
+        [Inject] private LevelState levelState;
+        [Inject] private LevelMap levelMap;
         
-        private readonly EcsFilterInject<Inc<Enemy>> enemyEntities = default;
+        private readonly EcsFilterInject<Inc<Enemy>, Exc<IsDestroyed>> enemyEntities = default;
         private readonly EcsFilterInject<Inc<AllEnemiesAreOverOuterWait>> outerEntities = Constants.Worlds.Outer;
         private readonly EcsFilterInject<Inc<SpawnSequence>> spawnSequenceEntities = default;
 
@@ -34,7 +34,7 @@ namespace td.features.waves
                 
                 if (levelState.IsLastWave)
                 {
-                    systems.SendSingleOuter<LevelFinishedOuterEvent>();
+                    systems.OuterSingle<LevelFinishedOuterEvent>();
                 }
                 else
                 {
@@ -42,10 +42,7 @@ namespace td.features.waves
                         ? levelMap.LevelConfig?.delayBeforeFirstWave
                         : levelMap.LevelConfig?.delayBetweenWaves;
 
-                    systems.SendSingleOuter(new NextWaveCountdownOuter()
-                    {
-                        countdown = countdown ?? 0,
-                    });
+                    systems.OuterSingle<NextWaveCountdownOuter>().countdown = countdown ?? 0;
                 }
                 // Debug.Log("WaitForAllEnemiesDeadSystem FIN");
             }

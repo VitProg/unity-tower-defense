@@ -188,7 +188,14 @@ namespace td.utils
             {
                 if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
                 EditorGUI.BeginDisabledGroup(true);
-                EditorGUILayout.ObjectField((Object)value, value.GetType(), true);
+                if (value == null)
+                {
+                    EditorGUILayout.LabelField("<null>");
+                }
+                else
+                {
+                    EditorGUILayout.ObjectField((Object)value, value.GetType(), true);
+                }
                 EditorGUI.EndDisabledGroup();
             }
             else

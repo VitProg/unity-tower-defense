@@ -3,8 +3,9 @@ using Leopotam.EcsLite.Di;
 using td.components.commands;
 using td.components.flags;
 using td.features.enemies;
+using td.features.enemies.components;
 using td.features.waves;
-using td.states;
+using td.services;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -12,10 +13,10 @@ namespace td.features.levels
 {
     public class LevelFinishedHandler : IEcsRunSystem
     {
-        [EcsInject] private LevelState levelState;
-        [EcsWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
+        [Inject] private LevelState levelState;
+        [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
         
-        private readonly EcsFilterInject<Inc<Enemy>> enemyEntities = default;
+        private readonly EcsFilterInject<Inc<Enemy>, Exc<IsDestroyed>> enemyEntities = default;
         private readonly EcsFilterInject<Inc<SpawnSequence>> spawnSequenceEntities = default;
 
         private readonly EcsFilterInject<Inc<LevelFinishedOuterEvent>> eventEntities = Constants.Worlds.Outer;
@@ -32,10 +33,7 @@ namespace td.features.levels
                     enemiesCount <= 0)
                 {
                     Debug.Log("LEVEL COMPLETE!!!");
-                    systems.SendOuter(new LoadLevelOuterCommand()
-                    {
-                        levelNumber = levelState.LevelNumber + 1,
-                    });
+                    systems.Outer<LoadLevelOuterCommand>().levelNumber = levelState.LevelNumber + 1;
                 }
             }
             systems.CleanupOuter(eventEntities);

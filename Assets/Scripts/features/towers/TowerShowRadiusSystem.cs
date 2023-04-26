@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.components.flags;
 using td.monoBehaviours;
 using td.services;
 using td.utils;
@@ -10,10 +11,10 @@ namespace td.features.towers
 {
     public class TowerShowRadiusSystem : IEcsRunSystem
     {
-        [EcsInject] private LevelMap levelMap;
-        [EcsWorld] private EcsWorld world;
+        [Inject] private LevelMap levelMap;
+        [InjectWorld] private EcsWorld world;
 
-        private readonly EcsFilterInject<Inc<Tower, IsRadiusShown>> towerEntities = default;
+        private readonly EcsFilterInject<Inc<Tower, IsRadiusShown>, Exc<IsDestroyed>> towerEntities = default;
 
         public void Run(IEcsSystems systems)
         {
