@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using td.monoBehaviours;
 using UnityEngine;
 
 namespace td
@@ -18,9 +19,15 @@ namespace td
         
         }
 
+        private bool show = true;
+
         public void OnCheckBoxChanged()
         {
-            
+            show = !show;
+            foreach (var cellDebug in FindObjectsOfType<CellDebug>(true))
+            {
+                cellDebug.gameObject.SetActive(show);
+            }
         }
     }
 }

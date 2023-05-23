@@ -1,4 +1,5 @@
-﻿using Leopotam.EcsLite;
+﻿using System;
+using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.components.behaviors;
 using td.components.commands;
@@ -13,10 +14,11 @@ using UnityEngine.Jobs;
 
 namespace td.systems.behaviors
 {
+    [Serializable]
     internal struct TargetPoint
     {
-        public Vector2 Target;
-        public float Gap;
+        public Vector2 target;
+        public float gap;
     }
 
     public class MoveToTargetSystem : IEcsRunSystem
@@ -47,7 +49,7 @@ namespace td.systems.behaviors
                 ref var movementToTarget = ref entities.Pools.Inc2.Get(entity);
 
                 targetNativeArray[index] = new TargetPoint
-                    { Target = movementToTarget.target, Gap = movementToTarget.gap };
+                    { target = movementToTarget.target, gap = movementToTarget.gap };
                 speedNativeArray[index] = movementToTarget.speed;
 
                 if (gameObjectLink.reference && gameObjectLink.reference.activeSelf)
@@ -103,12 +105,12 @@ namespace td.systems.behaviors
 
             //-----
 
-            transform.position = Vector3.MoveTowards(transform.position, target.Target, DeltaTime * speed);
+            transform.position = Vector3.MoveTowards(transform.position, target.target, DeltaTime * speed);
 
             //-----
 
-            var distance = (target.Target - (Vector2)transform.position).sqrMagnitude;
-            var gap2 = target.Gap * target.Gap;
+            var distance = (target.target - (Vector2)transform.position).sqrMagnitude;
+            var gap2 = target.gap * target.gap;
 
             if (distance <= gap2)
             {

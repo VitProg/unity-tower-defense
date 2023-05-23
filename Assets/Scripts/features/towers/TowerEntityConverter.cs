@@ -42,6 +42,10 @@ namespace td.features.towers
             {
                 cannonTower.UpdateEntity(world, entity);
             }
+            if (gameObject.TryGetComponent(out ShardTowerMonoBehaviour shardTower))
+            {
+                shardTower.UpdateEntity(world, entity);
+            }
         }
     }
 }

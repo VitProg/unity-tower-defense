@@ -1,0 +1,89 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Shard2
+  m_Shader: {fileID: 4800000, guid: 64d27cc5323aa4e4baaadf470e16ad1f, type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _ColorsTex:
+        m_Texture: {fileID: 2800000, guid: 1b19e1f0d2a07544c98639e10b656089, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ColorsText:
+        m_Texture: {fileID: 2800000, guid: 1b19e1f0d2a07544c98639e10b656089, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: c3c34e396a46f4439925b24e67779a5d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _UtilTex:
+        m_Texture: {fileID: 2800000, guid: ee77f20c8e28b2a4bb950acb0361c76f, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _UtilTex1:
+        m_Texture: {fileID: 2800000, guid: 9efb9296580d8904988409d570b28e63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _UtilTex2:
+        m_Texture: {fileID: 2800000, guid: 2f5de6eddae7145498ea929a77899dff, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BlurAmount: 0.109
+    - _Fraction: 2.64
+    - _Pi: 3.14
+    - _RadiusSize: 0.392
+    - _Speed1: 0.965
+    - _Speed2: 0.513
+    - _Speed3: 0
+    - _Speed4: 0.891
+    - _Speed5: 0.5
+    - _blurAnim: 0
+    - _innerRadius: 0.105
+    - _outerRadius: 0.5
+    - _radius: 0
+    - _rotateSpeed: 0
+    - _scale: 200
+    - _smooth: 1.91
+    - _smoothMul: 30.3
+    - _step1: 1
+    - _step2: 1
+    - _step3: 1
+    - _step4: 1
+    - _step5: 1
+    - _step6: 1
+    - _step7: 1
+    - _step8: 1
+    - _threshold: 0.0089
+    - _transpatenrSmooth: 0.006
+    m_Colors:
+    - _Color: {r: 0.8584906, g: 0.076130256, b: 0.076130256, a: 0.3}
+    - _backgroundColor: {r: 0, g: 0, b: 0, a: 0}
+    - _color1: {r: 1, g: 0, b: 0, a: 1}
+    - _color2: {r: 0, g: 1, b: 0, a: 1}
+    - _color3: {r: 1, g: 0.6666667, b: 0, a: 1}
+    - _color4: {r: 1, g: 1, b: 1, a: 1}
+    - _color5: {r: 1, g: 0.39999998, b: 0.8, a: 1}
+    - _color6: {r: 0.9, g: 1, b: 0, a: 1}
+    - _color7: {r: 0.39999998, g: 0, b: 0.9, a: 1}
+    - _color8: {r: 0.1686721, g: 0.9716981, b: 0.7901445, a: 1}
+    - _value1234: {r: 1, g: 1, b: 1, a: 1}
+    - _value5678: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []

@@ -5,7 +5,7 @@ namespace td.utils
     public static class RandomUtils
     {
         public static int IntRange(int min, int max) =>
-            Mathf.RoundToInt(Random.Range((float)min, (float)max));
+            Random.Range(min, max + 1);
 
         public static float Range(MinMaxF minMax) =>
             Range(minMax.min, minMax.max);

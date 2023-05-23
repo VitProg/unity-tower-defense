@@ -10,14 +10,17 @@ using td.common;
 using td.components.commands;
 using td.components.events;
 using td.features.camera;
+using td.features.dragNDrop;
 using td.features.enemies;
 using td.features.enemies.components;
 using td.features.enemies.systems;
 using td.features.impactsEnemy;
 using td.features.impactsKernel;
-using td.features.input;
 using td.features.levels;
 using td.features.projectiles;
+using td.features.shards;
+using td.features.shards.config;
+using td.features.shards.ui;
 using td.features.towers;
 using td.features.ui;
 using td.features.waves;
@@ -31,14 +34,16 @@ using td.utils;
 using td.utils.ecs;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td
 {
     public class GameManager : MonoBehaviour
     {
-        [SerializeField] private EcsUguiEmitter uguiEmitter;
-        [SerializeField] private CinemachineVirtualCamera virtualCamera;
-        [SerializeField] private HightlightGridByCursor hightlightGridByCursor;
+        [Required][SerializeField] private EcsUguiEmitter uguiEmitter;
+        [Required][SerializeField] private CinemachineVirtualCamera virtualCamera;
+        [Required][SerializeField] private HightlightGridByCursor hightlightGridByCursor;
+        [Required] [SerializeField] private ShardsConfig shardsConfig;
 
         [MinValue(1), MaxValue(4)]
         public uint levelNumber;
@@ -68,6 +73,7 @@ namespace td
                 .Add(new EnemyEntityConverter())
                 .Add(new ProjectileEntityConverter())
                 .Add(new TowerEntityConverter())
+                .Add(new ShardEntityConverter())
                 ;
             // ---
 
@@ -89,7 +95,14 @@ namespace td
                 #region Tower
                 .Add(new CalcDistanceToKernelSystem())
                 .Add(new FindTargetByRadiusSystem())
+                
                 .Add(new CannonTowerFireSystem())
+                
+                .Add(new ShardInitSystem())
+                .Add(new ShardDragNDropSystem())
+                .DelHere<ShardUIDownEvent>()
+                .Add(new ShardTowerFireSystem())
+                
                 .Add(new TowerBuySystem())
                 .Add(new TowerShowRadiusSystem())
                 #endregion
@@ -130,7 +143,7 @@ namespace td
                 .DelHere<SpawnSequenceFinishedOuterEvent>(Constants.Worlds.Outer)
                 #endregion
 
-                #region Enemies
+                #region L6_Enemies
                 // обработка команды спавна нового врага
                 .Add(new SpawnEnemyExecutor())
                 .DelHere<SpawnEnemyOuterCommand>(Constants.Worlds.Outer)
@@ -161,7 +174,8 @@ namespace td
                 #region Input
                 .DelHere<DragStartEvent>()
                 .DelHere<DragEndEvent>()
-                .Add(new DragNDropSystem())
+                .Add(new DragNDropWorldSystem())
+                .Add(new DragNDropCameraSystem())
                 #endregion
 
                 #region Camera
@@ -191,6 +205,9 @@ namespace td
                     new PathService(),
                     new GameObjectPoolService(),
                     new ProjectileService(),
+                    new ShardCalculator(),
+                    new EnemyPathService(),
+                    shardsConfig,
                     converters
                 )
                 .Inject()

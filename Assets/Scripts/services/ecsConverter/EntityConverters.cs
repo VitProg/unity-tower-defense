@@ -26,6 +26,35 @@ namespace td.services.ecsConverter
             return (IEntityConverter<TS>)converter;
         }
 
+        public bool ConvertForEntity<TS>(GameObject gameObject, int entity) where TS : struct
+        {
+            var converter = Get<TS>();
+
+            if (converter == null)
+            {
+                return false;
+            }
+            
+            if (gameObject.TryGetComponent<EcsEntity>(out var e))
+            {
+                if (
+                    e.PackedEntity == null || 
+                    !e.PackedEntity.Value.Unpack(world, out var entityTest) ||
+                    entityTest != entity
+                ) {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+            
+            converter.Convert(gameObject, entity);
+
+            return true;
+        }
+
         public bool Convert<TS>(GameObject gameObject, out int entity) where TS : struct
         {
             var converter = Get<TS>();

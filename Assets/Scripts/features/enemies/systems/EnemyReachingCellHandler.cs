@@ -18,43 +18,62 @@ namespace td.features.enemies.systems
     public class EnemyReachingCellHandler : IEcsRunSystem
     {
         [Inject] private LevelMap levelMap;
+        [Inject] private EnemyPathService enemyPathService;
         [InjectWorld] private EcsWorld world;
 
-        private readonly EcsFilterInject<Inc<ReachingTargetEvent, Enemy, LinearMovementToTarget>, Exc<IsDestroyed>> entities = default;
+        private readonly EcsFilterInject<Inc<ReachingTargetEvent, Enemy, LinearMovementToTarget, Ref<GameObject>, EnemyPath>, Exc<IsDestroyed, IsEnemyDead>> entities = default;
 
         public void Run(IEcsSystems systems)
         {
-            foreach (var entity in entities.Value)
+            foreach (var enemyEntity in entities.Value)
             {
-                ref var enemy = ref entities.Pools.Inc2.Get(entity);
-                ref var movementToTarget = ref entities.Pools.Inc3.Get(entity);
-                ref var gameObjectLink = ref world.GetComponent<Ref<GameObject>>(entity);
+                ref var enemy = ref entities.Pools.Inc2.Get(enemyEntity);
+                ref var movementToTarget = ref entities.Pools.Inc3.Get(enemyEntity);
+                ref var gameObjectLink = ref entities.Pools.Inc4.Get(enemyEntity);
+                ref var enemyPath = ref entities.Pools.Inc5.Get(enemyEntity);
 
-                var cell = levelMap.GetCell(movementToTarget.target);
-
-                if (cell == null) continue;
-
-                var nextCell = levelMap.GetCell(cell.GetRandomNextCoords(), CellTypes.CanWalk);
-
-                if (cell.isKernel)
+                var currentCell = levelMap.GetCell(movementToTarget.target);
+                
+                if (currentCell == null) continue;
+                
+                if (currentCell.isKernel)
                 {
                     // send event
-                    world.GetComponent<IsEnemyDead>(entity);
-                    world.GetComponent<EnemyReachingKernelEvent>(entity);
+                    world.GetComponent<IsEnemyDead>(enemyEntity);
+                    world.GetComponent<EnemyReachingKernelEvent>(enemyEntity);
+                    
+                    continue;
                 }
-                else if (nextCell != null)
+               
+                
+                var path = enemyPathService.GetPath(enemyEntity);
+                
+                enemyPath.index++;
+                if (enemyPath.index >= path.Count) continue;
+                
+                var step = path[enemyPath.index];
+                
+                
+                // var nextCell = levelMap.GetCell(HexGridUtils.GetNeighborsCoords(currentCell.Coords, (HexDirections)step));
+                var nextCell = levelMap.GetCell(step);
+                
+                // if (nextCell == null) continue;
+
+                // var nextCell = levelMap.GetCell(currentCell.GetRandomNextCoords(), CellTypes.CanWalk);
+
+                if (nextCell != null)
                 {
-                    var rotation = EnemyUtils.LookToNextCell(cell, nextCell);
+                    var rotation = EnemyUtils.LookToNextCell(currentCell, nextCell);
 
                     var transform = gameObjectLink.reference.transform;
 
                     if (transform.rotation != rotation)
                     {
-                        var angularSpeed = EnemyUtils.GetAngularSpeed(world, entity);
+                        var angularSpeed = EnemyUtils.GetAngularSpeed(world, enemyEntity);
 
                         if (angularSpeed < Constants.Enemy.SmoothRotationThreshold)
                         {
-                            ref var smoothRotation = ref world.GetComponent<SmoothRotation>(entity);
+                            ref var smoothRotation = ref world.GetComponent<SmoothRotation>(enemyEntity);
                             smoothRotation.from = transform.rotation;
                             smoothRotation.to = rotation;
                             smoothRotation.angularSpeed = angularSpeed;

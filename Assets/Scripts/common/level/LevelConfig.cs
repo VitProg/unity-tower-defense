@@ -1,4 +1,6 @@
 ﻿using System;
+using td.features.shards;
+using UnityEngine.Serialization;
 
 namespace td.common.level
 {
@@ -10,8 +12,10 @@ namespace td.common.level
         public int delayBeforeFirstWave;
         public int delayBetweenWaves;
         public float lives;
-        public int startedMoney;
+        public int energy;
         public WaveConfig[] waves;
+        public ShardTypes[] shardTypes;
+        public Shard[] srartedShards;
     }
     
     // public enum LevelCellType

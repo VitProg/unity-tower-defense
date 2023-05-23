@@ -7851,6 +7851,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 4831098184021084184}
     m_Modifications:
+    - target: {fileID: 1302585280166286033, guid: d96e7eb84a2178e469af9d8e5c9615c5, type: 3}
+      propertyPath: layer
+      value: Default
+      objectReference: {fileID: 0}
     - target: {fileID: 2381738449902472302, guid: d96e7eb84a2178e469af9d8e5c9615c5, type: 3}
       propertyPath: fireRate
       value: 2

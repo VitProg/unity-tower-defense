@@ -60,10 +60,10 @@ namespace td.monoBehaviours
         public Int2? AltNextCoords => HasAltSirectionToNext ? HexGridUtils.GetNeighborsCoords(Coords, directionToAltNext) : null;
 
         // todo
-        public readonly EcsPackedEntity?[] Buildings = new EcsPackedEntity?[3];
+        public readonly EcsPackedEntity?[] buildings = new EcsPackedEntity?[3];
 
         [ShowNativeProperty]
-        public bool HasBuilding => Buildings[0] != null || Buildings[1] != null || Buildings[2] != null;
+        public bool HasBuilding => buildings[0] != null || buildings[1] != null || buildings[2] != null;
 
         private Int2? coords;
         public Int2 Coords
@@ -84,7 +84,12 @@ namespace td.monoBehaviours
         public Int2? GetRandomNextCoords() =>
             isSwitcher && HasDirectionToNext && HasAltSirectionToNext
                 ? Random.value > .5 ? AltNextCoords : NextCoords
-                : NextCoords;
+                : NextCoords; 
+        
+        public HexDirections GetRandomNextDirection() =>
+            isSwitcher && HasDirectionToNext && HasAltSirectionToNext
+                ? Random.value > .5 ? directionToAltNext : directionToNext
+                : directionToNext;
 
         #endregion
 

@@ -210,6 +210,8 @@ namespace td.utils.ecs
             return null;
         }
 
+        public static IEcsSystems GetSystems() => Systems;
+
         public static EcsWorld GetWorld(string worldName = null) => Systems.GetWorld(worldName);
 
         [CanBeNull]

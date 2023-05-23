@@ -1,0 +1,28 @@
+﻿{
+  "levelNumber": 5,
+  "delayBeforeFirstWave": 2,
+  "delayBetweenWaves": 5,
+  "lives": 10.0,
+  "startedMoney": 50,
+  "waves": [
+    {
+      "spawns": [
+        {
+          "spawner": 666,
+          "enemies": [
+            {
+              "name": "creep",
+              "type": -1,
+              "variant": -1
+            }
+          ],
+          "quantity": 20,
+          "speed": 0.4,
+          "health": 2.5,
+          "delayBetween": 0.5,
+          "scale": [0.5, 0.8]
+        }
+      ]
+    }
+  ]
+}

@@ -3,10 +3,11 @@ using Leopotam.EcsLite.Di;
 using td.components.behaviors;
 using td.components.flags;
 using td.components.refs;
+using td.features.dragNDrop;
 using td.features.enemies.components;
-using td.features.input;
 using td.features.projectiles;
 using td.features.projectiles.attributes;
+using td.features.shards;
 using td.services;
 using td.utils.ecs;
 using UnityEngine;
@@ -17,7 +18,7 @@ namespace td.features.towers
     {
         [Inject] private LevelMap levelMap;
         [Inject] private ProjectileService projectileService;
-        // [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
+        [InjectWorld] private EcsWorld world;
         
         private readonly EcsFilterInject<
             Inc<CannonTower, Tower, Ref<GameObject>>,
@@ -26,8 +27,6 @@ namespace td.features.towers
 
         public void Run(IEcsSystems systems)
         {
-            var world = systems.GetWorld();
-
             foreach (var cannonEntity in cannonEntities.Value)
             {
                 ref var cannon = ref cannonEntities.Pools.Inc1.Get(cannonEntity);
@@ -77,28 +76,18 @@ namespace td.features.towers
                     {
                         continue;
                     }
-
-                    // var enemyVector = (Vector3)enemyTargetPoint.target - enemyPostiion;
-                    // enemyVector.Normalize();
-                    // enemyVector *= ((enemy.speed / 2f) + (cannon.projectileSpeed / 2f)) * (distance / 10f);
-
-                    // projectileTarget += enemyVector; //todo
+                    
+                    ///
+                    var shard = new Shard();
 
                     var projectileEntity = projectileService.SpawnProjectile(
                         name: "bullet",
                         position: projectilePosition,
                         targetEntity: enemyEntity,
                         speed: cannon.projectileSpeed,
-                        whoFired: cannonEntity
+                        whoFired: cannonEntity,
+                        ref shard
                     );
-                    
-                    // ref var spawnCommand = ref systems.Outer<SpawnProjectileOuterCommand>(out var spawnCommandEntity);
-                    // spawnCommand.prefab = "bullet";
-                    // spawnCommand.TargetEntity = world.PackEntity(enemyEntity);
-                    // spawnCommand.startedPosition = projectilePosition;
-                    // spawnCommand.targetPosition = projectileTarget;
-                    // spawnCommand.speed = cannon.projectileSpeed;
-                    // spawnCommand.WhoFired = world.PackEntity(cannonEntity);
                     
                     // start todo
                     ref var damage = ref world.GetComponent<DamageAttribute>(projectileEntity);

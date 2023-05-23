@@ -1,17 +1,25 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.components.flags;
+using td.components.refs;
+using td.features.shards;
+using td.features.shards.config;
+using td.features.shards.mb;
+using td.features.towers.mb;
 using td.monoBehaviours;
 using td.services;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
+using UnityEngine.TextCore.Text;
 
 namespace td.features.towers
 {
     public class TowerShowRadiusSystem : IEcsRunSystem
     {
         [Inject] private LevelMap levelMap;
+        [Inject] private ShardCalculator shardCalculator;
+        [Inject] private ShardsConfig config;
         [InjectWorld] private EcsWorld world;
 
         private readonly EcsFilterInject<Inc<Tower, IsRadiusShown>, Exc<IsDestroyed>> towerEntities = default;
@@ -29,36 +37,87 @@ namespace td.features.towers
                 var tower = towerEntities.Pools.Inc1.Get(towerEntity);
                 // todo плавное исчезновение радисуса
                 world.DelComponent<IsRadiusShown>(towerEntity);
+                
+                ref var gameObjectRef = ref world.GetComponent<Ref<GameObject>>(towerEntity);
+                var shardTowerMb = gameObjectRef.reference.transform.GetComponent<ShardTowerMonoBehaviour>();
 
-                if (tower.radiusGameObject)
+                if (shardTowerMb)
                 {
-                    tower.radiusGameObject.SetActive(false);
+                    shardTowerMb.lineRenderer.enabled = false;
                 }
+
+                // if (tower.radiusGameObject)
+                // {
+                    // tower.radiusGameObject.SetActive(false);
+                // }
             }
         }
 
         private void ShowRadiusForTowerUnderCursor()
         {
             var cursorPosition = CameraUtils.ToWorldPoint(Input.mousePosition);
-            var cell = levelMap.GetCell(cursorPosition, CellTypes.CanWalk);
+            var cell = levelMap.GetCell(cursorPosition, CellTypes.CanBuild);
+            
+            if (cell && cell.HasBuilding && cell.buildings[0].HasValue &&
+                cell.buildings[0].Value.Unpack(world, out var towerEntity) &&
+                world.HasComponent<ShardTower>(towerEntity)
+            ) {
+                ref var gameObjectRef = ref world.GetComponent<Ref<GameObject>>(towerEntity);
+                ref var shardTower = ref world.GetComponent<ShardTower>(towerEntity);
 
-            // if (cell is { BuildingPackedEntity: not null } and { HasBuilding: true } &&
-            // TODo!!!!
-            // if (cell.HasBuilding) {}
-            // //ToDo
-            //     cell.Buildings[0].Value.Unpack(world, out var towerEntity) &&
-            //     !world.HasComponent<IsDisabled>(towerEntity) &&
-            //     world.TryGetComponent<Tower>(towerEntity, out var tower) &&
-            //     tower.radiusGameObject
-            //    )
-            // {
-            //     world.AddComponent<IsRadiusShown>(towerEntity);
-            //     
-            //     if (tower.radiusGameObject)
-            //     {
-            //         tower.radiusGameObject.SetActive(true);
-            //     }
-            // }
+                var shardTowerMb = gameObjectRef.reference.transform.GetComponent<ShardTowerMonoBehaviour>();
+                
+                if (shardTower.shard.Unpack(world, out var shardEntity) && shardTowerMb)
+                {
+                    ref var shard = ref world.GetComponent<Shard>(shardEntity);
+                    var radius = shardCalculator.GetTowerRadius(ref shard);
+
+                    var color = ShardUtils.GetMixedColor(ref shard, config);
+                    
+                    shardTowerMb.lineRenderer.enabled = true;
+
+                    DrawRadius(shardTowerMb.lineRenderer, radius, color);
+                }
+            }
+        }
+
+        private void DrawRadius(LineRenderer lineRenderer, float radius, Color color)
+        {
+            var fov = 360f;
+            var origin = Vector2.zero;
+            var triangelesCount = 64;
+            var angle = 0f;
+            var angleIncrease = fov / triangelesCount;
+
+            var vertices = new Vector3[triangelesCount + 1 + 1];
+            var circleVerticesv = new Vector3[triangelesCount];
+            lineRenderer.positionCount = triangelesCount;
+            lineRenderer.startColor = color;
+            lineRenderer.endColor = color;
+
+            vertices[0] = origin;
+
+            var vertexIndex = 1;
+            var circleIndex = 0;
+            for (var i = 0; i <= triangelesCount; i++)
+            {
+                var angleRad = angle * (Mathf.PI / 180f);
+                var vectorFromAngle = new Vector2(Mathf.Cos(angleRad),Mathf.Sin(angleRad) * .85f);
+
+                Vector3 vertex = origin + vectorFromAngle * radius;
+                vertices[vertexIndex] = vertex;
+
+                if (i > 0 && i <= circleVerticesv.Length)
+                {
+                    circleVerticesv[circleIndex] = vertices[vertexIndex];
+                    circleIndex++;
+                }
+
+                vertexIndex++;
+                angle -= angleIncrease;
+            }
+
+            lineRenderer.SetPositions(circleVerticesv);
         }
     }
 }

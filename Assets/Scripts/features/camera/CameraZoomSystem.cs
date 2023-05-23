@@ -19,12 +19,12 @@ namespace td.features.camera
 
             if (Input.GetKeyUp(KeyCode.Plus) || Input.GetKeyUp(KeyCode.KeypadPlus))
             {
-                mouseZoom = shared.IsPerspectiveCameraMode ? Constants.Camera.PerspectiveZoomStep : Constants.Camera.OrthographicZoomStep;
+                mouseZoom = -(shared.IsPerspectiveCameraMode ? Constants.Camera.PerspectiveZoomStep : Constants.Camera.OrthographicZoomStep);
             }
 
             if (Input.GetKeyUp(KeyCode.Minus) || Input.GetKeyUp(KeyCode.KeypadMinus))
             {
-                mouseZoom = -(shared.IsPerspectiveCameraMode ? Constants.Camera.PerspectiveZoomStep : Constants.Camera.OrthographicZoomStep);
+                mouseZoom = shared.IsPerspectiveCameraMode ? Constants.Camera.PerspectiveZoomStep : Constants.Camera.OrthographicZoomStep;
             }
             
             if (shared.VirtualCamera != null) {

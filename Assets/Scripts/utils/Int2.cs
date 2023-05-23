@@ -6,6 +6,16 @@ namespace td.common
     [Serializable]
     public struct Int2
     {
+        public override bool Equals(object obj)
+        {
+            return obj is Int2 other && Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(x, y);
+        }
+
         [AllowNesting] public int x;
         [AllowNesting] public int y;
 
@@ -29,6 +39,11 @@ namespace td.common
 
         public static Int2 operator * (Int2 a, int multiplier) {
             return new Int2 (a.x * multiplier, a.y * multiplier);
+        }
+        
+        public bool Equals(Int2 other)
+        {
+            return x == other.x && y == other.y;
         }
 
         public override string ToString()

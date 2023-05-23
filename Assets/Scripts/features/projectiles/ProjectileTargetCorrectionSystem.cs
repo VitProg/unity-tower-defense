@@ -44,7 +44,7 @@ namespace td.features.projectiles
                 }
                 else
                 {
-                    world.GetComponent<RemoveGameObjectCommand>(targetEntity);
+                    // world.GetComponent<RemoveGameObjectCommand>(targetEntity);
                 }
             }
         }

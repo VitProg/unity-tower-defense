@@ -16,6 +16,22 @@ namespace td.utils
         private static uint _lastID;
 
         private static readonly Dictionary<string, bool> _isShoweds = new();
+        
+        private static readonly Type intType = typeof(int);
+        private static readonly Type uintType = typeof(uint);
+        private static readonly Type shortType = typeof(short);
+        private static readonly Type ushortType = typeof(ushort);
+        private static readonly Type byteType = typeof(byte);
+        private static readonly Type sbyteType = typeof(sbyte);
+        private static readonly Type floatType = typeof(float);
+        private static readonly Type doubleType = typeof(double);
+        private static readonly Type vector2Type = typeof(Vector2);
+        private static readonly Type vector3Type = typeof(Vector3);
+        private static readonly Type int2Type = typeof(Int2);
+        private static readonly Type quaternionType = typeof(Quaternion);
+        private static readonly Type objectType = typeof(Object);
+        private static readonly Type gameObjectType = typeof(GameObject);
+        private static readonly Type scriptableObjectType = typeof(ScriptableObject);
 
         public static void RenderAllPropertiesOfObject(
             ref string id,
@@ -146,28 +162,51 @@ namespace td.utils
                 EditorGUILayout.Toggle((bool)value);
                 EditorGUI.EndDisabledGroup();
             }
-            else if (type == typeof(int) || type == typeof(uint))
+            else if (type == intType || type == uintType || 
+                     type == byteType || type == sbyteType || 
+                     type == shortType || type == ushortType)
             {
                 if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
                 EditorGUI.BeginDisabledGroup(true);
-                EditorGUILayout.IntField(type == typeof(uint) ? ((int)(uint)value) : (int)value);
+                
+                if (type == intType) EditorGUILayout.IntField((int)value);
+                if (type == uintType) EditorGUILayout.IntField((int)(uint)value);
+                if (type == byteType) EditorGUILayout.IntField((int)(byte)value);
+                if (type == sbyteType) EditorGUILayout.IntField((int)(sbyte)value);
+                if (type == shortType) EditorGUILayout.IntField((int)(short)value);
+                if (type == ushortType) EditorGUILayout.IntField((int)(ushort)value);
+                
                 EditorGUI.EndDisabledGroup();
             }
-            else if (type == typeof(float))
+            else if (type == floatType)
             {
                 if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
                 EditorGUI.BeginDisabledGroup(true);
                 EditorGUILayout.FloatField((float)value);
                 EditorGUI.EndDisabledGroup();
             }
-            else if (type == typeof(Vector2))
+            else if (type == doubleType)
+            {
+                if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUILayout.DoubleField((double)value);
+                EditorGUI.EndDisabledGroup();
+            }
+            else if (type == vector2Type)
             {
                 if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
                 EditorGUI.BeginDisabledGroup(true);
                 EditorGUILayout.Vector2Field("", (Vector2)value);
                 EditorGUI.EndDisabledGroup();
             }
-            else if (type == typeof(Int2))
+            else if (type == vector3Type)
+            {
+                if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
+                EditorGUI.BeginDisabledGroup(true);
+                EditorGUILayout.Vector3Field("", (Vector3)value);
+                EditorGUI.EndDisabledGroup();
+            }
+            else if (type == int2Type)
             {
                 if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
                 var f = (Int2)value;
@@ -175,16 +214,16 @@ namespace td.utils
                 EditorGUILayout.Vector2IntField("", new Vector2Int(f.x, f.y));
                 EditorGUI.EndDisabledGroup();
             }
-            else if (type == typeof(Quaternion))
+            else if (type == quaternionType)
             {
                 if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
                 EditorGUI.BeginDisabledGroup(true);
                 EditorGUILayout.Vector3Field("", ((Quaternion)value).eulerAngles);
                 EditorGUI.EndDisabledGroup();
             }
-            else if (type == typeof(Object) ||
-                     type == typeof(GameObject) ||
-                     type == typeof(ScriptableObject))
+            else if (type == objectType ||
+                     type == gameObjectType ||
+                     type == scriptableObjectType)
             {
                 if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
                 EditorGUI.BeginDisabledGroup(true);

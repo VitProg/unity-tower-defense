@@ -2,10 +2,10 @@ Shader "Shader/Hex2"
 {
     Properties
     {
-        _GridColor("Grid Color", Color) = (1,1,1,1)
+        _GridColor("L4_Grid Color", Color) = (1,1,1,1)
         _BgColor("Back Ground Color", Color) = (0,0,0,0)
         _Colmun("Colmun", float) = 1
-        _GridWidth("Grid Width", Range(0,1)) = 0
+        _GridWidth("L4_Grid Width", Range(0,1)) = 0
         _Center("Center(xy) OffsetX(zw)", Vector) = (0,0,0,0)
 
         _Target("A(xy)", Vector) = (0,0,0,0)

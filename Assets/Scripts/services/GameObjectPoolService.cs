@@ -22,7 +22,7 @@ namespace td.services
             Action<PoolableObject> actionOnRelease = null,
             Action<PoolableObject> actionOnDestroy = null
         ) =>
-            GetInternal(prefab, null, defaultCapacity, maxCapacity);
+            GetInternal(prefab, null, defaultCapacity, maxCapacity, initializeFunc, actionOnGet, actionOnRelease, actionOnDestroy);
 
         public PoolableObject Get(
             GameObject prefab,
@@ -34,7 +34,7 @@ namespace td.services
             Action<PoolableObject> actionOnRelease = null,
             Action<PoolableObject> actionOnDestroy = null
         ) =>
-            GetInternal(prefab, parent, defaultCapacity, maxCapacity);
+            GetInternal(prefab, parent, defaultCapacity, maxCapacity, initializeFunc, actionOnGet, actionOnRelease, actionOnDestroy);
 
         private PoolableObject GetInternal(
             GameObject prefab,
@@ -149,6 +149,7 @@ namespace td.services
         private void OnRelease(PoolableObject o)
         {
             o.gameObject.SetActive(false);
+            
             // todo o.OnRelease()
         }
 

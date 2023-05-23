@@ -154,12 +154,12 @@ namespace td.services
         //             if (cell != null)
         //             {
         //                 // ToDo
-        //                 cell.Buildings[0] = world.PackEntity(entity);
+        //                 cell.L3_Buildings[0] = world.PackEntity(entity);
         //             }
         //
         //             if (tower.radiusGameObject == null)
         //             {
-        //                 var radiusTransform = towerGameObject.reference.transform.Find("radius");
+        //                 var radiusTransform = towerGameObject.reference.transform.Find("outerRadius");
         //                 if (radiusTransform != null)
         //                 {
         //                     tower.radiusGameObject = radiusTransform.gameObject;

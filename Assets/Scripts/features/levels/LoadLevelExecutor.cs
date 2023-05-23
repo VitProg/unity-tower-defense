@@ -4,6 +4,8 @@ using Leopotam.EcsLite.Di;
 using td.components.commands;
 using td.components.flags;
 using td.components.refs;
+using td.features.enemies;
+using td.features.enemies.components;
 using td.features.towers;
 using td.features.towers.mb;
 using td.features.ui;
@@ -26,6 +28,7 @@ namespace td.features.levels
         [Inject] private LevelState levelState;
         [Inject] private LevelLoader levelLoader;
         [Inject] private IPathService pathService;
+        [Inject] private EnemyPathService enemyPathService;
         [Inject] private EntityConverters converters;
 
         private readonly EcsFilterInject<Inc<LoadLevelOuterCommand>> loadCommandEntities = Constants.Worlds.Outer;
@@ -61,11 +64,11 @@ namespace td.features.levels
             var towerPool = world.GetPool<Tower>();
             var goPool = world.GetPool<Ref<GameObject>>();
 
-            foreach (var cannonTower in Object.FindObjectsOfType<CannonTowerMonoBehaviour>())
+            foreach (var towerMB in Object.FindObjectsOfType<TowerMonoBehaviour>())
             {
-                if (!converters.Convert<Tower>(cannonTower.gameObject, out var entity))
+                if (!converters.Convert<Tower>(towerMB.gameObject, out var entity))
                 {
-                    throw new NullReferenceException($"Failed to convert GameObject {cannonTower.gameObject.name}");
+                    throw new NullReferenceException($"Failed to convert GameObject {towerMB.gameObject.name}");
                 }
 
                 var tower = towerPool.Get(entity);
@@ -78,18 +81,18 @@ namespace td.features.levels
                 if (cell != null)
                 {
                     // ToDo
-                    cell.Buildings[0] = world.PackEntity(entity);
+                    cell.buildings[0] = world.PackEntity(entity);
                 }
 
-                if (tower.radiusGameObject == null)
-                {
-                    var radiusTransform = towerGameObject.reference.transform.Find("radius");
-                    if (radiusTransform != null)
-                    {
-                        tower.radiusGameObject = radiusTransform.gameObject;
-                        tower.radiusGameObject.SetActive(false);
-                    }
-                }
+                // if (tower.radiusGameObject == null)
+                // {
+                //     var radiusTransform = towerGameObject.reference.transform.Find("outerRadius");
+                //     if (radiusTransform != null)
+                //     {
+                //         tower.radiusGameObject = radiusTransform.gameObject;
+                //         tower.radiusGameObject.SetActive(false);
+                //     }
+                // }
             }
         }
 
@@ -102,6 +105,7 @@ namespace td.features.levels
             {
                 levelLoader.LoadLevel(systems);
                 pathService.InitPath();
+                enemyPathService.PrecalculateAllPaths();
 
                 systems.DelOuter<IsLoadingOuter>();
                 ref var updateUI = ref systems.OuterSingle<UpdateUIOuterCommand>();

@@ -32,6 +32,7 @@ namespace td.features.impactsEnemy
 
                 if (enemy.health < 0)
                 {
+                    world.GetComponent<IsDisabled>(enemyEntity);
                     world.GetComponent<IsEnemyDead>(enemyEntity);
                     world.GetComponent<EnemyDiedCommand>(enemyEntity);
                 }

@@ -22,7 +22,7 @@ namespace td.common.decorators
 
                 if (method.Method.ReturnType == typeof(void))
                 {
-                    // When the method is void, display a constant text.
+                    // When the method is void, display a constant textField.
                     successMessage += "succeeded.";
                 }
                 else

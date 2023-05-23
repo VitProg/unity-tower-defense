@@ -18,6 +18,7 @@ TagManager:
   - CanWalk
   - GridRenderer
   - Debug
+  - CanvasDragLayer
   layers:
   - Default
   - TransparentFX
@@ -26,7 +27,7 @@ TagManager:
   - Water
   - UI
   - HexGrid
-  - 
+  - UI Top
   - 
   - 
   - 
@@ -61,12 +62,36 @@ TagManager:
   - name: BackObjectLayer
     uniqueID: 3142679513
     locked: 0
-  - name: PlatformsAndStaff
+  - name: Platforms
     uniqueID: 975017241
+    locked: 0
+  - name: Buildings
+    uniqueID: 3786549127
+    locked: 0
+  - name: Grid
+    uniqueID: 1980706397
+    locked: 0
+  - name: DebugInfo1
+    uniqueID: 28540961
     locked: 0
   - name: Enemies
     uniqueID: 4106095789
     locked: 0
   - name: Projectiles
     uniqueID: 3092497609
+    locked: 0
+  - name: DebugInfo2
+    uniqueID: 1918007303
+    locked: 0
+  - name: UILayer1
+    uniqueID: 3918230389
+    locked: 0
+  - name: UILayer2
+    uniqueID: 582201649
+    locked: 0
+  - name: Draggable
+    uniqueID: 2926582803
+    locked: 0
+  - name: UILayer3
+    uniqueID: 2002619249
     locked: 0

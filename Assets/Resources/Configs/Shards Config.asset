@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6fa4a699d91543ccadca69f8b0659d01, type: 3}
+  m_Name: Shards Config
+  m_EditorClassIdentifier: 
+  redShardColor: {r: 0.92941177, g: 0.10980392, b: 0.14117648, a: 1}
+  greenShardColor: {r: 0.078431375, g: 0.70980394, b: 0.11764706, a: 1}
+  blueShardColor: {r: 0, g: 0.32941177, b: 0.6509804, a: 1}
+  aquamarineShardColor: {r: 0, g: 0.6627451, b: 0.6156863, a: 1}
+  yellowShardColor: {r: 1, g: 0.9529412, b: 0.11372549, a: 1}
+  orangeShardColor: {r: 0.9490196, g: 0.39607844, b: 0.13333334, a: 1}
+  pinkShardColor: {r: 0.9056604, g: 0.4627451, b: 0.73875153, a: 1}
+  violetShardColor: {r: 0.57254905, g: 0.15294118, b: 0.56078434, a: 1}
+  speedBase: 3
+  speedImpactOfRed: 10
+  baseDamage: 0.5
+  baseDamageImpactOfRed: 3
+  slowPowerDivider: 300
+  slowPowerMin: 0.1
+  slowDurationDevider: 10
+  slowDurationMin: 3
+  explosiveDamageReducer: 6
+  explosiveRadiusAdd: 3
+  explosiveFadingReducer: 6
+  poisonDamageBase: 0.5
+  poisonDamageReducer: 2
+  poisonMinInterval: 1
+  poisonMinDuration: 2
+  fireRateBase: 0.5
+  fireRatePinkReduser: 1.5
+  radiusBase: 1.5
+  radiusImpactOfYellow: 1.1

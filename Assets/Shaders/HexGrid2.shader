@@ -3,9 +3,9 @@ Shader "Custom/HexFlat"
     Properties
     {
         _MainTex("MainTex", 2D) = "white" {}
-        _GridColor("Grid Color", Color) = (1,1,1,1)
+        _GridColor("L4_Grid Color", Color) = (1,1,1,1)
         _BgColor("BG Color", Color) = (0,0,0,0)
-        _GridWidth("Grid Width", Range(0,50)) = 0
+        _GridWidth("L4_Grid Width", Range(0,50)) = 0
         _Shift("Shift", Vector) = (0,0,0,0)
         _LightPosition("Light Position", Vector) = (1, 1, 0, 0)
         _LightRadius("Light Radius", Range(0, 20)) = 1
@@ -123,7 +123,7 @@ Shader "Custom/HexFlat"
                 {
                     // to cell coordinates
                     int x = floor(lightPos.x / 0.75);
-                    int y = floor(((lightPos.y / _YCompress) - (abs(x) % 2) * 0.8660254 / 2) / 0.8660254);
+                    int y = floor(((lightPos.y / _YCompress * 0.8660254) - (abs(x) % 2) * 0.8660254 / 2) / 0.8660254);
                     
                     // to position
                     lightPos = fixed2(

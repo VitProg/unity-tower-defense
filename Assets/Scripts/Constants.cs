@@ -37,6 +37,7 @@ namespace td
             public const string CanWalk = "CanWalk";
             public const string CanBuild = "CanBuild";
             public const string GridRenderer = "GridRenderer";
+            public const string CanvasDragLayer = "CanvasDragLayer";
         }
         
         public static class Level
@@ -58,7 +59,7 @@ namespace td
         {
             public const float MaxOrthographicZoom = 1f;
             public const float MinOrthographicZoom = 6.5f;
-            public const float OrthographicZoomStep = 0.5f;
+            public const float OrthographicZoomStep = 0.25f;
             public const float OrthographicZoomSpeed = 5f;
             
             public const float MaxPerspectiveZoom = -4f;
@@ -78,6 +79,23 @@ namespace td
             
             public const float MaxMoveSpeed = .5f;
         }
+        
+        public static class Layers
+        {
+            public const string L0_Background = "Background";
+            public const string L1_BackObjectLayer = "BackObjectLayer";
+            public const string L2_Platforms = "Platforms";
+            public const string L3_Buildings = "Buildings";
+            public const string L4_Grid = "Grid";
+            public const string L5_DebugInfo1 = "DebugInfo1";
+            public const string L6_Enemies = "Enemies";
+            public const string L7_Projectiles = "Projectiles";
+            public const string L8_DebugInfo2 = "DebugInfo2";
+            public const string L9_UILayer1 = "UILayer1";
+            public const string L10_UILayer2 = "UILayer2";
+            public const string L11_Draggable = "Draggable";
+            public const string L12_UILayer3 = "UILayer3";
+       }
 
         public static class UI
         {

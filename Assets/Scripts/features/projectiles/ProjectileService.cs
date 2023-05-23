@@ -5,6 +5,8 @@ using td.components.behaviors;
 using td.components.flags;
 using td.components.refs;
 using td.features.projectiles.attributes;
+using td.features.shards;
+using td.features.shards.config;
 using td.monoBehaviours;
 using td.services;
 using td.services.ecsConverter;
@@ -17,6 +19,7 @@ namespace td.features.projectiles
     {
         [Inject] private GameObjectPoolService poolService;
         [Inject] private EntityConverters converters;
+        [Inject] private ShardsConfig shardsConfig; // todo
         [InjectWorld] private EcsWorld world;
         [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
@@ -43,7 +46,7 @@ namespace td.features.projectiles
                 Constants.Pools.ProjectileMaxCopacity,
                 null,
                 null,
-                null,
+                ActionOnRelease,
                 EcsPoolUtils.ActionOnDestroy
             );
             var transform = projectilePoolableObject.transform;
@@ -52,6 +55,13 @@ namespace td.features.projectiles
             transform.localScale = Vector2.one;
 
             return projectilePoolableObject;
+        }
+
+        private void ActionOnRelease(PoolableObject o)
+        {
+            o.gameObject.SetActive(false);
+            var projectileMb = o.GetComponent<ProjectileMonoBehaviour>();
+            projectileMb.trailRenderer.Clear();
         }
 
         public void ApplyCommandAttributes(int commandEntity, int projectileEntity)
@@ -63,7 +73,8 @@ namespace td.features.projectiles
             outerWorld.CopyComponent<SlowingAttribute>(commandEntity, projectileEntity);
         }
 
-        public int SpawnProjectile(string name, Vector2 position, int targetEntity, float speed, int whoFired)
+        //todo
+        public int SpawnProjectile(string name, Vector2 position, int targetEntity, float speed, int whoFired, ref Shard shard)
         {
             var projectile = CreateObject(name, position);
 
@@ -86,18 +97,6 @@ namespace td.features.projectiles
 
             var targetPosition = (Vector2)targetGameObjectRef.reference.transform.position;
 
-            // if (world.HasComponent<LinearMovementToTarget>(targetEntity))
-            // {
-            //     ref var targetMovement = ref world.GetComponent<LinearMovementToTarget>(targetEntity);
-            //     
-            //     var vector = targetMovement.target - targetPosition;
-            //     var sqrDistance = vector.sqrMagnitude;
-            //     
-            //     vector.Normalize();
-            //     vector *= ((targetMovement.speed / 2f) + (speed / 2f)) * (sqrDistance / 100f);
-            //     targetPosition += vector;
-            // }
-
             world.GetComponent<Projectile>(projectileEntity).WhoFired = world.PackEntity(whoFired);
 
             ref var movement = ref world.GetComponent<LinearMovementToTarget>(projectileEntity);
@@ -109,6 +108,13 @@ namespace td.features.projectiles
 
             world.DelComponent<IsDisabled>(projectileEntity);
             world.DelComponent<IsDestroyed>(projectileEntity);
+            
+            /***/
+            var projectileMB = projectile.GetComponent<ProjectileMonoBehaviour>();
+            var color = ShardUtils.GetMixedColor(ref shard, shardsConfig);
+            projectileMB.SetColor(color);
+            projectileMB.trailRenderer.gameObject.SetActive(true);
+            /***/
 
             return projectileEntity;
         }

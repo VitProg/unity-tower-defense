@@ -6,6 +6,7 @@ using td.components.flags;
 using td.components.refs;
 using td.features.enemies.components;
 using td.features.projectiles;
+using td.features.shards;
 using td.monoBehaviours;
 using td.services;
 using td.utils;
@@ -17,6 +18,7 @@ namespace td.features.towers
     public class FindTargetByRadiusSystem : IEcsRunSystem
     {
         [Inject] private LevelMap levelMap;
+        [Inject] private ShardCalculator shardCalculator;
         
         private readonly EcsFilterInject<Inc<Tower, Ref<GameObject>>, Exc<IsDisabled, RemoveGameObjectCommand, IsDestroyed>> towerEntities = default;
         private readonly EcsFilterInject<Inc<Enemy, Ref<GameObject>>, Exc<IsDisabled, RemoveGameObjectCommand, IsDestroyed>> enemyEntities = default;
@@ -31,10 +33,20 @@ namespace td.features.towers
                 var towerGameObject = towerEntities.Pools.Inc2.Get(towerEntity);
 
                 var towerPosition = towerGameObject.reference.transform.position;
-                var towerSqrRadius = tower.radius * tower.radius;
 
-                // var sortedList = new SortedList<double, int>();
-                var maxDistanceFromSpawn = 0f;
+                var radius = tower.radius;
+                
+                if (ShardUtils.HasShardInTower(world, towerEntity))
+                {
+                    ref var shard = ref ShardUtils.GetShardInTower(world, towerEntity);
+                    // yellow - увеличивает радиус стрельбы
+                    radius = shardCalculator.GetTowerRadius(ref shard);
+                }
+                
+                var towerSqrRadius = radius * radius;
+                
+                // var maxDistanceFromSpawn = 0f;
+                var minDistanceToKernel = float.MaxValue;
                 var targetEntity = -1;
 
                 foreach (var enemyEntity in enemyEntities.Value)
@@ -53,21 +65,26 @@ namespace td.features.towers
 
                     if ((enemyPosition - towerPosition).sqrMagnitude < towerSqrRadius)
                     {
-                        var distanceFromSpawn = 999f; //Math.Sqrt(sqrDistance);
-                        
-                        //todo select method by tower settings
-                        var enemyCoordinate = HexGridUtils.PositionToCell(enemyPosition);
-                        var cell = levelMap.GetCell(enemyCoordinate, CellTypes.CanWalk);
-                        if (cell && cell.isSpawn && enemy.distanceFromSpawn > 0)
+                        if (minDistanceToKernel > enemy.distanceToKernel)
                         {
-                            distanceFromSpawn = enemy.distanceFromSpawn;
-                        }
-
-                        if (maxDistanceFromSpawn < distanceFromSpawn)
-                        {
-                            maxDistanceFromSpawn = distanceFromSpawn;
+                            minDistanceToKernel = enemy.distanceToKernel;
                             targetEntity = enemyEntity;
                         }
+                        // var distanceFromSpawn = float.MaxValue; 
+                        //
+                        // //todo select method by tower settings
+                        // var enemyCoordinate = HexGridUtils.PositionToCell(enemyPosition);
+                        // var cell = levelMap.GetCell(enemyCoordinate, CellTypes.CanWalk);
+                        // if (cell && cell.isSpawn && enemy.distanceFromSpawn > 0)
+                        // {
+                        //     distanceFromSpawn = enemy.distanceFromSpawn;
+                        // }
+                        //
+                        // if (maxDistanceFromSpawn < distanceFromSpawn)
+                        // {
+                        //     maxDistanceFromSpawn = distanceFromSpawn;
+                        //     targetEntity = enemyEntity;
+                        // }
                     }
                 }
 

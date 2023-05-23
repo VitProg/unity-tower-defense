@@ -3,6 +3,7 @@ using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common;
 using td.components.behaviors;
+using td.components.flags;
 using td.features.enemies.components;
 using td.monoBehaviours;
 using td.services;
@@ -19,6 +20,7 @@ namespace td.features.enemies.systems
         [Inject] private LevelMap levelMap;
         [Inject] private LevelState levelState;
         [Inject] private EntityConverters converters;
+        [Inject] private EnemyPathService enemyPathService;
         [InjectShared] private SharedData shared;
         [InjectWorld] private EcsWorld world;
 
@@ -27,7 +29,6 @@ namespace td.features.enemies.systems
 
         public void Run(IEcsSystems systems)
         {
-            var world = systems.GetWorld();
             var outerWorld = systems.GetWorld(Constants.Worlds.Outer);
 
             foreach (var eventEntity in eventEntities.Value)
@@ -37,10 +38,10 @@ namespace td.features.enemies.systems
                 
                 if (enemyConfig == null) continue;
 
-                var spawn = levelMap.GetSpawn(spawnCommand.spawner);
+                var spawnCoords = levelMap.GetSpawn(spawnCommand.spawner);
                 
                 if (
-                    !levelMap.TryGetCell(spawn, out var spawnCell) ||
+                    !levelMap.TryGetCell(spawnCoords, out var spawnCell) ||
                     !levelMap.TryGetCell(spawnCell.GetRandomNextCoords(), out var nextCell)
                 ) continue;
 
@@ -100,6 +101,12 @@ namespace td.features.enemies.systems
                 );
                 toTarget.speed = spawnCommand.speed;
                 toTarget.gap = Constants.DefaultGap;
+                
+                world.DelComponent<IsEnemyDead>(enemyEntity);
+                world.DelComponent<IsDisabled>(enemyEntity);
+                world.DelComponent<IsDestroyed>(enemyEntity);
+                
+                enemyPathService.PrepareEnemyPath(ref spawnCoords, enemyEntity);
 
                 levelState.EnemiesCount++;
 

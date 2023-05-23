@@ -40,7 +40,7 @@ namespace td.services
                     levelState.MaxLives = levelConfig?.lives ?? 0;
                     levelState.Lives = levelState.MaxLives;
                     levelState.LevelNumber = levelConfig?.levelNumber ?? 0;
-                    levelState.Money = levelConfig?.startedMoney ?? 10;
+                    levelState.Money = levelConfig?.energy ?? 10;
                     levelState.NextWaveCountdown = 0;
                     levelState.WaveNumber = 0;
                     levelState.WaveCount = levelConfig?.waves.Length ?? 0;

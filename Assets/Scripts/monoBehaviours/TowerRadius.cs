@@ -22,7 +22,7 @@
 //             try
 //             {
 //                 Tower = GetComponent<TowerProvider>();
-//                 radiusTransform = transform.Find("radius");
+//                 radiusTransform = transform.Find("outerRadius");
 //                 shape = radiusTransform.GetComponent<Shape>();
 //             }
 //             catch
@@ -42,7 +42,7 @@
 //         
 //                 if (!radiusTransform)
 //                 {
-//                     radiusTransform = transform.Find("radius");
+//                     radiusTransform = transform.Find("outerRadius");
 //                 }
 //         
 //                 if (!shape)
@@ -50,11 +50,11 @@
 //                     shape = radiusTransform.GetComponent<Shape>();
 //                 }
 //             
-//                 var radius = Tower.component.radius;
-//                 if (Math.Abs(lastRadius - radius) > Constants.ZeroFloat)
+//                 var outerRadius = Tower.component.outerRadius;
+//                 if (Math.Abs(lastRadius - outerRadius) > Constants.ZeroFloat)
 //                 {
-//                     lastRadius = radius;
-//                     radiusTransform.localScale = new Vector3(radius, radius, radius) * 1.3f;
+//                     lastRadius = outerRadius;
+//                     radiusTransform.localScale = new Vector3(outerRadius, outerRadius, outerRadius) * 1.3f;
 //                 }
 //             }
 //             catch
