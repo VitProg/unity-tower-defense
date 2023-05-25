@@ -7,15 +7,15 @@ namespace td.features.ui
     [Serializable]
     public struct UpdateUIOuterCommand
     {
-        public float? MaxLives;
-        public float? Lives;
-        public uint? LevelNumber;
-        public int? Money;
-        public int? NextWaveCountdown;
-        public int? EnemiesCount;
-        public int? WaveNumber;
-        public int? WaveCount;
-        public bool? IsLastWave;
+        public float? maxLives;
+        public float? lives;
+        public uint? levelNumber;
+        public int? money;
+        public float? nextWaveCountdown;
+        public int? enemiesCount;
+        public int? waveNumber;
+        public int? waveCount;
+        public bool? isLastWave;
 
         // public static UpdateUIOuterCommand FromLevelState(LevelState levelState) =>
         //     new()

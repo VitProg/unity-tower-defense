@@ -27,24 +27,24 @@ namespace td.features.ui
             {
                 var data = entities.Pools.Inc1.Get(entity);
 
-                if (livesLebel != null && data.Lives != null)
+                if (livesLebel != null && data.lives != null)
                 {
-                    livesLebel.text = oneNumberRegex.Replace(livesLebel.text, ((int)data.Lives).ToString());
+                    livesLebel.text = oneNumberRegex.Replace(livesLebel.text, ((int)data.lives).ToString());
                 }
 
                 //
-                if (moneyLebel != null && data.Money != null)
+                if (moneyLebel != null && data.money != null)
                 {
-                    moneyLebel.text = oneNumberRegex.Replace(moneyLebel.text, data.Money.ToString());
+                    moneyLebel.text = oneNumberRegex.Replace(moneyLebel.text, data.money.ToString());
                 }
 
                 //
-                if (waveLabel != null && data is { WaveNumber: not null, WaveCount: not null })
+                if (waveLabel != null && data is { waveNumber: not null, waveCount: not null })
                 {
-                    if (data.WaveNumber != 0 && data.WaveCount != 0)
+                    if (data.waveNumber != 0 && data.waveCount != 0)
                     {
                         waveLabel.visible = true;
-                        waveLabel.text = waveRegex.Replace(waveLabel.text, $@"{data.WaveNumber}/{data.WaveCount}");
+                        waveLabel.text = waveRegex.Replace(waveLabel.text, $@"{data.waveNumber}/{data.waveCount}");
                     }
                     else
                     {
@@ -53,13 +53,13 @@ namespace td.features.ui
                 }
 
                 //
-                if (waveCountdownLabel != null && data.NextWaveCountdown != null)
+                if (waveCountdownLabel != null && data.nextWaveCountdown != null)
                 {
-                    if (data.NextWaveCountdown > 0)
+                    if (data.nextWaveCountdown > 0)
                     {
                         waveCountdownLabel.visible = true;
                         waveCountdownLabel.text =
-                            oneNumberRegex.Replace(waveCountdownLabel.text, data.NextWaveCountdown.ToString());
+                            oneNumberRegex.Replace(waveCountdownLabel.text, data.nextWaveCountdown.ToString());
                     }
                     else
                     {
@@ -68,10 +68,10 @@ namespace td.features.ui
                 }
 
                 //
-                if (enemiesCounterLabel != null && data.EnemiesCount != null)
+                if (enemiesCounterLabel != null && data.enemiesCount != null)
                 {
                     enemiesCounterLabel.text =
-                        oneNumberRegex.Replace(enemiesCounterLabel.text, data.EnemiesCount.ToString());
+                        oneNumberRegex.Replace(enemiesCounterLabel.text, data.enemiesCount.ToString());
                 }
             }
         }

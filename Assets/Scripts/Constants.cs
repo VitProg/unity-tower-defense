@@ -118,6 +118,8 @@ namespace td
 
                 public const string AddTowerButton = "AddTower";
             }
+            
+            public const string CurrencySign = "₮";
         }
 
         public static class Pools

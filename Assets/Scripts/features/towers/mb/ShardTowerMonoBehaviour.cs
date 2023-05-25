@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using td.features.shards;
+using td.features.shards.ui;
 using td.features.ui;
 using td.monoBehaviours;
 using td.utils;

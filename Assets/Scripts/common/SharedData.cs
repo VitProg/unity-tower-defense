@@ -1,5 +1,7 @@
 ﻿using Cinemachine;
 using Leopotam.EcsLite.Unity.Ugui;
+using td.features.shards.ui;
+using td.features.ui;
 using td.monoBehaviours;
 using UnityEngine;
 
@@ -13,6 +15,10 @@ namespace td.common
         public EcsUguiEmitter UGUIEmitter;
         public Camera MainCamera;
         public HightlightGridByCursor HightlightGrid;
+
+        public ShardsPanel shardsPanel;
+        public BuyShardPopup buyShardPopup;
+        public ShardInfoPanel shardInfoPanel;
         
         public bool IsPerspectiveCameraMode =>
             VirtualCamera && MainCamera && 

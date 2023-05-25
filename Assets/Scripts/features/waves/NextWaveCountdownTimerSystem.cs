@@ -1,6 +1,7 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.services;
+using td.utils;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -30,13 +31,13 @@ namespace td.features.waves
                 
             countdown.countdown = current;
 
-            var iLast = (int)last;
-            var iCurrent = (int)current;
+            // var iLast = (int)(last * 100);
+            // var iCurrent = (int)(current * 100);
             
-            if (iLast != iCurrent)
+            if (Mathf.Abs(current - last) > 0.01f)
             {
                 // Debug.Log($"COUNTDOWN - {iCurrent}");
-                levelSatate.NextWaveCountdown = iCurrent + 1;
+                levelSatate.NextWaveCountdown = current;
             }
 
             if (countdown.countdown < Constants.ZeroFloat)

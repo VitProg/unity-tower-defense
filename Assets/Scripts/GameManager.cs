@@ -43,7 +43,11 @@ namespace td
         [Required][SerializeField] private EcsUguiEmitter uguiEmitter;
         [Required][SerializeField] private CinemachineVirtualCamera virtualCamera;
         [Required][SerializeField] private HightlightGridByCursor hightlightGridByCursor;
-        [Required] [SerializeField] private ShardsConfig shardsConfig;
+        [Required][SerializeField] private ShardsConfig shardsConfig;
+        
+        [Required] public ShardsPanel shardsPanel;
+        [Required] public BuyShardPopup buyShardPopup;
+        [Required] public ShardInfoPanel shardInfoPanel;
 
         [MinValue(1), MaxValue(4)]
         public uint levelNumber;
@@ -60,7 +64,10 @@ namespace td
                 UGUIEmitter = uguiEmitter,
                 VirtualCamera = virtualCamera,
                 MainCamera = Camera.main,
-                HightlightGrid = hightlightGridByCursor
+                HightlightGrid = hightlightGridByCursor,
+                shardsPanel = shardsPanel,
+                buyShardPopup = buyShardPopup,
+                shardInfoPanel = shardInfoPanel,
             };
 
             var world = new EcsWorld();
@@ -98,7 +105,8 @@ namespace td
                 
                 .Add(new CannonTowerFireSystem())
                 
-                .Add(new ShardInitSystem())
+                // shards initialize after loevel loaded and by buing new shard
+                // .Add(new ShardInitSystem())
                 .Add(new ShardDragNDropSystem())
                 .DelHere<ShardUIDownEvent>()
                 .Add(new ShardTowerFireSystem())
@@ -108,10 +116,8 @@ namespace td
                 #endregion
                 
                 #region Fire/Projectile
-                // .Add(new SpawnProjectileExecuter())
                 .Add(new ProjectileTargetCorrectionSystem())
                 .Add(new ProjectileReachEnemyHandler())
-                // .DelHere<SpawnProjectileOuterCommand>(Constants.Worlds.Outer)
                 #endregion
                 
                 #region Inpacts
@@ -143,7 +149,7 @@ namespace td
                 .DelHere<SpawnSequenceFinishedOuterEvent>(Constants.Worlds.Outer)
                 #endregion
 
-                #region L6_Enemies
+                #region Enemies
                 // обработка команды спавна нового врага
                 .Add(new SpawnEnemyExecutor())
                 .DelHere<SpawnEnemyOuterCommand>(Constants.Worlds.Outer)
@@ -264,17 +270,17 @@ namespace td
             EditorGUILayout.Space();
             EditorGUILayout.Separator();
 
-            var foldStyle = EditorStyles.foldoutHeader;
-            foldStyle.normal.background = Texture2D.linearGrayTexture;
-            levelConfigShowed = EditorGUILayout.Foldout(levelConfigShowed, "LevelConfig.json", foldStyle);
-
-            if (levelConfigShowed)
-            {
-                // EditorGUILayout.LabelField("Level Json", EditorStyles.boldLabel);
-                EditorGUI.BeginDisabledGroup(true);
-                EditorGUILayout.TextArea(JsonUtility.ToJson(DI.GetCustom<LevelMap>()?.LevelConfig, true));
-                EditorGUI.EndDisabledGroup();
-            }
+            // var foldStyle = EditorStyles.foldoutHeader;
+            // foldStyle.normal.background = Texture2D.linearGrayTexture;
+            // levelConfigShowed = EditorGUILayout.Foldout(levelConfigShowed, "LevelConfig.json", foldStyle);
+            //
+            // if (levelConfigShowed)
+            // {
+            //     // EditorGUILayout.LabelField("Level Json", EditorStyles.boldLabel);
+            //     EditorGUI.BeginDisabledGroup(true);
+            //     EditorGUILayout.TextArea(JsonUtility.ToJson(DI.GetCustom<LevelMap>()?.LevelConfig, true));
+            //     EditorGUI.EndDisabledGroup();
+            // }
 
             EditorGUILayout.EndVertical();
         }

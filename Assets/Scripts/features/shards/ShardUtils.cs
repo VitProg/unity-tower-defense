@@ -189,17 +189,59 @@ namespace td.features.shards
 
             throw new NullReferenceException("Shard not found in Tower");
         }
-    }
 
-    public enum ShardTypes
-    {
-        Red = 1,
-        Green = 2,
-        Blue = 3,
-        Yellow = 4,
-        Orange = 5,
-        Pink = 6,
-        Violet = 7,
-        Aquamarine = 8,
+        public static void Copy(ref Shard target, ref Shard source)
+        {
+            target.red = source.red;
+            target.green = source.green;
+            target.blue = source.blue;
+            target.aquamarine = source.aquamarine;
+            target.pink = source.pink;
+            target.orange = source.orange;
+            target.violet = source.violet;
+            target.yellow = source.yellow;
+        }
+
+        public static void Clear(ref Shard shard)
+        {
+            shard.red = 0;
+            shard.green = 0;
+            shard.blue = 0;
+            shard.aquamarine = 0;
+            shard.pink = 0;
+            shard.orange = 0;
+            shard.violet = 0;
+            shard.yellow = 0;
+        }
+
+        public static void Set(ref Shard shard, ShardTypes fieldName, byte value = 1)
+        {
+            switch (fieldName)
+            {
+                case ShardTypes.Red: shard.red = value; break;
+                case ShardTypes.Green: shard.green = value; break;
+                case ShardTypes.Blue: shard.blue = value; break;
+                case ShardTypes.Aquamarine: shard.aquamarine = value; break;
+                case ShardTypes.Pink: shard.pink = value; break;
+                case ShardTypes.Orange: shard.orange = value; break;
+                case ShardTypes.Violet: shard.violet = value; break;
+                case ShardTypes.Yellow: shard.yellow = value; break;
+            }
+        }
+        public static void Set(ref Shard shard, string fieldName, byte value = 1)
+        {
+            var f = fieldName.ToLower().Trim();
+            switch (f)
+            {
+                case "red": shard.red = value; break;
+                case "green": shard.green = value; break;
+                case "blue": shard.blue = value; break;
+                case "aquamarine": shard.aquamarine = value; break;
+                case "pink": shard.pink = value; break;
+                case "orange": shard.orange = value; break;
+                case "violet": shard.violet = value; break;
+                case "yellow": shard.yellow = value; break;
+            }
+        }
     }
 }

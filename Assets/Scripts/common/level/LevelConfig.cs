@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using td.features.shards;
 using UnityEngine.Serialization;
 
@@ -14,8 +15,9 @@ namespace td.common.level
         public float lives;
         public int energy;
         public WaveConfig[] waves;
-        public ShardTypes[] shardTypes;
-        public Shard[] srartedShards;
+        public Shard[] startedShards;
+        public string[] availableShards;
+        public ushort[] shardsCost;
     }
     
     // public enum LevelCellType

@@ -32,7 +32,7 @@ namespace td.features.shards.mb
 
         private uint lastQuantity = 0;
 
-        [SerializeField][Required] private EcsEntity ecsEntity;
+        [SerializeField][Required] public EcsEntity ecsEntity;
         [FormerlySerializedAs("circleMeshGenerator")] [SerializeField][Required] private ShardMeshGenerator shardMeshGenerator;
         private ShardCalculator shardCalculator;
 
@@ -57,7 +57,7 @@ namespace td.features.shards.mb
             Refresh();
         }
         
-        protected void Refresh()
+        public void Refresh()
         {
             if (shardCalculator == null)
             {
@@ -99,11 +99,13 @@ namespace td.features.shards.mb
         
         void OnEnable()
         {
-            StartCoroutine(IdleRefresh());
+            Refresh();
+            // StartCoroutine(IdleRefresh());
         }
 
         private IEnumerator IdleRefresh()
         {
+            Refresh();
             yield return new WaitForSeconds(1.25f);
             Refresh();
         }

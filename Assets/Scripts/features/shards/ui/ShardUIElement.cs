@@ -26,6 +26,7 @@ namespace td.features.shards.ui
         private EcsWorld world;
         private IEcsSystems systems;
         private ShardInfoPanel infoPanel;
+        private ShardUIButton shardUIButton;
 
         private Vector2 Size
         {
@@ -54,6 +55,7 @@ namespace td.features.shards.ui
             canvas = GetComponentInParent<Canvas>().rootCanvas;
             ecsEntity ??= GetComponentInParent<EcsEntity>();
             shardMB ??= GetComponentInParent<ShardMonoBehaviour>();
+            shardUIButton ??= GetComponentInParent<ShardUIButton>();
             parentRectTransform ??= GetComponentInParent<RectTransform>();
             rectTransform ??= GetComponent<RectTransform>();
             hover ??= transform.parent.Find("hover").GetComponent<Image>();
@@ -79,7 +81,9 @@ namespace td.features.shards.ui
                 hover.gameObject.SetActive(true);
                 world.GetComponent<ShardUIIsHovered>(entity);
 
-                if (Input.GetMouseButtonDown(0))
+                var canDrag = shardUIButton?.druggable ?? true;
+
+                if (canDrag && Input.GetMouseButtonDown(0))
                 {
                     if (!DI.GetWorld().HasComponent<IsDragging>(entity))
                     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.common;
 using td.components.commands;
 using td.components.flags;
 using td.components.refs;
@@ -30,6 +31,7 @@ namespace td.features.levels
         [Inject] private IPathService pathService;
         [Inject] private EnemyPathService enemyPathService;
         [Inject] private EntityConverters converters;
+        [InjectShared] private SharedData shared;
 
         private readonly EcsFilterInject<Inc<LoadLevelOuterCommand>> loadCommandEntities = Constants.Worlds.Outer;
         private readonly EcsFilterInject<Inc<LevelLoadedOuterEvent>> loadedEventEntities = Constants.Worlds.Outer;
@@ -48,6 +50,8 @@ namespace td.features.levels
                 foreach (var entity in loadedEventEntities.Value)
                 {
                     InitBuildings();
+                    InitShardsPanel();
+                    InitBuyShardPopup();
                     systems.DelOuter<LevelLoadedOuterEvent>();
                     break;
                 }
@@ -96,6 +100,18 @@ namespace td.features.levels
             }
         }
 
+        private void InitShardsPanel()
+        {
+            if (shared.shardsPanel == null) return;
+            shared.shardsPanel.Refresh();
+        }
+
+        private void InitBuyShardPopup()
+        {
+            if (shared.buyShardPopup == null) return;
+            shared.buyShardPopup.Refresh();
+        }
+
         private void Load(IEcsSystems systems, int entity)
         {
             var levelNumber = loadCommandEntities.Pools.Inc1.Get(entity).levelNumber;
@@ -109,15 +125,15 @@ namespace td.features.levels
 
                 systems.DelOuter<IsLoadingOuter>();
                 ref var updateUI = ref systems.OuterSingle<UpdateUIOuterCommand>();
-                updateUI.Lives = levelState.Lives;
-                updateUI.MaxLives = levelState.MaxLives;
-                updateUI.Money = levelState.Money;
-                updateUI.LevelNumber = levelState.LevelNumber;
-                updateUI.EnemiesCount = levelState.EnemiesCount;
-                updateUI.IsLastWave = levelState.IsLastWave;
-                updateUI.NextWaveCountdown = levelState.NextWaveCountdown;
-                updateUI.LevelNumber = (uint)levelState.WaveNumber;
-                updateUI.WaveCount = levelState.WaveCount;
+                updateUI.lives = levelState.Lives;
+                updateUI.maxLives = levelState.MaxLives;
+                updateUI.money = levelState.Money;
+                updateUI.levelNumber = levelState.LevelNumber;
+                updateUI.enemiesCount = levelState.EnemiesCount;
+                updateUI.isLastWave = levelState.IsLastWave;
+                updateUI.nextWaveCountdown = levelState.NextWaveCountdown;
+                updateUI.levelNumber = (uint)levelState.WaveNumber;
+                updateUI.waveCount = levelState.WaveCount;
 
                 var countdown = levelState.WaveNumber <= 0
                     ? levelMap.LevelConfig?.delayBeforeFirstWave

@@ -1,6 +1,7 @@
 ﻿using System;
 using Leopotam.EcsLite;
 using td.features.ui;
+using td.utils;
 using td.utils.ecs;
 
 namespace td.services
@@ -14,10 +15,11 @@ namespace td.services
         private float lives;
         private uint levelNumber;
         private int money;
-        private int nextWaveCountdown;
+        private float nextWaveCountdown;
         private int waveNumber;
         private int waveCount;
         private int enemiesCount;
+        private bool isBuildingProcess;
 
         public LevelState(uint levelNumber)
         {
@@ -31,7 +33,7 @@ namespace td.services
             {
                 if (Math.Abs(maxLives - value) < Constants.ZeroFloat) return;
                 maxLives = value;
-                systems.Outer<UpdateUIOuterCommand>().MaxLives = value;
+                systems.Outer<UpdateUIOuterCommand>().maxLives = value;
             }
         }
 
@@ -42,7 +44,7 @@ namespace td.services
             {
                 if (!(Math.Abs(lives - value) > Constants.ZeroFloat)) return;
                 lives = value;
-                systems.Outer<UpdateUIOuterCommand>().Lives = value;
+                systems.Outer<UpdateUIOuterCommand>().lives = value;
             }
         }
 
@@ -53,7 +55,7 @@ namespace td.services
             {
                 if (levelNumber == value) return;
                 levelNumber = value;
-                systems.Outer<UpdateUIOuterCommand>().LevelNumber = value;
+                systems.Outer<UpdateUIOuterCommand>().levelNumber = value;
             }
         }
 
@@ -64,18 +66,18 @@ namespace td.services
             {
                 if (money == value) return;
                 money = value;
-                systems.Outer<UpdateUIOuterCommand>().Money = value;
+                systems.Outer<UpdateUIOuterCommand>().money = value;
             }
         }
 
-        public int NextWaveCountdown
+        public float NextWaveCountdown
         {
             get => nextWaveCountdown;
             set
             {
-                if (nextWaveCountdown == value) return;
+                if (FloatUtils.IsEquals(nextWaveCountdown, value)) return;
                 nextWaveCountdown = value;
-                systems.Outer<UpdateUIOuterCommand>().NextWaveCountdown = value;
+                systems.Outer<UpdateUIOuterCommand>().nextWaveCountdown = value;
             }
         }
 
@@ -87,9 +89,9 @@ namespace td.services
                 if (waveNumber == value) return;
                 waveNumber = value;
                 ref var updateUI = ref systems.Outer<UpdateUIOuterCommand>();
-                updateUI.WaveNumber = waveNumber;
-                updateUI.WaveCount = waveCount;
-                updateUI.IsLastWave = waveNumber > 0 && waveCount > 0 && waveNumber == WaveCount;
+                updateUI.waveNumber = waveNumber;
+                updateUI.waveCount = waveCount;
+                updateUI.isLastWave = waveNumber > 0 && waveCount > 0 && waveNumber == WaveCount;
             }
         }
 
@@ -101,9 +103,9 @@ namespace td.services
                 if (waveCount == value) return;
                 waveCount = value;
                 ref var updateUI = ref systems.Outer<UpdateUIOuterCommand>();
-                updateUI.WaveNumber = waveNumber;
-                updateUI.WaveCount = waveCount;
-                updateUI.IsLastWave = waveNumber > 0 && waveCount > 0 && waveNumber == WaveCount;
+                updateUI.waveNumber = waveNumber;
+                updateUI.waveCount = waveCount;
+                updateUI.isLastWave = waveNumber > 0 && waveCount > 0 && waveNumber == WaveCount;
             }
         }
 
@@ -114,23 +116,19 @@ namespace td.services
             {
                 if (enemiesCount == value) return;
                 enemiesCount = value;
-                systems.Outer<UpdateUIOuterCommand>().EnemiesCount = value;
+                systems.Outer<UpdateUIOuterCommand>().enemiesCount = value;
             }
         }
 
         public bool IsLastWave => waveNumber > 0 && waveCount > 0 && waveNumber == WaveCount;
 
-        private bool isBuildingProcess;
         public bool IsBuildingProcess
         {
             get => isBuildingProcess;
-            set
-            {
-                if (isBuildingProcess == value) return;
-                isBuildingProcess = value;
-                // systems.Outer(new BuildingProcess() { enabled = value });
-            }
+            set => isBuildingProcess = value;
         }
+        
+        
 
         public void ClearForNewLevel()
         {

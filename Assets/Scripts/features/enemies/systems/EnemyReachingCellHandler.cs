@@ -21,7 +21,10 @@ namespace td.features.enemies.systems
         [Inject] private EnemyPathService enemyPathService;
         [InjectWorld] private EcsWorld world;
 
-        private readonly EcsFilterInject<Inc<ReachingTargetEvent, Enemy, LinearMovementToTarget, Ref<GameObject>, EnemyPath>, Exc<IsDestroyed, IsEnemyDead>> entities = default;
+        private readonly EcsFilterInject<
+            Inc<ReachingTargetEvent, Enemy, LinearMovementToTarget, Ref<GameObject>, EnemyPath>,
+            Exc<IsDestroyed, IsEnemyDead>
+        > entities = default;
 
         public void Run(IEcsSystems systems)
         {
