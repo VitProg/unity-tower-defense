@@ -27,14 +27,14 @@ namespace td.features.camera
                 mouseZoom = shared.IsPerspectiveCameraMode ? Constants.Camera.PerspectiveZoomStep : Constants.Camera.OrthographicZoomStep;
             }
             
-            if (shared.VirtualCamera != null) {
+            if (shared.virtualCamera != null) {
 
                 if (shared.IsPerspectiveCameraMode)
                 {
                     zoom += mouseZoom;
                     zoom = Mathf.Clamp(zoom, Constants.Camera.MinPerspectiveZoom, Constants.Camera.MaxPerspectiveZoom);
                     
-                    var cameraTransform = shared.VirtualCamera.transform;
+                    var cameraTransform = shared.virtualCamera.transform;
                     var cameraPosition = cameraTransform.position;
                     var position = new Vector3(
                         cameraPosition.x,
@@ -51,8 +51,8 @@ namespace td.features.camera
                 {
                     zoom += mouseZoom;
                     zoom = Mathf.Clamp(zoom, Constants.Camera.MaxOrthographicZoom, Constants.Camera.MinOrthographicZoom);
-                    shared.VirtualCamera.m_Lens.OrthographicSize = Mathf.Lerp(
-                        shared.VirtualCamera.m_Lens.OrthographicSize,
+                    shared.virtualCamera.m_Lens.OrthographicSize = Mathf.Lerp(
+                        shared.virtualCamera.m_Lens.OrthographicSize,
                         zoom,
                         EasingUtils.EaseOutSine(Time.deltaTime * Constants.Camera.OrthographicZoomSpeed)
                     );
@@ -62,11 +62,11 @@ namespace td.features.camera
 
         public void Init(IEcsSystems systems)
         {
-            if (shared.VirtualCamera != null)
+            if (shared.virtualCamera != null)
             {
                 zoom = shared.IsPerspectiveCameraMode ?
-                    shared.VirtualCamera.transform.position.z :
-                    shared.VirtualCamera.m_Lens.OrthographicSize;
+                    shared.virtualCamera.transform.position.z :
+                    shared.virtualCamera.m_Lens.OrthographicSize;
             }
         }
     }

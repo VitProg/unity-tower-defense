@@ -104,7 +104,7 @@ namespace td
                 public const double TimeForAwaitDown = 0.1d;
                 public const bool Smooth = true;
                 public const float SmoothSpeed = 15f;
-
+                public const float RollbackSpeed = 2.5f;
             }
 
             public static class Components
@@ -120,6 +120,7 @@ namespace td
             }
             
             public const string CurrencySign = "₮";
+            public const byte MaxShardsInCollection = 8;
         }
 
         public static class Pools

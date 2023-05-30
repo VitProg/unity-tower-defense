@@ -1,6 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using td.features.shards;
-using td.features.shards.ui;
+using td.features.shards.mb;
 using td.features.ui;
 using td.monoBehaviours;
 using td.utils;
@@ -41,7 +41,7 @@ namespace td.features.towers.mb
             {
                 ref var tower = ref DI.GetWorld().GetComponent<ShardTower>(towerEntity);
 
-                if (tower.shard.Unpack(DI.GetWorld(), out var shardEntity))
+                if (tower.shardPackedEntity.Unpack(DI.GetWorld(), out var shardEntity))
                 {
                     ref var shard = ref DI.GetWorld().GetComponent<Shard>(shardEntity);
                     infoPanel.ShowInfo(ref shard);

@@ -3,8 +3,10 @@ using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common;
 using td.components.behaviors;
+using td.components.events;
 using td.components.flags;
 using td.components.refs;
+using td.features.state;
 using td.services;
 using td.utils;
 using td.utils.ecs;
@@ -14,13 +16,14 @@ namespace td.features.dragNDrop
 {
     public class DragNDropWorldSystem : IEcsRunSystem
     {
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
         [Inject] private LevelMap levelMap;
         
         [InjectWorld] private EcsWorld world;
         [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
-        private readonly EcsFilterInject<Inc<IsDragging, Ref<GameObject>>, Exc<IsDestroyed>> entities = default;
+        private readonly EcsFilterInject<Inc<IsDragging, DraggingStartedData, Ref<GameObject>>, Exc<IsDestroyed>> entities = default;
+        private readonly EcsFilterInject<Inc<ReachingTargetEvent, IsRollbackDragging, DraggingStartedData, Ref<GameObject>>, Exc<IsDestroyed>> entitiesRollbackFinished = default;
         
         public void Run(IEcsSystems systems)
         {
@@ -33,8 +36,9 @@ namespace td.features.dragNDrop
                 
                 if (isDragging.mode != DragMode.World) continue;
                 
-                ref var reGameObject = ref entities.Pools.Inc2.Get(entity);
-                var gameObject = reGameObject.reference;
+                ref var draggingStartedData = ref entities.Pools.Inc2.Get(entity);
+                ref var refGameObject = ref entities.Pools.Inc3.Get(entity);
+                var gameObject = refGameObject.reference;
 
                 var position = isDragging.isGridSnapping
                     ? HexGridUtils.SnapToGrid(cursorPosition)
@@ -58,13 +62,14 @@ namespace td.features.dragNDrop
                 var isUnableToDrop = world.HasComponent<IsUnableToDrop>(entity);
                 
                 var removeIsDraging = false;
+                var isRollback = false;
                 
                 switch (isDragging.state)
                 {
                     case IsDraggingState.None:
                         if (Input.GetMouseButtonUp(0))
                         {
-                            var deltaTime = currentTime - isDragging.startedTime;
+                            var deltaTime = currentTime - draggingStartedData.startedTime;
                             // Debug.Log($"> DnD: state=NONE; mb=UP; dt:{deltaTime:0.000s}; isUnableToDrop:{(isUnableToDrop ? "+" : "-")}");
                             if (deltaTime < Constants.UI.DragNDrop.TimeForAwaitDown)
                             {
@@ -115,6 +120,13 @@ namespace td.features.dragNDrop
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+                
+                if (Input.GetMouseButtonUp(1) || Input.GetKeyUp(KeyCode.Escape))
+                {
+                    //rollback
+                    removeIsDraging = true;
+                    isRollback = true;
+                }
 
                 if (removeIsDraging)
                 {
@@ -131,14 +143,42 @@ namespace td.features.dragNDrop
                     gameObject.transform.position = position;
                     
                     var sortingLayerChangeable = gameObject.GetComponent<ISortingLayerChangeable>();
-                    if (sortingLayerChangeable != null && sortingLayerChangeable.sortigLayer != isDragging.startedLayer)
+                    if (sortingLayerChangeable != null && sortingLayerChangeable.sortigLayer != draggingStartedData.startedLayer)
                     {
-                        sortingLayerChangeable.sortigLayer = isDragging.startedLayer;
+                        sortingLayerChangeable.sortigLayer = draggingStartedData.startedLayer;
                     }
                     
                     world.DelComponent<IsSmoothDragging>(entity);
                     world.DelComponent<IsDragging>(entity);
+                    
+                    if (isRollback)
+                    {
+                        world.GetComponent<IsRollbackDragging>(entity).mode = DragMode.Camera;
+                        ref var target = ref world.GetComponent<LinearMovementToTarget>(entity);
+                        target.from = refGameObject.reference.transform.position;
+                        target.target = draggingStartedData.startedPosition;
+                        target.speed = Mathf.Max(Screen.width, Screen.height) * Constants.UI.DragNDrop.RollbackSpeed;
+                    }
                 }
+            }
+
+            foreach (var entityRollback in entitiesRollbackFinished.Value)
+            {
+                if (entitiesRollbackFinished.Pools.Inc2.Get(entityRollback).mode != DragMode.World) continue;
+                
+                ref var draggingStartedData = ref entitiesRollbackFinished.Pools.Inc3.Get(entityRollback);
+                ref var refGameObject = ref entitiesRollbackFinished.Pools.Inc4.Get(entityRollback);
+
+                refGameObject.reference.transform.position = draggingStartedData.startedPosition;
+                refGameObject.reference.transform.SetParent(draggingStartedData.parentContainer);
+                
+                world.DelComponent<DraggingStartedData>(entityRollback);
+                
+                world.DelComponent<IsRollbackDragging>(entityRollback);
+                world.DelComponent<LinearMovementToTarget>(entityRollback);
+                world.DelComponent<IsDragging>(entityRollback);
+
+                world.GetComponent<DragRollbackEvent>(entityRollback);
             }
         }
 
@@ -159,11 +199,17 @@ namespace td.features.dragNDrop
 
             ref var isDragging = ref world.GetComponent<IsDragging>(entity);
             isDragging.mode = DragMode.World;
-            isDragging.startedPosition = refGameObject.reference.transform.position;
-            isDragging.startedTime = Time.timeSinceLevelLoadAsDouble;
+            // isDragging.startedPosition = refGameObject.reference.transform.position;
+            // isDragging.startedTime = Time.timeSinceLevelLoadAsDouble;
             isDragging.isGridSnapping = snapToGrid;
             isDragging.state = Input.GetMouseButtonDown(0) ? IsDraggingState.None : IsDraggingState.Down;
-            isDragging.startedLayer = sortingLayerChangeable?.sortigLayer ?? Constants.Layers.L3_Buildings;
+            // isDragging.startedLayer = sortingLayerChangeable?.sortigLayer ?? Constants.Layers.L3_Buildings;
+            
+            ref var draggingStartedData = ref world.GetComponent<DraggingStartedData>(entity);
+            draggingStartedData.startedPosition = refGameObject.reference.transform.position;
+            draggingStartedData.startedTime = Time.timeSinceLevelLoadAsDouble;
+            draggingStartedData.startedLayer = sortingLayerChangeable?.sortigLayer ?? Constants.Layers.L3_Buildings;
+            draggingStartedData.parentContainer = refGameObject.reference.transform.parent.transform;
 
             world.GetComponent<DragStartEvent>(entity).mode = DragMode.World;
 

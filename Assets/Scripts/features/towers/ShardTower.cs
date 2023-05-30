@@ -7,6 +7,6 @@ namespace td.features.towers
     public struct ShardTower
     {
         public float fireCountdown;
-        public EcsPackedEntity shard;
+        public EcsPackedEntity shardPackedEntity;
     }
 }

@@ -34,7 +34,6 @@ namespace td.features.towers
         {
             foreach (var towerEntity in towerEntities.Value)
             {
-                var tower = towerEntities.Pools.Inc1.Get(towerEntity);
                 // todo плавное исчезновение радисуса
                 world.DelComponent<IsRadiusShown>(towerEntity);
                 
@@ -58,18 +57,22 @@ namespace td.features.towers
             var cursorPosition = CameraUtils.ToWorldPoint(Input.mousePosition);
             var cell = levelMap.GetCell(cursorPosition, CellTypes.CanBuild);
             
-            if (cell && cell.HasBuilding && cell.buildings[0].HasValue &&
-                cell.buildings[0].Value.Unpack(world, out var towerEntity) &&
-                world.HasComponent<ShardTower>(towerEntity)
-            ) {
-                ref var gameObjectRef = ref world.GetComponent<Ref<GameObject>>(towerEntity);
+            if (
+                cell &&
+                cell.HasBuilding<ShardTower>(world) &&
+                cell.TryGetBuildngEntity(world, out var towerEntity) &&
+                ShardTowerUtils.HasShard(world, towerEntity)
+            )
+            {
                 ref var shardTower = ref world.GetComponent<ShardTower>(towerEntity);
+                ref var gameObjectRef = ref world.GetComponent<Ref<GameObject>>(towerEntity);
+                ref var shard = ref ShardTowerUtils.GetShard(world, ref shardTower, out var shardEntity);
 
                 var shardTowerMb = gameObjectRef.reference.transform.GetComponent<ShardTowerMonoBehaviour>();
                 
-                if (shardTower.shard.Unpack(world, out var shardEntity) && shardTowerMb)
+                if (shardTowerMb)
                 {
-                    ref var shard = ref world.GetComponent<Shard>(shardEntity);
+                    // ref var shardPackedEntity = ref world.GetComponent<Shard>(shardEntity);
                     var radius = shardCalculator.GetTowerRadius(ref shard);
 
                     var color = ShardUtils.GetMixedColor(ref shard, config);
@@ -77,6 +80,8 @@ namespace td.features.towers
                     shardTowerMb.lineRenderer.enabled = true;
 
                     DrawRadius(shardTowerMb.lineRenderer, radius, color);
+                    
+                    world.GetComponent<IsRadiusShown>(towerEntity);
                 }
             }
         }

@@ -4,6 +4,7 @@ using Leopotam.EcsLite;
 using td.common.level;
 using td.components.flags;
 using td.components.refs;
+using td.features.state;
 using td.features.towers;
 using td.monoBehaviours;
 using td.utils;
@@ -16,7 +17,7 @@ namespace td.services
     public class LevelLoader
     {
         [Inject] private LevelMap levelMap;
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
         // [Inject] private EntityConverters converters;
 
         private GameObject levelGameObject;
@@ -24,8 +25,8 @@ namespace td.services
         
         public bool HasLevel()
         {
-            var check1 = Resources.Load<TextAsset>($"Levels/{levelState.LevelNumber}") != null;
-            var check2 = Resources.Load<GameObject>($"Levels/{levelState.LevelNumber}") != null;
+            var check1 = Resources.Load<TextAsset>($"Levels/{state.LevelNumber}") != null;
+            var check2 = Resources.Load<GameObject>($"Levels/{state.LevelNumber}") != null;
 
             return check1 && check2;
         }
@@ -37,7 +38,16 @@ namespace td.services
             // ToDo: levelMap.clear();
             try
             {
-                levelState.ClearForNewLevel();
+                var ln = state.LevelNumber;
+                state.SuspendEvents();
+                state.Clear();
+                state.LevelNumber = ln;
+                state.EnemiesCount = 0;
+                state.WaveCount = 0;
+                state.WaveNumber = 0;
+                state.IsBuildingProcess = false;
+                state.NextWaveCountdown = 0;
+                state.ResumeEvents();
 
                 ClearLastLevelData(systems);
 
@@ -107,8 +117,8 @@ namespace td.services
 
         private void LoadLevelConfig()
         {
-            var levelConfig = ResourcesUtils.LoadJson<LevelConfig>($"Levels/{levelState.LevelNumber}");
-            levelConfig.levelNumber = levelState.LevelNumber;
+            var levelConfig = ResourcesUtils.LoadJson<LevelConfig>($"Levels/{state.LevelNumber}");
+            levelConfig.levelNumber = state.LevelNumber;
             levelMap.LevelConfig = levelConfig;
         }
 
@@ -120,7 +130,7 @@ namespace td.services
             }
 
             levelGameObject = Object.Instantiate(
-                Resources.Load<GameObject>($"Levels/{levelState.LevelNumber}")
+                Resources.Load<GameObject>($"Levels/{state.LevelNumber}")
             );
         }
 

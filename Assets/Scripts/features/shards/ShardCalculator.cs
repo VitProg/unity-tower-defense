@@ -96,7 +96,7 @@ namespace td.features.shards
             
             var quantity = ShardUtils.GetQuantity(ref shard);
             
-            // var max = ShardUtils.GetMax(ref shard);
+            // var max = ShardUtils.GetMax(ref shardPackedEntity);
             //
             // damage = GetShardAmplifier(Math.Max(max, Mathf.CeilToInt(quantity / 10f)));
 
@@ -216,6 +216,27 @@ namespace td.features.shards
             radius = Mathf.Max(baseRadius, radius);
 
             return radius;
+        }
+
+        public int CalculateCost(ref Shard shard, int singleCost)
+        {
+            // ToDo добавить в рассчет цены каждого слияния
+            var cost = singleCost;
+            var quantity = ShardUtils.GetQuantity(ref shard);
+
+            // todo
+            var combineCost = CalculateCombineCost(ref shard, ref shard, singleCost);
+
+            return (int)(cost * Mathf.Pow(quantity, 2) + combineCost);
+        }
+
+        public int CalculateCombineCost(ref Shard targetShard, ref Shard sourceShard, int baseCombineCost)
+        {
+            // todo
+            var quantityTarget = ShardUtils.GetQuantity(ref targetShard) - 1;
+            var quantitySource = ShardUtils.GetQuantity(ref sourceShard) - 1;
+
+            return (int)(baseCombineCost * Mathf.Sqrt(quantityTarget * quantitySource));
         }
     }
 }

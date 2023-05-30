@@ -19,8 +19,13 @@ using td.features.impactsKernel;
 using td.features.levels;
 using td.features.projectiles;
 using td.features.shards;
+using td.features.shards.commands;
 using td.features.shards.config;
-using td.features.shards.ui;
+using td.features.shards.events;
+using td.features.shards.executors;
+using td.features.shards.init;
+using td.features.shards.mb;
+using td.features.state;
 using td.features.towers;
 using td.features.ui;
 using td.features.waves;
@@ -40,39 +45,42 @@ namespace td
 {
     public class GameManager : MonoBehaviour
     {
-        [Required][SerializeField] private EcsUguiEmitter uguiEmitter;
-        [Required][SerializeField] private CinemachineVirtualCamera virtualCamera;
-        [Required][SerializeField] private HightlightGridByCursor hightlightGridByCursor;
-        [Required][SerializeField] private ShardsConfig shardsConfig;
-        
-        [Required] public ShardsPanel shardsPanel;
-        [Required] public BuyShardPopup buyShardPopup;
-        [Required] public ShardInfoPanel shardInfoPanel;
+        [Required] [SerializeField] private EcsUguiEmitter uguiEmitter;
+        [Required] [SerializeField] private CinemachineVirtualCamera virtualCamera;
+        [Required] [SerializeField] private HightlightGridByCursor hightlightGridByCursor;
+        [Required] [SerializeField] private ShardsConfig shardsConfig;
 
-        [MinValue(1), MaxValue(4)]
-        public uint levelNumber;
+        [Required] public ShardCollectionPanel shardCollectionPanel;
+        [Required] public ShardStorePopup shardStorePopup;
+        [Required] public ShardInfoPanel shardInfoPanel;
+        
+        [Required] public ShardMonoBehaviour draggableShard;
+
+        [MinValue(1), MaxValue(4)] public uint levelNumber;
 
         private IEcsSystems systems;
-        
-        [Inject] private LevelMap levelMap;
-        [Inject] private LevelState levelState;
 
         private void Start()
         {
             var sharedData = new SharedData()
             {
-                UGUIEmitter = uguiEmitter,
-                VirtualCamera = virtualCamera,
-                MainCamera = Camera.main,
-                HightlightGrid = hightlightGridByCursor,
-                shardsPanel = shardsPanel,
-                buyShardPopup = buyShardPopup,
-                shardInfoPanel = shardInfoPanel,
+                uguiEmitter = uguiEmitter,
+                virtualCamera = virtualCamera,
+                mainCamera = Camera.main,
+                hightlightGrid = hightlightGridByCursor,
+                shardCollection = shardCollectionPanel,
+                shardStore = shardStorePopup,
+                shardInfo = shardInfoPanel,
+                draggableShard = draggableShard,
             };
 
             var world = new EcsWorld();
             var outerWorld = new EcsWorld();
             var uguiWorld = new EcsWorld();
+
+            var state = new State();
+            state.SuspendEvents();
+            state.LevelNumber = levelNumber;
 
             // converters
             var converters = new EntityConverters();
@@ -83,54 +91,67 @@ namespace td
                 .Add(new ShardEntityConverter())
                 ;
             // ---
-
+            
             systems = new EcsSystems(world, sharedData);
 
             systems
                 .AddWorld(outerWorld, Constants.Worlds.Outer)
-                .AddWorld(uguiWorld, Constants.Worlds.UI)
+                .AddWorld(uguiWorld, Constants.Worlds.UI);
 
-                #region Levels
+            #region Levels
+            systems
                 .Add(new LoadLevelExecutor())
                 .Add(new LevelFinishedHandler())
-                .DelHere<LevelFinishedOuterEvent>(Constants.Worlds.Outer)
-                #endregion
+                .DelHere<LevelFinishedOuterEvent>(Constants.Worlds.Outer);
+            #endregion
 
-                .Add(new MoveToTargetSystem())
-                .Add(new SmoothRotateExecutor())
+            systems.Add(new LinearMoveToTargetSystem());
+            systems.Add(new SmoothRotateExecutor());
 
-                #region Tower
+            #region Tower
+            systems
                 .Add(new CalcDistanceToKernelSystem())
                 .Add(new FindTargetByRadiusSystem())
-                
                 .Add(new CannonTowerFireSystem())
-                
-                // shards initialize after loevel loaded and by buing new shard
-                // .Add(new ShardInitSystem())
-                .Add(new ShardDragNDropSystem())
-                .DelHere<ShardUIDownEvent>()
                 .Add(new ShardTowerFireSystem())
-                
                 .Add(new TowerBuySystem())
-                .Add(new TowerShowRadiusSystem())
-                #endregion
-                
-                #region Fire/Projectile
+                .Add(new TowerShowRadiusSystem());
+            #endregion
+
+            #region Shard
+            systems
+                .Add(new ShardDragNDropSystem())
+                .DelHere<UIShardDownEvent>()
+                .Add(new InitShardCollectionSystem())
+                .Add(new InitShardStoreSystem())
+                .Add(new ShardCollectionRemoveHiddenExecutor())
+                .Add(new UIRefreshShardCollectionExecutor())
+                .Add(new UIRefreshShardStoreExecutor())
+                .Add(new UIShardStoreShowHideExecutor())
+                .Add(new UIShardStoreLevelChangedHandler())
+                .Add(new BuyShardExecutor())
+                .DelHere<BuyShardCommand>(Constants.Worlds.Outer);
+            #endregion
+
+            #region Fire/Projectile
+            systems
                 .Add(new ProjectileTargetCorrectionSystem())
-                .Add(new ProjectileReachEnemyHandler())
-                #endregion
-                
-                #region Inpacts
+                .Add(new ProjectileReachEnemyHandler());
+            #endregion
+
+            #region Inpacts
+            systems
                 // обработка команды получения урона вррагом
                 .Add(new TakeDamageSystem())
                 .DelHere<TakeDamageOuter>(Constants.Worlds.Outer)
 
                 // обработка события получение врагом бафа/дебафа
                 .Add(new SpeedDebuffSystem())
-                .Add(new PoisonDebuffSystem())
-                #endregion
+                .Add(new PoisonDebuffSystem());
+            #endregion
 
-                #region Waves
+            #region Waves
+            systems
                 // отсчет до следующей волны
                 .Add(new NextWaveCountdownTimerSystem())
 
@@ -146,10 +167,11 @@ namespace td
                 .DelHere<StartWaveOuterCommand>(Constants.Worlds.Outer)
                 .Add(new SpawnSequenceSystem())
                 .Add(new SpawnSequenceFinishedHandler())
-                .DelHere<SpawnSequenceFinishedOuterEvent>(Constants.Worlds.Outer)
-                #endregion
+                .DelHere<SpawnSequenceFinishedOuterEvent>(Constants.Worlds.Outer);
+            #endregion
 
-                #region Enemies
+            #region Enemies
+            systems
                 // обработка команды спавна нового врага
                 .Add(new SpawnEnemyExecutor())
                 .DelHere<SpawnEnemyOuterCommand>(Constants.Worlds.Outer)
@@ -163,62 +185,80 @@ namespace td
 
                 // обработка события достижения врагом ядра
                 .Add(new EnemyReachingKernelEventHandle())
-                .DelHere<EnemyReachingKernelEvent>()
-                #endregion
+                .DelHere<EnemyReachingKernelEvent>();
+            #endregion
 
-                #region Kernel
+            #region Kernel
+            systems
                 .Add(new KernalChangeLivesExecutor())
                 .DelHere<KernalDamageOuterCommand>(Constants.Worlds.Outer)
-                .DelHere<KernelHealOuterCommand>(Constants.Worlds.Outer)
-                #endregion
+                .DelHere<KernelHealOuterCommand>(Constants.Worlds.Outer);
+            #endregion
 
-                #region UI
-                .Add(new UpdateUISystem())
-                .DelHere<UpdateUIOuterCommand>(Constants.Worlds.Outer)
-                #endregion
-                
-                #region Input
+            #region UI
+            systems
+                .Add(new UIUpdateSystem())
+                .DelHere<UpdateUIOuterCommand>(Constants.Worlds.Outer);
+            #endregion
+
+            #region Drug'n'Drop
+            systems
+                .DelHere<DragRollbackEvent>()
                 .DelHere<DragStartEvent>()
                 .DelHere<DragEndEvent>()
                 .Add(new DragNDropWorldSystem())
-                .Add(new DragNDropCameraSystem())
-                #endregion
+                .Add(new DragNDropCameraSystem());
+            #endregion
 
-                #region Camera
+            #region Camera
+            systems
                 .Add(new CameraMoveSystem())
-                .Add(new CameraZoomSystem())
-                #endregion
+                .Add(new CameraZoomSystem());
+            #endregion
 
-                // обработка команды удаления GameObject сщ сцены
+            // обработка команды удаления GameObject сщ сцены
+            systems
                 .Add(new RemoveGameObjectExecutor())
-                .DelHere<RemoveGameObjectCommand>()
-                
-                // очистка
+                .DelHere<RemoveGameObjectCommand>();
+
+            // очистка
+            systems
                 .DelHere<ReachingTargetEvent>()
-                
+                .DelHere<StateChangedEvent>(Constants.Worlds.Outer)
+                .DelHere<StateChangedExEvent>(Constants.Worlds.Outer)
+                .DelHere<LevelLoadedOuterEvent>(Constants.Worlds.Outer)
+                ;
+                // .DelHere<UIRefreshShardStoreOuterCommand>(Constants.Worlds.Outer)
+                // .DelHere<UIRefreshShardCollectionOuterCommand>(Constants.Worlds.Outer)
+                // .DelHere<UIShowShardStoreOuterCommand>(Constants.Worlds.Outer)
+                // .DelHere<UIHideShardStoreOuterCommand>(Constants.Worlds.Outer);
+
 
 #if UNITY_EDITOR
+            systems
                 .Add(new EcsWorldDebugSystem())
                 .Add(new EcsWorldDebugSystem(Constants.Worlds.Outer))
-                .Add(new EcsWorldDebugSystem(Constants.Worlds.UI))
+                .Add(new EcsWorldDebugSystem(Constants.Worlds.UI));
 #endif
-                // .Add(new ConvertSceneSys())
-                .Add(new SturtupInitSystem())
-                .InjectLite(
-                    new LevelState(levelNumber),
-                    new LevelMap(),
-                    new LevelLoader(),
-                    new PathService(),
-                    new GameObjectPoolService(),
-                    new ProjectileService(),
-                    new ShardCalculator(),
-                    new EnemyPathService(),
-                    shardsConfig,
-                    converters
-                )
-                .Inject()
-                .InjectUgui(uguiEmitter, Constants.Worlds.UI)
-                .Init();
+
+            systems.Add(new SturtupInitSystem());
+
+            systems.InjectLite(
+                state,
+                new LevelMap(),
+                new LevelLoader(),
+                new PathService(),
+                new GameObjectPoolService(),
+                new ProjectileService(),
+                new ShardCalculator(),
+                new EnemyPathService(),
+                shardsConfig,
+                converters
+            );
+
+            systems.Inject();
+            systems.InjectUgui(uguiEmitter, Constants.Worlds.UI);
+            systems.Init();
         }
 
         private void Update()
@@ -230,7 +270,8 @@ namespace td
         {
             systems?.GetWorld(Constants.Worlds.UI).Destroy();
             systems?.GetWorld()?.Destroy();
-            systems?.GetWorld(Constants.Worlds.Outer).Destroy();;
+            systems?.GetWorld(Constants.Worlds.Outer).Destroy();
+            ;
             systems?.Destroy();
             systems = null;
         }
@@ -251,7 +292,7 @@ namespace td
             EditorGUI.BeginChangeCheck();
             EditorUtils.RenderAllPropertiesOfObject(
                 ref idLevelState,
-                DI.GetCustom<LevelState>(),
+                DI.GetCustom<State>(),
                 "Level State");
             EditorGUI.EndChangeCheck();
 

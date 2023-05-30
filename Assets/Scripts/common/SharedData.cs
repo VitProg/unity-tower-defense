@@ -1,6 +1,7 @@
 ﻿using Cinemachine;
+using Leopotam.EcsLite;
 using Leopotam.EcsLite.Unity.Ugui;
-using td.features.shards.ui;
+using td.features.shards.mb;
 using td.features.ui;
 using td.monoBehaviours;
 using UnityEngine;
@@ -9,24 +10,26 @@ namespace td.common
 {
     public class SharedData
     {
-        public EnemyConfig[] EnemyConfigs;
+        public EnemyConfig[] enemyConfigs;
 
-        public CinemachineVirtualCamera VirtualCamera;
-        public EcsUguiEmitter UGUIEmitter;
-        public Camera MainCamera;
-        public HightlightGridByCursor HightlightGrid;
+        public CinemachineVirtualCamera virtualCamera;
+        public EcsUguiEmitter uguiEmitter;
+        public Camera mainCamera;
+        public HightlightGridByCursor hightlightGrid;
 
-        public ShardsPanel shardsPanel;
-        public BuyShardPopup buyShardPopup;
-        public ShardInfoPanel shardInfoPanel;
-        
+        public ShardCollectionPanel shardCollection;
+        public ShardStorePopup shardStore;
+        public ShardInfoPanel shardInfo;
+        public ShardMonoBehaviour draggableShard;
+        public EcsPackedEntity draggableShardPackedEntity;
+
         public bool IsPerspectiveCameraMode =>
-            VirtualCamera && MainCamera && 
-            !(VirtualCamera.m_Lens.Orthographic || MainCamera.orthographic);
+            virtualCamera && mainCamera && 
+            !(virtualCamera.m_Lens.Orthographic || mainCamera.orthographic);
 
         public EnemyConfig? GetEnemyConfig(string enemyName)
         {
-            foreach (var enemyConfig in EnemyConfigs)
+            foreach (var enemyConfig in enemyConfigs)
             {
                 if (enemyConfig.name == enemyName)
                 {

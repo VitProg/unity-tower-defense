@@ -6,7 +6,8 @@ using td.components.commands;
 using td.components.flags;
 using td.components.refs;
 using td.features.enemies;
-using td.features.enemies.components;
+using td.features.shards;
+using td.features.state;
 using td.features.towers;
 using td.features.towers.mb;
 using td.features.ui;
@@ -23,14 +24,14 @@ namespace td.features.levels
 {
     public class LoadLevelExecutor : IEcsRunSystem
     {
-        [InjectWorld] private EcsWorld world;
-        
         [Inject] private LevelMap levelMap;
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
         [Inject] private LevelLoader levelLoader;
         [Inject] private IPathService pathService;
         [Inject] private EnemyPathService enemyPathService;
         [Inject] private EntityConverters converters;
+        [InjectWorld] private EcsWorld world;
+        [InjectSystems] private IEcsSystems systems;
         [InjectShared] private SharedData shared;
 
         private readonly EcsFilterInject<Inc<LoadLevelOuterCommand>> loadCommandEntities = Constants.Worlds.Outer;
@@ -50,9 +51,7 @@ namespace td.features.levels
                 foreach (var entity in loadedEventEntities.Value)
                 {
                     InitBuildings();
-                    InitShardsPanel();
-                    InitBuyShardPopup();
-                    systems.DelOuter<LevelLoadedOuterEvent>();
+                    //systems.DelOuter<LevelLoadedOuterEvent>();
                     break;
                 }
             }
@@ -68,11 +67,11 @@ namespace td.features.levels
             var towerPool = world.GetPool<Tower>();
             var goPool = world.GetPool<Ref<GameObject>>();
 
-            foreach (var towerMB in Object.FindObjectsOfType<TowerMonoBehaviour>())
+            foreach (var towerMb in Object.FindObjectsOfType<TowerMonoBehaviour>())
             {
-                if (!converters.Convert<Tower>(towerMB.gameObject, out var entity))
+                if (!converters.Convert<Tower>(towerMb.gameObject, out var entity))
                 {
-                    throw new NullReferenceException($"Failed to convert GameObject {towerMB.gameObject.name}");
+                    throw new NullReferenceException($"Failed to convert GameObject {towerMb.gameObject.name}");
                 }
 
                 var tower = towerPool.Get(entity);
@@ -85,37 +84,15 @@ namespace td.features.levels
                 if (cell != null)
                 {
                     // ToDo
-                    cell.buildings[0] = world.PackEntity(entity);
+                    cell.buildingPackedEntity = world.PackEntity(entity);
                 }
-
-                // if (tower.radiusGameObject == null)
-                // {
-                //     var radiusTransform = towerGameObject.reference.transform.Find("outerRadius");
-                //     if (radiusTransform != null)
-                //     {
-                //         tower.radiusGameObject = radiusTransform.gameObject;
-                //         tower.radiusGameObject.SetActive(false);
-                //     }
-                // }
             }
-        }
-
-        private void InitShardsPanel()
-        {
-            if (shared.shardsPanel == null) return;
-            shared.shardsPanel.Refresh();
-        }
-
-        private void InitBuyShardPopup()
-        {
-            if (shared.buyShardPopup == null) return;
-            shared.buyShardPopup.Refresh();
         }
 
         private void Load(IEcsSystems systems, int entity)
         {
             var levelNumber = loadCommandEntities.Pools.Inc1.Get(entity).levelNumber;
-            levelState.LevelNumber = levelNumber;
+            state.LevelNumber = levelNumber;
 
             if (levelLoader.HasLevel())
             {
@@ -124,18 +101,9 @@ namespace td.features.levels
                 enemyPathService.PrecalculateAllPaths();
 
                 systems.DelOuter<IsLoadingOuter>();
-                ref var updateUI = ref systems.OuterSingle<UpdateUIOuterCommand>();
-                updateUI.lives = levelState.Lives;
-                updateUI.maxLives = levelState.MaxLives;
-                updateUI.money = levelState.Money;
-                updateUI.levelNumber = levelState.LevelNumber;
-                updateUI.enemiesCount = levelState.EnemiesCount;
-                updateUI.isLastWave = levelState.IsLastWave;
-                updateUI.nextWaveCountdown = levelState.NextWaveCountdown;
-                updateUI.levelNumber = (uint)levelState.WaveNumber;
-                updateUI.waveCount = levelState.WaveCount;
+                state.Refresh();
 
-                var countdown = levelState.WaveNumber <= 0
+                var countdown = state.WaveNumber <= 0
                     ? levelMap.LevelConfig?.delayBeforeFirstWave
                     : levelMap.LevelConfig?.delayBetweenWaves;
 

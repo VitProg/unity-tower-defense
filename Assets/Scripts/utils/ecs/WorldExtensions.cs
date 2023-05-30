@@ -2,6 +2,10 @@
 using Leopotam.EcsLite;
 using td.common;
 using td.common.ecs;
+using td.components.commands;
+using td.components.flags;
+using td.components.refs;
+using td.features.shards;
 using UnityEngine;
 
 namespace td.utils.ecs
@@ -18,6 +22,21 @@ namespace td.utils.ecs
 
             return ref pool.Add(entity);
         }
+
+        // public static bool TryGetComponent<T>(this EcsWorld world, int entity, out T component) where T : struct
+        // {
+        //     var pool = world.GetPool<T>();
+        //     if (!pool.Has(entity))
+        //     {
+        //         component = default;
+        //         return false;
+        //     }
+        //
+        //     component = default;
+        //     component = ref GetComponent<T>(world, entity);
+        //
+        //     return true;
+        // }
         
         // public static ref T AddComponent<T>(this EcsWorld world, int entity, bool rewrite = false) where T : struct
         // {
@@ -119,5 +138,42 @@ namespace td.utils.ecs
         
         public static int GetEntitiesCount<T>(this EcsWorld world) where T : struct =>
             world.Filter<T>().End().GetEntitiesCount();
+
+        public static void SafeDelEntity(this EcsWorld world, int entity)
+        {
+            if (world.HasComponent<Ref<GameObject>>(entity))
+            {
+                world.DelComponent<IsDisabled>(entity);
+                world.GetComponent<RemoveGameObjectCommand>(entity);
+            }
+            else
+            {
+                world.DelEntity(entity);
+            }
+        }
+
+        public static int[] ToArray(this EcsFilter filter)
+        {
+            var entities = new int[filter.GetEntitiesCount()];
+            var i = 0;
+            foreach (var entity in filter)
+            {
+                entities[i++] = entity;
+            }
+
+            return entities;
+        }
+
+        public static bool TryGetFirst(this EcsFilter filter, out int firstEntity)
+        {
+            foreach (var entity in filter)
+            {
+                firstEntity = entity;
+                return true;
+            }
+
+            firstEntity = -1;
+            return false;
+        }
     }
 }

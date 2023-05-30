@@ -1,10 +1,13 @@
-﻿using Leopotam.EcsLite;
+﻿using System;
+using Leopotam.EcsLite;
 using NaughtyAttributes;
 using td.services;
 using td.common;
+using td.features.state;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace td.monoBehaviours
 {
@@ -46,7 +49,7 @@ namespace td.monoBehaviours
         public uint spawnNumber = 0;
 
         [Inject] private LevelMap levelMap;
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
 
         [ShowNativeProperty]
         public bool HasDirectionToNext => type == CellTypes.CanWalk && directionToNext != HexDirections.NONE &&
@@ -60,15 +63,65 @@ namespace td.monoBehaviours
         public Int2? AltNextCoords => HasAltSirectionToNext ? HexGridUtils.GetNeighborsCoords(Coords, directionToAltNext) : null;
 
         // todo
-        public readonly EcsPackedEntity?[] buildings = new EcsPackedEntity?[3];
+        public EcsPackedEntity? buildingPackedEntity = null;
 
-        [ShowNativeProperty]
-        public bool HasBuilding => buildings[0] != null || buildings[1] != null || buildings[2] != null;
+        public bool HasBuilding<T>(EcsWorld world) where T : struct
+        {
+            if (buildingPackedEntity == null)
+            {
+                return false;
+            }
+
+            buildingPackedEntity.Value.Unpack(world, out var buildingEntity);
+
+            return world.HasComponent<T>(buildingEntity);
+        }
+
+        public ref T GetBuilding<T>(EcsWorld world, out int buildingEntity) where T : struct
+        {
+            if (!HasBuilding<T>(world))
+            {
+                throw new NullReferenceException($"Building with component {typeof(T).Name} not found on cell {coords}");
+            }
+            
+            buildingPackedEntity!.Value.Unpack(world, out buildingEntity);
+            
+            return ref world.GetComponent<T>(buildingEntity);
+        }
+
+        public bool TryGetBuilding<T>(EcsWorld world, out int entity, out T component) where T : struct
+        {
+            entity = default;
+            component = default;
+            
+            if (!HasBuilding<T>(world))
+            {
+                return false;
+            }
+            
+            buildingPackedEntity!.Value.Unpack(world, out entity);
+            component = ref world.GetComponent<T>(entity);
+
+            return true;
+        }
+
+        public bool TryGetBuildngEntity(EcsWorld world, out int entity) 
+        {
+            if (!HasBuilding())
+            {
+                entity = default;
+                return false;
+            }
+
+            return buildingPackedEntity!.Value.Unpack(world, out entity);
+        }
+
+        public bool HasBuilding() => buildingPackedEntity != null;
 
         private Int2? coords;
         public Int2 Coords
         {
-            get
+            get 
             {
                 coords ??= HexGridUtils.PositionToCell(this.transform.position);
                 return coords.Value;

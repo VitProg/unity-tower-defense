@@ -20,29 +20,31 @@ namespace td.features.towers
         [InjectWorld] private EcsWorld world;
 
         private readonly EcsFilterInject<
-            Inc<ShardTower, Tower, Ref<GameObject>>,
+            Inc<Tower, ShardTower, Ref<GameObject>>,
             Exc<IsDragging, IsDisabled, IsDestroyed>
         > towerEntities = default;
 
         public void Run(IEcsSystems systems)
         {
-            foreach (var cannonEntity in towerEntities.Value)
+            foreach (var towerEntity in towerEntities.Value)
             {
-                ref var shardTower = ref towerEntities.Pools.Inc1.Get(cannonEntity);
-                ref var tower = ref towerEntities.Pools.Inc2.Get(cannonEntity);
-                var towerGORef = towerEntities.Pools.Inc3.Get(cannonEntity);
+                ref var tower = ref towerEntities.Pools.Inc1.Get(towerEntity);
+                ref var shardTower = ref towerEntities.Pools.Inc2.Get(towerEntity);
+
+                if (!ShardTowerUtils.HasShard(world, ref shardTower)) continue;
+
+                ref var shard = ref ShardTowerUtils.GetShard(world, ref shardTower, out var shardEntity);
+                
+                var towerGORef = towerEntities.Pools.Inc3.Get(towerEntity);
                 
                 var lunchProjectile = false;
 
                 if (shardTower.fireCountdown > 0) shardTower.fireCountdown -= Time.deltaTime;
                 if (shardTower.fireCountdown < Constants.ZeroFloat) lunchProjectile = true;
-                if (!lunchProjectile || !world.HasComponent<ProjectileTarget>(cannonEntity)) continue;
+                if (!lunchProjectile || !world.HasComponent<ProjectileTarget>(towerEntity)) continue;
 
-                var target = world.GetComponent<ProjectileTarget>(cannonEntity);
+                var target = world.GetComponent<ProjectileTarget>(towerEntity);
                 if (!target.TargetEntity.Unpack(world, out var enemyEntity)) continue;
-                
-                if (!shardTower.shard.Unpack(world, out var shardEntity)) continue;
-                ref var shard = ref world.GetComponent<Shard>(shardEntity);
                 
                 ref var enemyGORef = ref world.GetComponent<Ref<GameObject>>(enemyEntity);
                     
@@ -69,7 +71,7 @@ namespace td.features.towers
                     position: projectilePosition,
                     targetEntity: enemyEntity,
                     speed: speed,
-                    whoFired: cannonEntity,
+                    whoFired: towerEntity,
                     ref shard // todo
                 );
 

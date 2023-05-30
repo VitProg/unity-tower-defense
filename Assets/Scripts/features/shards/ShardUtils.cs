@@ -170,7 +170,7 @@ namespace td.features.shards
             if (world.HasComponent<ShardTower>(towerEntity))
             {
                 ref var shardTower = ref world.GetComponent<ShardTower>(towerEntity);
-                if (shardTower.shard.Unpack(world, out var shardEntity))
+                if (shardTower.shardPackedEntity.Unpack(world, out var shardEntity))
                 {
                     return true;
                 }
@@ -182,7 +182,7 @@ namespace td.features.shards
         public static ref Shard GetShardInTower(EcsWorld world, int towerEntity)
         {
             ref var shardTower = ref world.GetComponent<ShardTower>(towerEntity);
-            if (shardTower.shard.Unpack(world, out var shardEntity))
+            if (shardTower.shardPackedEntity.Unpack(world, out var shardEntity))
             {
                 return ref world.GetComponent<Shard>(shardEntity);
             }
@@ -191,6 +191,18 @@ namespace td.features.shards
         }
 
         public static void Copy(ref Shard target, ref Shard source)
+        {
+            target.red = source.red;
+            target.green = source.green;
+            target.blue = source.blue;
+            target.aquamarine = source.aquamarine;
+            target.pink = source.pink;
+            target.orange = source.orange;
+            target.violet = source.violet;
+            target.yellow = source.yellow;
+        }
+        
+        public static void Copy(ref Shard target, Shard source)
         {
             target.red = source.red;
             target.green = source.green;
@@ -242,6 +254,30 @@ namespace td.features.shards
                 case "violet": shard.violet = value; break;
                 case "yellow": shard.yellow = value; break;
             }
+        }
+
+        public static void ReduceToOne(ref Shard shard)
+        {
+            shard.red        = (byte)Mathf.Min(shard.red, 1);
+            shard.green      = (byte)Mathf.Min(shard.green, 1);
+            shard.blue       = (byte)Mathf.Min(shard.blue, 1);
+            shard.aquamarine = (byte)Mathf.Min(shard.aquamarine, 1);
+            shard.pink       = (byte)Mathf.Min(shard.pink, 1);
+            shard.orange     = (byte)Mathf.Min(shard.orange, 1);
+            shard.violet     = (byte)Mathf.Min(shard.violet, 1);
+            shard.yellow     = (byte)Mathf.Min(shard.yellow, 1);
+        }
+
+        public static void Multiple(ref Shard shard, int mul)
+        {
+            shard.red        = (byte)Mathf.Min(shard.red * mul, 255);
+            shard.green      = (byte)Mathf.Min(shard.green * mul, 255);
+            shard.blue       = (byte)Mathf.Min(shard.blue * mul, 255);
+            shard.aquamarine = (byte)Mathf.Min(shard.aquamarine * mul, 255);
+            shard.pink       = (byte)Mathf.Min(shard.pink * mul, 255);
+            shard.orange     = (byte)Mathf.Min(shard.orange * mul, 255);
+            shard.violet     = (byte)Mathf.Min(shard.violet * mul, 255);
+            shard.yellow     = (byte)Mathf.Min(shard.yellow * mul, 255);
         }
     }
 }

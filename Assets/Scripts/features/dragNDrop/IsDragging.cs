@@ -8,11 +8,8 @@ namespace td.features.dragNDrop
     public struct IsDragging
     {
         public DragMode mode;
-        public Vector2 startedPosition;
-        public double startedTime;
-        [FormerlySerializedAs("mode")] public IsDraggingState state;
+        public IsDraggingState state;
         public bool isGridSnapping;
-        public string startedLayer;
     }
 
     public enum IsDraggingState

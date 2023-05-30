@@ -66,7 +66,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 
+  m_text: "<size=80%>\u20AE</size>10"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 3637df562402a1d479a36bf3dead3b5a, type: 2}
   m_sharedMaterial: {fileID: 456650926435170695, guid: 3637df562402a1d479a36bf3dead3b5a, type: 2}
@@ -93,7 +93,7 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 30.55
+  m_fontSize: 35.25
   m_fontSizeBase: 30
   m_fontWeight: 400
   m_enableAutoSizing: 1
@@ -278,6 +278,7 @@ MonoBehaviour:
   hasShard: 1
   showPlus: 0
   cost: 0
+  druggable: 0
 --- !u!1 &1274586599325276176
 GameObject:
   m_ObjectHideFlags: 0

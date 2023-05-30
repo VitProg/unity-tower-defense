@@ -5,6 +5,7 @@ using td.common;
 using td.components.behaviors;
 using td.components.flags;
 using td.features.enemies.components;
+using td.features.state;
 using td.monoBehaviours;
 using td.services;
 using td.services.ecsConverter;
@@ -18,7 +19,7 @@ namespace td.features.enemies.systems
     {
         [Inject] private GameObjectPoolService poolService;
         [Inject] private LevelMap levelMap;
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
         [Inject] private EntityConverters converters;
         [Inject] private EnemyPathService enemyPathService;
         [InjectShared] private SharedData shared;
@@ -108,7 +109,7 @@ namespace td.features.enemies.systems
                 
                 enemyPathService.PrepareEnemyPath(ref spawnCoords, enemyEntity);
 
-                levelState.EnemiesCount++;
+                state.EnemiesCount++;
 
                 outerWorld.DelEntity(eventEntity);
             }

@@ -19,7 +19,7 @@ namespace td.monoBehaviours
             
             var info = (EcsComponentsInfo)target;
             var world = DI.GetWorld();
-            
+
             /**/
             if (world != null && info.ecsEntity.TryGetEntity(out var entity))
             {

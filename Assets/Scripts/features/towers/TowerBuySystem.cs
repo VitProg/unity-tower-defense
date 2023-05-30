@@ -8,6 +8,7 @@ using td.components.events;
 using td.components.flags;
 using td.components.refs;
 using td.features.dragNDrop;
+using td.features.state;
 using td.monoBehaviours;
 using td.services;
 using td.services.ecsConverter;
@@ -21,7 +22,7 @@ namespace td.features.towers
 {
     public class TowerBuySystem : EcsUguiCallbackSystem
     {
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
         [Inject] private LevelMap levelMap;
         [Inject] private EntityConverters converters;
         [InjectShared] private SharedData sharedData;
@@ -49,11 +50,11 @@ namespace td.features.towers
 
                 var position = refGameObject.reference.transform.position;
                 var cell = levelMap.GetCell(position, CellTypes.CanBuild);
-                var canBuild = cell && cell.HasBuilding == false;
+                var canBuild = cell && cell.HasBuilding() == false;
                 
-                if (sharedData.HightlightGrid)
+                if (sharedData.hightlightGrid)
                 {
-                    sharedData.HightlightGrid.state = canBuild ? GridHightlightState.Fine : GridHightlightState.Error;
+                    sharedData.hightlightGrid.state = canBuild ? GridHightlightState.Fine : GridHightlightState.Error;
                 }
                 
                 if (canBuild)
@@ -75,13 +76,13 @@ namespace td.features.towers
 
                 var position = refGameObject.reference.transform.position;
                 var cell = levelMap.GetCell(position, CellTypes.CanBuild);
-
+ 
                 // todo надо бы проверять до того как начали "тянуть" башню
-                if (cell is { HasBuilding: false } && levelState.Money - tower.cost >= 0)
+                if (cell && !cell.HasBuilding() && state.Money - tower.cost >= 0)
                 {
-                    levelState.Money -= tower.cost;
+                    state.Money -= tower.cost;
                     // todo
-                    cell.buildings[0] = world.PackEntity(dragEndEntity);
+                    cell.buildingPackedEntity = world.PackEntity(dragEndEntity);
                 }
                 else
                 {

@@ -3,24 +3,27 @@ using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common;
 using td.components.behaviors;
+using td.components.events;
 using td.components.flags;
 using td.components.refs;
+using td.features.state;
 using td.services;
 using td.utils.ecs;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace td.features.dragNDrop
 {
     public class DragNDropCameraSystem : IEcsRunSystem, IEcsInitSystem
     {
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
         [Inject] private LevelMap levelMap;
         
         [InjectWorld] private EcsWorld world;
         [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
-        private readonly EcsFilterInject<Inc<IsDragging, Ref<GameObject>>, Exc<IsDestroyed>> entities = default;
+        private readonly EcsFilterInject<Inc<IsDragging, DraggingStartedData, Ref<GameObject>>, Exc<IsDestroyed>> entities = default;
+        private readonly EcsFilterInject<Inc<ReachingTargetEvent, IsRollbackDragging, DraggingStartedData, Ref<GameObject>>, Exc<IsDestroyed>> entitiesRollbackFinished = default;
+        
         private static GameObject canvasDragLayer;
 
         public void Run(IEcsSystems systems)
@@ -34,8 +37,9 @@ namespace td.features.dragNDrop
                 
                 if (isDragging.mode != DragMode.Camera) continue;
                 
-                ref var reGameObject = ref entities.Pools.Inc2.Get(entity);
-                var gameObject = reGameObject.reference;
+                ref var draggingStartedData = ref entities.Pools.Inc2.Get(entity);
+                ref var refGameObject = ref entities.Pools.Inc3.Get(entity);
+                var gameObject = refGameObject.reference;
 
                 var position = (Vector2)cursorPosition;
 
@@ -57,13 +61,14 @@ namespace td.features.dragNDrop
                 var isUnableToDrop = world.HasComponent<IsUnableToDrop>(entity);
                 
                 var removeIsDraging = false;
+                var isRollback = false;
                 
                 switch (isDragging.state)
                 {
                     case IsDraggingState.None:
                         if (Input.GetMouseButtonUp(0))
                         {
-                            var deltaTime = currentTime - isDragging.startedTime;
+                            var deltaTime = currentTime - draggingStartedData.startedTime;
                             // Debug.Log($"> DnD: state=NONE; mb=UP; dt:{deltaTime:0.000s}; isUnableToDrop:{(isUnableToDrop ? "+" : "-")}");
                             if (deltaTime < Constants.UI.DragNDrop.TimeForAwaitDown)
                             {
@@ -115,6 +120,13 @@ namespace td.features.dragNDrop
                         throw new ArgumentOutOfRangeException();
                 }
 
+                if (Input.GetMouseButtonUp(1) || Input.GetKeyUp(KeyCode.Escape))
+                {
+                    //rollback
+                    removeIsDraging = true;
+                    isRollback = true;
+                }
+
                 if (removeIsDraging)
                 {
                     world.GetComponent<DragEndEvent>(entity).mode = DragMode.Camera;
@@ -129,19 +141,44 @@ namespace td.features.dragNDrop
 
                     gameObject.transform.position = position;
                     
+                    //todo check
                     var sortingLayerChangeable = gameObject.GetComponent<ISortingLayerChangeable>();
-                    if (sortingLayerChangeable != null && sortingLayerChangeable.sortigLayer != isDragging.startedLayer)
+                    if (sortingLayerChangeable != null && sortingLayerChangeable.sortigLayer != draggingStartedData.startedLayer)
                     {
-                        sortingLayerChangeable.sortigLayer = isDragging.startedLayer;
+                        sortingLayerChangeable.sortigLayer = draggingStartedData.startedLayer;
                     }
                     
                     world.DelComponent<IsSmoothDragging>(entity);
                     world.DelComponent<IsDragging>(entity);
-                    
-                    object[] ccc = new object[] { };
-                    world.GetComponents(entity, ref ccc);
-                    Debug.Log(ccc);
+
+                    if (isRollback)
+                    {
+                        world.GetComponent<IsRollbackDragging>(entity).mode = DragMode.Camera;
+                        ref var target = ref world.GetComponent<LinearMovementToTarget>(entity);
+                        target.from = refGameObject.reference.transform.position;
+                        target.target = draggingStartedData.startedPosition;
+                        target.speed = Mathf.Max(Screen.width, Screen.height) * Constants.UI.DragNDrop.RollbackSpeed;
+                    }
                 }
+            }
+            
+            foreach (var entityRollback in entitiesRollbackFinished.Value)
+            {
+                if (entitiesRollbackFinished.Pools.Inc2.Get(entityRollback).mode != DragMode.Camera) continue;
+                
+                ref var draggingStartedData = ref entitiesRollbackFinished.Pools.Inc3.Get(entityRollback);
+                ref var refGameObject = ref entitiesRollbackFinished.Pools.Inc4.Get(entityRollback);
+
+                refGameObject.reference.transform.position = draggingStartedData.startedPosition;
+                refGameObject.reference.transform.SetParent(draggingStartedData.parentContainer);
+                
+                world.DelComponent<DraggingStartedData>(entityRollback);
+                
+                world.DelComponent<IsRollbackDragging>(entityRollback);
+                world.DelComponent<LinearMovementToTarget>(entityRollback);
+                world.DelComponent<IsDragging>(entityRollback);
+
+                world.GetComponent<DragRollbackEvent>(entityRollback);
             }
         }
 
@@ -156,18 +193,20 @@ namespace td.features.dragNDrop
             if (!world.HasComponent<Ref<GameObject>>(entity)) return;
             ref var refGameObject = ref world.GetComponent<Ref<GameObject>>(entity);
             
-            refGameObject.reference.transform.position = Input.mousePosition;
-            refGameObject.reference.transform.SetParent(canvasDragLayer.transform);
-
-
             ref var isDragging = ref world.GetComponent<IsDragging>(entity);
             isDragging.mode = DragMode.Camera;
-            isDragging.startedPosition = refGameObject.reference.transform.position;
-            isDragging.startedTime = Time.timeSinceLevelLoadAsDouble;
             isDragging.isGridSnapping = false;
             isDragging.state = Input.GetMouseButtonDown(0) ? IsDraggingState.None : IsDraggingState.Down;
 
+            ref var draggingStartedData = ref world.GetComponent<DraggingStartedData>(entity);
+            draggingStartedData.startedPosition = refGameObject.reference.transform.position;
+            draggingStartedData.startedTime = Time.timeSinceLevelLoadAsDouble;
+            draggingStartedData.parentContainer = refGameObject.reference.transform.parent.transform;
+
             world.GetComponent<DragStartEvent>(entity).mode = DragMode.Camera;
+            
+            refGameObject.reference.transform.position = Input.mousePosition;
+            refGameObject.reference.transform.SetParent(canvasDragLayer.transform);
             
             if (smoothDragging)
             {
@@ -182,20 +221,6 @@ namespace td.features.dragNDrop
                 linearMovementToTarget.gap = Constants.DefaultGap;
                 linearMovementToTarget.speed = Constants.UI.DragNDrop.SmoothSpeed;
             }
-        }
-
-        //ToDO
-        public static void RollbackDrag(
-            IEcsSystems systems,
-            int entity
-        )
-        {
-            var world = systems.GetWorld();
-
-            if (!world.HasComponent<Ref<GameObject>>(entity)) return;
-            ref var refGameObject = ref world.GetComponent<Ref<GameObject>>(entity);
-
-            //todo move to isDragging.startedPosition
         }
 
         public void Init(IEcsSystems systems)

@@ -1,4 +1,5 @@
 ﻿using System;
+using Leopotam.EcsLite;
 
 namespace td.features.shards
 {
@@ -50,46 +51,10 @@ namespace td.features.shards
         Violet = 7,
         Aquamarine = 8,
     }
-    
-    // public struct ShardCost
-    // {
-    //     public ushort red;
-    //     public ushort green;
-    //     public ushort blue;
-    //     public ushort yellow;
-    //     public ushort orange;
-    //     public ushort pink;
-    //     public ushort violet;
-    //     public ushort aquamarine;
-    //
-    //     public ushort this[string fieldName]
-    //     {
-    //         get => fieldName switch
-    //             {
-    //                 "red" => red,
-    //                 "green" => green,
-    //                 "blue" => blue,
-    //                 "yellow" => yellow,
-    //                 "orange" => orange,
-    //                 "pink" => pink,
-    //                 "violet" => violet,
-    //                 "aquamarine" => aquamarine,
-    //                 _ => 0
-    //             };
-    //         set
-    //         {
-    //             switch (fieldName)
-    //             {
-    //                 case "red": red = value; break;
-    //                 case "green": green = value; break;
-    //                 case "blue": blue = value; break;
-    //                 case "yellow": yellow = value; break;
-    //                 case "orange": orange = value; break;
-    //                 case "pink": pink = value; break;
-    //                 case "violet": violet = value; break;
-    //                 case "aquamarine": aquamarine = value; break;
-    //             }
-    //         }
-    //     }
-    // }
+
+    public struct ShardStoreItem
+    {
+        public EcsPackedEntity shard;
+        public ushort cost;
+    }
 }

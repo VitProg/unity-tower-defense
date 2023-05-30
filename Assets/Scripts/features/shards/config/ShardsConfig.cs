@@ -48,7 +48,7 @@ namespace td.features.shards.config
         public float radiusImpactOfYellow = 1.1f;
 
         [Header("Levels Cooficients")]
-        private readonly int[] triangularPyramids = {
+        public readonly int[] triangularPyramids = {
             1,
             4,
             10,

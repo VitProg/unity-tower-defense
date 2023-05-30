@@ -72,7 +72,7 @@ namespace td.monoBehaviours
             var mousePosition = Input.mousePosition;
             var worldPosition = Vector3.zero;
 
-            var mainCamera = shared.MainCamera;
+            var mainCamera = shared!.mainCamera;
             
             if (shared.IsPerspectiveCameraMode)
             {

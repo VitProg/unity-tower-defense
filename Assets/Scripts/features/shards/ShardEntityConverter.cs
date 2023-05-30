@@ -16,20 +16,30 @@ namespace td.features.shards
         
         public void Convert(GameObject gameObject, int entity)
         {
+            var shardAlreadyExist = world.HasComponent<Shard>(entity);
+            
             ref var shard = ref world.GetComponent<Shard>(entity);
             
             world.GetComponent<OnlyOnLevel>(entity);
             world.GetComponent<Ref<GameObject>>(entity).reference = gameObject;
             
             var shardMonoBehavior = gameObject.GetComponent<ShardMonoBehaviour>();
-            shard.red = shardMonoBehavior.red;
-            shard.green = shardMonoBehavior.green;
-            shard.blue = shardMonoBehavior.blue;
-            shard.aquamarine = shardMonoBehavior.aquamarine;
-            shard.yellow = shardMonoBehavior.yellow;
-            shard.orange = shardMonoBehavior.orange;
-            shard.pink = shardMonoBehavior.pink;
-            shard.violet = shardMonoBehavior.violet;
+
+            if (shardAlreadyExist)
+            {
+                shardMonoBehavior.UpdateFromEntity();
+            }
+            else
+            {
+                shard.red = shardMonoBehavior.red;
+                shard.green = shardMonoBehavior.green;
+                shard.blue = shardMonoBehavior.blue;
+                shard.aquamarine = shardMonoBehavior.aquamarine;
+                shard.yellow = shardMonoBehavior.yellow;
+                shard.orange = shardMonoBehavior.orange;
+                shard.pink = shardMonoBehavior.pink;
+                shard.violet = shardMonoBehavior.violet;
+            }
 
             world.DelComponent<IsDisabled>(entity);
             world.DelComponent<IsDestroyed>(entity);

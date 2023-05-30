@@ -1,6 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.services;
+using td.features.state;
 using td.utils;
 using td.utils.ecs;
 
@@ -8,14 +8,14 @@ namespace td.features.impactsKernel
 {
     public class KernalChangeLivesExecutor : IEcsRunSystem
     {
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
         
         private readonly EcsFilterInject<Inc<KernalDamageOuterCommand>> damageCommands = Constants.Worlds.Outer;
         private readonly EcsFilterInject<Inc<KernelHealOuterCommand>> healCommands = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
-            var lives = levelState.Lives;
+            var lives = state.Lives;
             
             foreach (var damage in damageCommands.Value)
             {
@@ -27,9 +27,9 @@ namespace td.features.impactsKernel
                 lives -= healCommands.Pools.Inc1.Get(heal).damage;
             }
             
-            if (!FloatUtils.IsEquals(lives, levelState.Lives))
+            if (!FloatUtils.IsEquals(lives, state.Lives))
             {
-                levelState.Lives = lives;
+                state.Lives = lives;
             }
         }
     }

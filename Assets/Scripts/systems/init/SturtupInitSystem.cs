@@ -1,9 +1,9 @@
 ﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
 using td.common;
 using td.components.commands;
 using td.components.flags;
-using td.services;
+using td.features.shards.commands;
+using td.features.state;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -14,7 +14,7 @@ namespace td.systems.init
     {
         [InjectWorld] private EcsWorld world;
         [InjectShared] private SharedData sharedData;
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
 
         public void PreInit(IEcsSystems systems)
         {
@@ -22,8 +22,9 @@ namespace td.systems.init
             
             LoadEnemiesData();
 
-            systems.Outer<LoadLevelOuterCommand>().levelNumber = levelState.LevelNumber;
+            systems.Outer<LoadLevelOuterCommand>().levelNumber = state.LevelNumber;
             systems.Outer<IsLoadingOuter>();
+            systems.Outer<UIHideShardStoreOuterCommand>();
             
             // Debug.Log("SturtupInitSystem FIN");
         }
@@ -31,13 +32,13 @@ namespace td.systems.init
         private void LoadEnemiesData()
         {
             var col = ResourcesUtils.LoadJson<EnemyConfigCollection>("Configs/enemies");
-            sharedData.EnemyConfigs = col.enemies;
+            sharedData.enemyConfigs = col.enemies;
 
-            for (var index = 0; index < sharedData.EnemyConfigs.Length; index++)
+            for (var index = 0; index < sharedData.enemyConfigs.Length; index++)
             {
-                sharedData.EnemyConfigs[index].prefab = 
+                sharedData.enemyConfigs[index].prefab = 
                     (GameObject)Resources.Load(
-                        $@"Prefabs/enemies/{sharedData.EnemyConfigs[index].prefabPath}",
+                        $@"Prefabs/enemies/{sharedData.enemyConfigs[index].prefabPath}",
                         typeof(GameObject)
                     );
             }

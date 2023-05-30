@@ -1,8 +1,7 @@
-﻿//#define VERBOSE
-
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using td.common;
 using td.common.level;
+using td.features.state;
 using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
@@ -25,7 +24,7 @@ namespace td.services
         private int minY = 999;
         private int maxX = -999;
         private int maxY = -999;
-        private List<Cell> prebuildedCells = new();
+        private readonly List<Cell> prebuildedCells = new();
         
         public LevelConfig? LevelConfig
         {
@@ -34,17 +33,18 @@ namespace td.services
             {
                 //todo
                 levelConfig = value;
-                var levelState = DI.GetCustom<LevelState>();
-                if (levelState != null)
-                {
-                    levelState.MaxLives = levelConfig?.lives ?? 0;
-                    levelState.Lives = levelState.MaxLives;
-                    levelState.LevelNumber = levelConfig?.levelNumber ?? 0;
-                    levelState.Money = levelConfig?.energy ?? 10;
-                    levelState.NextWaveCountdown = 0;
-                    levelState.WaveNumber = 0;
-                    levelState.WaveCount = levelConfig?.waves.Length ?? 0;
-                } 
+                var state = DI.GetCustom<State>();
+                if (state == null) return;
+                state.SuspendEvents();
+                state.MaxLives = levelConfig?.lives ?? 0;
+                state.Lives = state.MaxLives;
+                state.LevelNumber = levelConfig?.levelNumber ?? 0;
+                state.Money = levelConfig?.energy ?? 10;
+                state.NextWaveCountdown = 0;
+                state.WaveNumber = 0;
+                state.WaveCount = levelConfig?.waves.Length ?? 0;
+                state.ResumeEvents();
+                state.Refresh();
             }
         }
 

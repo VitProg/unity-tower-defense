@@ -2,43 +2,48 @@
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.common;
-using td.components.commands;
+using td.components.behaviors;
 using td.components.flags;
 using td.components.refs;
 using td.features.dragNDrop;
+using td.features.shards.commands;
+using td.features.shards.events;
+using td.features.shards.flags;
 using td.features.shards.mb;
-using td.features.shards.ui;
 using td.features.towers;
 using td.monoBehaviours;
 using td.services;
 using td.services.ecsConverter;
 using td.utils;
 using td.utils.ecs;
+using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace td.features.shards
 {
-    public class ShardDragNDropSystem : IEcsRunSystem
+    public class ShardDragNDropSystem : IEcsRunSystem, IEcsInitSystem
     {
         [Inject] private EntityConverters converters;
         [Inject] private LevelMap levelMap;
-        [InjectShared] private SharedData sharedData;
+        [InjectShared] private SharedData shared;
         [InjectWorld] private EcsWorld world;
         [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
-        private readonly EcsFilterInject<Inc<ShardUIDownEvent>> downEventEntities = Constants.Worlds.Outer;
+        private readonly EcsFilterInject<Inc<UIShardDownEvent>> downEventEntities = Constants.Worlds.Outer;
 
-        private readonly EcsFilterInject<Inc<Shard, ShardUICell, DragEndEvent, Ref<GameObject>>, Exc<IsDestroyed>>
-            dragEndEventEntities = default;
+        private readonly EcsFilterInject<Inc<Shard, DragEndEvent, DraggingStartedData, Ref<GameObject>>, Exc<IsDestroyed, IsRollbackDragging>> dragEndEventEntities = default;
+        
+        private readonly EcsFilterInject<Inc<Shard, DragRollbackEvent>, Exc<IsDestroyed, IsRollbackDragging>> rollbackEntities = default;
 
-        private readonly EcsFilterInject<Inc<Shard, IsDragging, Ref<GameObject>>, Exc<IsDestroyed>> draggableEntities =
-            default;
+        private readonly EcsFilterInject<Inc<Shard, IsDragging, DraggingStartedData, Ref<GameObject>>, Exc<IsDestroyed>> draggableEntities = default;
 
-        private readonly EcsFilterInject<Inc<Shard, ShardUIIsHovered, Ref<GameObject>>, Exc<IsDestroyed, IsDragging, DragEndEvent>>
-            hoveredShardEntities = default;
+        private readonly EcsFilterInject<Inc<Shard, ShardIsHovered, Ref<GameObject>>, Exc<IsDisabled, IsHidden, IsDragging, DragEndEvent>> hoveredShardEntities = default;
+        
+        private readonly EcsFilterInject<Inc<Shard, ShardInCollection, IsHidden, Ref<GameObject>>, Exc<IsDestroyed, IsDisabled>> hiddenEntities = default;
 
         private GameObject buildingsContainer;
+        private GameObject shardPrefab;
 
         public void Run(IEcsSystems systems)
         {
@@ -50,7 +55,9 @@ namespace td.features.shards
             DragStart(systems);
             Draging(systems);
             DragEnd(systems);
+            RollbackEnd(systems);
         }
+
 
         private void DragStart(IEcsSystems systems)
         {
@@ -58,21 +65,26 @@ namespace td.features.shards
             {
                 ref var downEvent = ref downEventEntities.Pools.Inc1.Get(downEventEntity);
 
-                if (downEvent.packedEntity.Unpack(world, out var entity))
+                if (downEvent.packedEntity.Unpack(world, out var shardEntity) &&
+                    shared.draggableShardPackedEntity.Unpack(world, out var draggableShardEntity))
                 {
-                    ref var gameObjectRef = ref world.GetComponent<Ref<GameObject>>(entity);
-
-                    if (!converters.ConvertForEntity<Shard>(gameObjectRef.reference, entity))
-                    {
-                        throw new NullReferenceException(
-                            $"Failed to convert GameObject {gameObjectRef.reference.name}");
-                    }
+                    ref var shard = ref world.GetComponent<Shard>(shardEntity);
+                    var shardGO = world.GetComponent<Ref<GameObject>>(shardEntity).reference;
                     
-                    world.GetComponent<ShardUICell>(entity).cell = gameObjectRef.reference.transform.parent.gameObject;
+                    ref var draggableShard = ref world.GetComponent<Shard>(draggableShardEntity);
+                    var draggableShardGO = world.GetComponent<Ref<GameObject>>(draggableShardEntity).reference;
+                    
+                    ShardUtils.Copy(ref draggableShard, ref shard);
+                    draggableShardGO.SetActive(true);
+                    draggableShardGO.GetComponent<ShardMonoBehaviour>().UpdateFromEntity();
+                    draggableShardGO.transform.position = shardGO.transform.position;
+                    
+                    shardGO.SetActive(false);
+                    world.GetComponent<IsHidden>(shardEntity);
 
                     DragNDropCameraSystem.BeginDrag(
                         systems,
-                        entity,
+                        draggableShardEntity,
                         Constants.UI.DragNDrop.Smooth
                     );
                 }
@@ -87,31 +99,25 @@ namespace td.features.shards
         {
             foreach (var draggableEntity in draggableEntities.Value)
             {
-                ref var refGameObject = ref draggableEntities.Pools.Inc3.Get(draggableEntity);
+                var position = draggableEntities.Pools.Inc4.Get(draggableEntity).reference.transform.position;
 
-                var screenPosition = refGameObject.reference.transform.position;
+                // ToDo add check with hovered shard!!
+                
+                var canDrop = false;
 
-                var canDrop = hoveredShardEntities.Value.GetEntitiesCount() == 1;
+                var cell = levelMap.GetCell(
+                    CameraUtils.ToWorldPoint(position),
+                    CellTypes.CanBuild
+                );
 
-                if (!canDrop)
+                if (cell != null && cell.TryGetBuilding<ShardTower>(world, out var towerEntity, out var shardTower))
                 {
-                    var position = CameraUtils.ToWorldPoint(screenPosition);
-                    var cell = levelMap.GetCell(position, CellTypes.CanBuild);
-                    canDrop = cell && cell.buildings[0].HasValue;
-
-                    if (canDrop && cell.buildings[0].Value.Unpack(world, out var buildingEntity))
-                    {
-                        if (!world.HasComponent<ShardTower>(buildingEntity))
-                        {
-                            canDrop = false;
-                        }
-                        //todo check if tower alredy have shard
-                    }
+                    canDrop = !ShardTowerUtils.HasShard(world, ref shardTower);
                 }
 
-                if (sharedData.HightlightGrid)
+                if (shared.hightlightGrid)
                 {
-                    sharedData.HightlightGrid.state = canDrop ? GridHightlightState.Fine : GridHightlightState.Error;
+                    shared.hightlightGrid.state = canDrop ? GridHightlightState.Fine : GridHightlightState.Error;
                 }
 
                 if (canDrop)
@@ -130,91 +136,148 @@ namespace td.features.shards
             foreach (var draggableEntity in dragEndEventEntities.Value)
             {
                 ref var sourceShard = ref dragEndEventEntities.Pools.Inc1.Get(draggableEntity);
-                ref var sourceShardCell = ref dragEndEventEntities.Pools.Inc2.Get(draggableEntity);
+                ref var draggingStartedData = ref dragEndEventEntities.Pools.Inc3.Get(draggableEntity);
                 ref var shardRefGameObject = ref dragEndEventEntities.Pools.Inc4.Get(draggableEntity);
 
                 var shardScreenPosition = shardRefGameObject.reference.transform.position;
                 var shardPosition = CameraUtils.ToWorldPoint(shardScreenPosition);
 
-                world.GetComponent<IsDisabled>(draggableEntity);
-                world.GetComponent<RemoveGameObjectCommand>(draggableEntity);
-                
-                if (sourceShardCell.cell)
-                {
-                    var cellEntity = world.NewEntity();
-                    world.GetComponent<Ref<GameObject>>(cellEntity).reference = sourceShardCell.cell;
-                    world.GetComponent<RemoveGameObjectCommand>(cellEntity);
-                }
+                var dropped = false;
 
-                // todo если не получилось скинуть, то надо плавно вернуть на место
+                // +todo is can't drop, need to move back to collection cell
+                // todo is droped success - neeed to move dragged shard back to collection and reset those state, and reset collection cell state (set hasShard = false)
+                // todo after need to refresh collection panel
 
-                // if we droped shard to another shard
-                if (hoveredShardEntities.Value.GetEntitiesCount() == 1)
+                Debug.Log("HOVERED: " + hoveredShardEntities.Value.GetEntitiesCount());
+                // foreach (var a in hoveredShardEntities.Value)
+                // {
+                    // var o = new object[10];
+                    // Debug.Log("HOVERED:" + a);
+                    // Debug.Log(world.GetComponents(a, ref o));
+                    // foreach (var o1 in o)
+                    // {
+                        // Debug.Log(o1?.GetType());   
+                    // }
+                // }
+                // Debug.Log("======");
+
+                // if we droped shardPackedEntity to another shardPackedEntity
+                // todo
+                // if (hoveredShardEntities.Value.GetEntitiesCount() == 1)
+                // {
+                //     foreach (var hoveredShardEntity in hoveredShardEntities.Value)
+                //     {
+                //         ref var hoveredShard = ref hoveredShardEntities.Pools.Inc1.Get(hoveredShardEntity);
+                //         dropped = DropToShard(ref hoveredShard, ref sourceShard, hoveredShardEntity);
+                //         break;
+                //     }
+                // }
+                // else
+                // {
+                    var cell = levelMap.GetCell(shardPosition, CellTypes.CanBuild);
+                    dropped = DropToCell(ref sourceShard, cell);
+                // }
+
+                if (dropped)
                 {
-                    foreach (var hoveredShardEntity in hoveredShardEntities.Value)
-                    {
-                        ref var hoveredShard = ref hoveredShardEntities.Pools.Inc1.Get(hoveredShardEntity);
-                        DropToShard(ref hoveredShard, ref sourceShard, hoveredShardEntity);
-                        break;
-                    }
+                    shared.draggableShard.gameObject.SetActive(false);
+                    systems.OuterSingle<ShardCollectionRemoveHiddenOuterCommand>();
                 }
                 else
                 {
-                    var cell = levelMap.GetCell(shardPosition, CellTypes.CanBuild);
-                    DropToCell(ref sourceShard, cell);
+                    world.GetComponent<IsRollbackDragging>(draggableEntity);
+                    ref var target = ref world.GetComponent<LinearMovementToTarget>(draggableEntity);
+                    target.from = shardRefGameObject.reference.transform.position;
+                    target.target = draggingStartedData.startedPosition;
+                    target.speed = Constants.UI.DragNDrop.RollbackSpeed;
                 }
             }
         }
-
-        private void DropToCell(ref Shard sourceShard, Cell cell)
+        
+        private void RollbackEnd(IEcsSystems systems)
         {
-            if (!cell ||
-                !cell.buildings[0].HasValue || !cell.buildings[0].Value.Unpack(world, out var buildingEntity) ||
-                !world.HasComponent<Tower>(buildingEntity))
+            foreach (var rollbackEntity in rollbackEntities.Value)
             {
-                return;
+                shared.draggableShard.gameObject.SetActive(false);
+
+                foreach (var entity in hiddenEntities.Value)
+                {
+                    hiddenEntities.Pools.Inc4.Get(entity).reference.SetActive(true);
+                    world.DelComponent<IsHidden>(entity);
+                }
+                break;
             }
+        }
 
-            // todo check if tower already have shard
+        private bool DropToCell(ref Shard sourceShard, Cell cell)
+        {
+            if (
+                cell == null ||
+                !cell.TryGetBuildngEntity(world, out var towerEntity) ||
+                !world.HasComponent<Tower>(towerEntity) ||
+                !world.HasComponent<ShardTower>(towerEntity) ||
+                !world.HasComponent<Ref<GameObject>>(towerEntity)
+            )
+            {
+                return false;
+            }
+            
+            ref var tower = ref world.GetComponent<Tower>(towerEntity);
+            ref var shardTower = ref world.GetComponent<ShardTower>(towerEntity);
+            ref var towerGORef = ref world.GetComponent<Ref<GameObject>>(towerEntity);
+            
+            if (ShardTowerUtils.HasShard(world, ref shardTower))
+            {
+                ref var targetShard = ref ShardTowerUtils.GetShard(world, ref shardTower, out var targetShardEntity);
+                DropToShard(ref targetShard, ref sourceShard, targetShardEntity);
+                return true;
+            }
+                
             // todo add animation and FX
-
-            ref var tower = ref world.GetComponent<Tower>(buildingEntity);
-            ref var shardTower = ref world.GetComponent<ShardTower>(buildingEntity);
-            ref var towerGORef = ref world.GetComponent<Ref<GameObject>>(buildingEntity);
-
-            ////
+            // todo add delay to activate shard in tower
 
             var shardPosition = towerGORef.reference.transform.position + (Vector3)tower.barrel;
             shardPosition.z = -0.01f;
-
-            var shardPrefab = Resources.Load<GameObject>("Prefabs/Shard");
-            var shardGO = Object.Instantiate(shardPrefab, shardPosition, Quaternion.identity,
-                towerGORef.reference.transform);
+            
+            // todo make new shard based on droped shard and pass it into tower !!!
+                
+            var shardGO = Object.Instantiate(shardPrefab, shardPosition, Quaternion.identity, towerGORef.reference.transform);
             if (!converters.Convert<Shard>(shardGO, out var shardEntity))
             {
                 throw new NullReferenceException($"Failed to convert GameObject {shardGO.name}");
             }
-
+                
             var scale = shardGO.transform.localScale;
             shardGO.transform.localScale = new Vector2(scale.x, scale.y * 0.85f);
-
-            ref var shardInTower = ref world.GetComponent<Shard>(shardEntity);
-            shardInTower = sourceShard;
+                
+            ref var shard = ref world.GetComponent<Shard>(shardEntity);
+            ShardUtils.Copy(ref shard, ref sourceShard);
             var shardMonoBehaviour = shardGO.GetComponent<ShardMonoBehaviour>();
             shardMonoBehaviour.UpdateFromEntity();
 
-            shardTower.shard = world.PackEntity(shardEntity);
+            world.GetComponent<ShardInTower>(shardEntity).towerPackedEntity = world.PackEntity(towerEntity);
+
+            shardTower.shardPackedEntity = world.PackEntity(shardEntity);
+
+            return true;
         }
 
-        private void DropToShard(ref Shard targetShard, ref Shard sourceShard, int targetEntity)
+        private bool DropToShard(ref Shard targetShard, ref Shard sourceShard, int targetEntity)
         {
             ShardUtils.MixShards(ref targetShard, ref sourceShard);
-            
+
             // todo add animation and FX
-            
+
             ref var targetGameObjectRef = ref world.GetComponent<Ref<GameObject>>(targetEntity);
             var targetMb = targetGameObjectRef.reference.GetComponent<ShardMonoBehaviour>();
             targetMb.UpdateFromEntity();
+
+            return true;
+        }
+
+        public void Init(IEcsSystems systems)
+        {
+            shardPrefab = Resources.Load<GameObject>("Prefabs/Shard");
         }
     }
 }

@@ -33,7 +33,7 @@ namespace td.features.camera
 
         public void Run(IEcsSystems systems)
         {
-            if (shared.VirtualCamera == null) return;
+            if (shared.virtualCamera == null) return;
 
             ///// MOUSE ////
             var cursorScreenPosition = Input.mousePosition;
@@ -100,7 +100,7 @@ namespace td.features.camera
                 mouseTime += Time.deltaTime;
 
                 var speed = (mouseVector.magnitude + keyboardVector.magnitude) *
-                            (shared.VirtualCamera.m_Lens.OrthographicSize / Constants.Camera.MinOrthographicZoom) *
+                            (shared.virtualCamera.m_Lens.OrthographicSize / Constants.Camera.MinOrthographicZoom) *
                             (Mathf.Max(Screen.width, Screen.height) / 1000f);
 
                 speed = Mathf.Clamp(speed, 0, Constants.Camera.MaxMoveSpeed);
@@ -121,7 +121,7 @@ namespace td.features.camera
 
                 pos.z = camera.transform.position.z;
 
-                shared.VirtualCamera.ForceCameraPosition(pos, camera.transform.rotation);
+                shared.virtualCamera.ForceCameraPosition(pos, camera.transform.rotation);
 
                 if (mouseInertia)
                 {

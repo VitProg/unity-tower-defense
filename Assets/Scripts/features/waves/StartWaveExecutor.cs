@@ -1,15 +1,14 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.common;
+using td.features.state;
 using td.services;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.waves
 {
     public class StartWaveExecutor : IEcsRunSystem
     {
-        [Inject] private LevelState levelState;
+        [Inject] private State state;
         [Inject] private LevelMap levelMap;
 
         [InjectWorld] private EcsWorld world;        
@@ -24,7 +23,7 @@ namespace td.features.waves
             
             // Debug.Log("LogStartWaveExecutor RUN...");
 
-            var waveNumber = levelState.WaveNumber;
+            var waveNumber = state.WaveNumber;
 
             var waveConfig = levelMap.LevelConfig?.waves[waveNumber - 1];
 

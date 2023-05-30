@@ -12,14 +12,28 @@ namespace td.monoBehaviours
     {
 #if UNITY_EDITOR
         [InjectWorld] private EcsWorld world;
-        
-        public EcsEntity ecsEntity { get; private set; }
+
+        private EcsEntity ecsEntityInternal;
+
+        public EcsEntity ecsEntity
+        {
+            get
+            {
+                if (ecsEntityInternal == null)
+                {
+                    ecsEntityInternal = GetComponent<EcsEntity>();
+                }
+
+                return ecsEntityInternal;
+            }
+        }
+
         private string data;
         private readonly Dictionary<string, object> componnents = new();
 
         private void Start()
         {
-            ecsEntity = GetComponent<EcsEntity>();
+            ecsEntityInternal = GetComponent<EcsEntity>();
         }
 
         private void Update()
