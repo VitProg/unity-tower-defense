@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using Leopotam.EcsLite;
-using td.features.shards;
-
-namespace td.features.state
+﻿namespace td.features.state
 {
     public interface IState
     {

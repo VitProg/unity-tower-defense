@@ -75,6 +75,11 @@ namespace td.features.shards.executors
 
                 shardUiButton.Refresh();
             }
+
+            var gridWidth = (ui.grid.cellSize.x + ui.grid.spacing.x * 2) * (shardEntities.Value.GetEntitiesCount() + 1);
+            ((RectTransform)ui.gameObject.transform).SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, gridWidth);
+            
+
         }
         
         private void OnShardButtonClick(EcsPackedEntity shardPackedEntity, int cost)

@@ -4,13 +4,13 @@
   "delayBetweenWaves": 3,
   "lives": 10.0,
   "startedMoney": 20,
-  "availableShards": ["green", "blue", "violet", "aquamarine"],
-  "shardsCost":      [10,      20,     30,       50],
+  "availableShards": ["green", "blue", "violet", "aquamarine", "pink"],
+  "shardsCost":      [10,      20,     30,       50,           25],
   "startedShards": [
     {"green": 1},
     {"blue": 1},
     {"violet": 1},
-    {"aquamarine":  1},
+    {"aquamarine":  1, "red":  2},
     {"aquamarine":  10},
     {"aquamarine":  20}
   ],

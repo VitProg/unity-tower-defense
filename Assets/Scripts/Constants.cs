@@ -120,7 +120,7 @@ namespace td
             }
             
             public const string CurrencySign = "₮";
-            public const byte MaxShardsInCollection = 8;
+            public const byte MaxShardsInCollection = 12;
         }
 
         public static class Pools
