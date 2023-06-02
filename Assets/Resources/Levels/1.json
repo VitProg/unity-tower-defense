@@ -1,6 +1,6 @@
 ﻿{
   "levelNumber": 1,
-  "delayBeforeFirstWave": 300,
+  "delayBeforeFirstWave": 5,
   "delayBetweenWaves": 3,
   "lives": 10.0,
   "startedMoney": 20,

@@ -64,7 +64,7 @@ namespace td.features.ui
                     {
                         newWaveTimerContainer.SetActive(true);
                         var text = $"{state.NextWaveCountdown:0.00}";
-                        var l = text.Split('.');
+                        var l = text.Split(',');
                         newWaveTimer.text = $"{l[0]}<size=75%>:{l[1]}</size>";
                     }
                     else

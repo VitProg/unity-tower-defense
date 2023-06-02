@@ -6,6 +6,7 @@ using td.components.commands;
 using td.components.events;
 using td.components.flags;
 using td.components.refs;
+using td.features.state;
 using td.utils.ecs;
 using Unity.Burst;
 using Unity.Collections;
@@ -24,6 +25,7 @@ namespace td.systems.behaviors
     public class LinearMoveToTargetSystem : IEcsRunSystem
     {
         [InjectWorld] private EcsWorld world;
+        [Inject] private State state;
 
         private readonly EcsFilterInject<
             Inc<Ref<GameObject>, LinearMovementToTarget>,
@@ -62,7 +64,7 @@ namespace td.systems.behaviors
 
             var newJob = new MoveToTargetSystemJob
             {
-                DeltaTime = Time.deltaTime,
+                DeltaTime = Time.deltaTime * state.TimeFlow,
                 TargetArray = targetNativeArray,
                 SpeedArray = speedNativeArray,
                 OnTargetNativeList = onTargetNativeList,
