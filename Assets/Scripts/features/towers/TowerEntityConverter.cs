@@ -44,7 +44,7 @@ namespace td.features.towers
             }
             if (gameObject.TryGetComponent(out ShardTowerMonoBehaviour shardTower))
             {
-                shardTower.UpdateEntity(world, entity);
+                ShardTowerMonoBehaviour.UpdateEntity(world, entity);
             }
         }
     }

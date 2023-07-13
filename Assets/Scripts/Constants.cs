@@ -127,8 +127,23 @@ namespace td
         {
             public const int ProjectileDefaultCopacity = 50;
             public const int ProjectileMaxCopacity = 100;
+            public const int ProjectileEffectsDefaultCopacity = 10;
+            public const int ProjectileEffectsMaxCopacity = 100;
             public const int EnemyDefaultCopacity = 20;
             public const int EnemyMaxCopacity = 100;
+        }
+        
+        public static class WeaponEffects
+        {
+            public const int MaxLightningChainReaction = 20;
+            public const float LightningFindNeighborsTimeRemains = 0.5f;
+            public const float ExplosionDiameterTresholdToToakeDamage = 0.1f;
+        }
+        
+        public static class Debuff
+        {
+            public const float ShockingShiftPositionTimeRemains = 0.05f;
+            public const float ShockingShiftRange = 0.015f;
         }
     }
 }

@@ -15,6 +15,7 @@ namespace td.components.commands
         public float angularSpeed;
         public float time;
         public float threshold;
+        public GameObject targetBody;
 
         public void AutoReset(ref SmoothRotation c)
         {

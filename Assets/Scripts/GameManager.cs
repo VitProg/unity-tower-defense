@@ -18,6 +18,8 @@ using td.features.impactsEnemy;
 using td.features.impactsKernel;
 using td.features.levels;
 using td.features.projectiles;
+using td.features.projectiles.explosion;
+using td.features.projectiles.lightning;
 using td.features.shards;
 using td.features.shards.commands;
 using td.features.shards.config;
@@ -47,12 +49,15 @@ namespace td
     {
         [Required] [SerializeField] private EcsUguiEmitter uguiEmitter;
         [Required] [SerializeField] private CinemachineVirtualCamera virtualCamera;
+        [SerializeField] private Camera mainCamera;
+        [Required] [SerializeField] private Camera canvasCamera;
         [Required] [SerializeField] private HightlightGridByCursor hightlightGridByCursor;
         [Required] [SerializeField] private ShardsConfig shardsConfig;
 
         [Required] public ShardCollectionPanel shardCollectionPanel;
         [Required] public ShardStorePopup shardStorePopup;
         [Required] public ShardInfoPanel shardInfoPanel;
+        [Required] public CombineShardCostPopup combineShardCostPopup;
         
         [Required] public ShardMonoBehaviour draggableShard;
 
@@ -66,13 +71,17 @@ namespace td
             {
                 uguiEmitter = uguiEmitter,
                 virtualCamera = virtualCamera,
-                mainCamera = Camera.main,
+                mainCamera = mainCamera ? mainCamera : Camera.main,
+                canvasCamera = canvasCamera,
                 hightlightGrid = hightlightGridByCursor,
                 shardCollection = shardCollectionPanel,
                 shardStore = shardStorePopup,
                 shardInfo = shardInfoPanel,
                 draggableShard = draggableShard,
+                combineShardCostPopup = combineShardCostPopup,
             };
+            
+            combineShardCostPopup.Hide();
 
             var world = new EcsWorld();
             var outerWorld = new EcsWorld();
@@ -87,6 +96,8 @@ namespace td
             converters
                 .Add(new EnemyEntityConverter())
                 .Add(new ProjectileEntityConverter())
+                .Add(new LightningLineEntityConverter())
+                .Add(new ExplosionEntityConverter())
                 .Add(new TowerEntityConverter())
                 .Add(new ShardEntityConverter())
                 ;
@@ -122,6 +133,7 @@ namespace td
             systems
                 .Add(new ShardDragNDropSystem())
                 .DelHere<UIShardDownEvent>()
+                .Add(new ShardAnimateColorSystem())
                 .Add(new InitShardCollectionSystem())
                 .Add(new InitShardStoreSystem())
                 .Add(new ShardCollectionRemoveHiddenExecutor())
@@ -136,7 +148,14 @@ namespace td
             #region Fire/Projectile
             systems
                 .Add(new ProjectileTargetCorrectionSystem())
-                .Add(new ProjectileReachEnemyHandler());
+                .Add(new ProjectileReachEnemyHandler())
+                
+                .Add(new LightningLineDamageSystem())
+                .Add(new LightningLineNeighborsSystem())
+                .Add(new LightningLineCorrectionSystem())
+                
+                .Add(new ExplosionSystem())
+                ;
             #endregion
 
             #region Inpacts
@@ -147,7 +166,9 @@ namespace td
 
                 // обработка события получение врагом бафа/дебафа
                 .Add(new SpeedDebuffSystem())
-                .Add(new PoisonDebuffSystem());
+                .Add(new PoisonDebuffSystem())
+                .Add(new ShockingDebuffSystem())
+                ;
             #endregion
 
             #region Waves
@@ -167,7 +188,8 @@ namespace td
                 .DelHere<StartWaveOuterCommand>(Constants.Worlds.Outer)
                 .Add(new SpawnSequenceSystem())
                 .Add(new SpawnSequenceFinishedHandler())
-                .DelHere<SpawnSequenceFinishedOuterEvent>(Constants.Worlds.Outer);
+                .DelHere<SpawnSequenceFinishedOuterEvent>(Constants.Worlds.Outer)
+                ;
             #endregion
 
             #region Enemies
@@ -216,8 +238,9 @@ namespace td
                 .Add(new CameraZoomSystem());
             #endregion
 
-            // обработка команды удаления GameObject сщ сцены
+            // обработка команды удаления GameObject со сцены
             systems
+                .Add(new IdleRemoveGameObjectExecutor())
                 .Add(new RemoveGameObjectExecutor())
                 .DelHere<RemoveGameObjectCommand>();
 
@@ -245,6 +268,7 @@ namespace td
 
             systems.InjectLite(
                 state,
+                new PrefabService(),
                 new LevelMap(),
                 new LevelLoader(),
                 new PathService(),
@@ -252,6 +276,8 @@ namespace td
                 new ProjectileService(),
                 new ShardCalculator(),
                 new EnemyPathService(),
+                new LightningLineService(),
+                new ExplosionService(),
                 shardsConfig,
                 converters
             );

@@ -1,9 +1,12 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.components.flags;
+using td.components.refs;
 using td.features.enemies;
 using td.features.enemies.components;
+using td.features.enemies.mb;
 using td.utils.ecs;
+using UnityEngine;
 
 namespace td.features.impactsEnemy
 {
@@ -18,8 +21,9 @@ namespace td.features.impactsEnemy
             {
                 var takeDamage = eventEntities.Pools.Inc1.Get(eventEntity);
 
-                if (!takeDamage.TargetEntity.Unpack(world, out var enemyEntity) ||
+                if (!takeDamage.targetEntity.Unpack(world, out var enemyEntity) ||
                     !world.HasComponent<Enemy>(enemyEntity) ||
+                    !world.HasComponent<Ref<GameObject>>(enemyEntity) ||
                     world.HasComponent<IsEnemyDead>(enemyEntity)
                 )
                 {
@@ -27,8 +31,18 @@ namespace td.features.impactsEnemy
                 }
 
                 ref var enemy = ref world.GetComponent<Enemy>(enemyEntity);
+                var enemyGO = world.GetComponent<Ref<GameObject>>(enemyEntity).reference;
+                
+                // ToDo add effect for takeDamage.type !!!
+                
+                var enemyMb = enemyGO.GetComponent<EnemyMonoBehaviour>();
 
                 enemy.health -= takeDamage.damage;
+                enemyMb.hp.value = enemy.health;
+
+                var p = enemy.health / enemy.startingHealth;
+
+                enemyMb.hpLine.color = new Color(1, p, 0);
 
                 if (enemy.health < 0)
                 {

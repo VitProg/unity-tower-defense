@@ -38,7 +38,7 @@ namespace td.systems.init
             {
                 sharedData.enemyConfigs[index].prefab = 
                     (GameObject)Resources.Load(
-                        $@"Prefabs/enemies/{sharedData.enemyConfigs[index].prefabPath}",
+                        $"Prefabs/enemies/{sharedData.enemyConfigs[index].prefabPath}",
                         typeof(GameObject)
                     );
             }

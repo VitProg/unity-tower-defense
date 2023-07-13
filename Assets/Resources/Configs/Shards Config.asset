@@ -29,8 +29,8 @@ MonoBehaviour:
   slowDurationDevider: 10
   slowDurationMin: 3
   explosiveDamageReducer: 6
-  explosiveRadiusAdd: 3
-  explosiveFadingReducer: 6
+  explosiveRadiusAdd: 1
+  explosiveFadingReducer: 9
   poisonDamageBase: 0.5
   poisonDamageReducer: 2
   poisonMinInterval: 1
@@ -39,3 +39,19 @@ MonoBehaviour:
   fireRatePinkReduser: 1.5
   radiusBase: 1.5
   radiusImpactOfYellow: 1.1
+  levelSprites:
+  - {fileID: 248471989, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: 1211320310, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: -1144675032, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: -1112566642, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: -2141780072, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: -2053847782, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: -285254244, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: 1015409954, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: -301494125, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: -928827767, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: -550906150, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: 1021147936, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: 427198496, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: 427198496, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}
+  - {fileID: 427198496, guid: 2c102417594ab7149a93e755ab3d9be3, type: 3}

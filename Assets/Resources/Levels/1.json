@@ -1,18 +1,15 @@
 ﻿{
   "levelNumber": 1,
-  "delayBeforeFirstWave": 300,
+  "delayBeforeFirstWave": 5,
   "delayBetweenWaves": 3,
   "lives": 10.0,
   "startedMoney": 20,
   "availableShards": ["green", "blue", "violet", "aquamarine", "pink"],
   "shardsCost":      [10,      20,     30,       50,           25],
   "startedShards": [
-    {"green": 1},
-    {"blue": 1},
-    {"violet": 1},
-    {"aquamarine":  1, "red":  2},
-    {"aquamarine":  10},
-    {"aquamarine":  20}
+    {"aquamarine": 1},
+    {"green": 1, "red":  1, "blue":  1},
+    {"pink": 10}
   ],
   "waves": [
     {
@@ -26,10 +23,10 @@
               "variant": -1
             }
           ],
-          "quantity": 10,
+          "quantity": 20,
           "speed": 0.5,
-          "health": 5.5,
-          "delayBetween": 0.7,
+          "health": 0.5,
+          "delayBetween": 0.85,
           "scale": [0.5, 0.8]
         }
       ]

@@ -1,4 +1,5 @@
 ﻿using Leopotam.EcsLite;
+using td.common;
 using td.features.shards;
 using td.features.shards.mb;
 using td.features.ui;
@@ -24,15 +25,15 @@ namespace td.features.towers.mb
             infoPanel ??= FindObjectOfType<ShardInfoPanel>();
         }
         
-        public void UpdateEntity(EcsWorld world, int entity)
+        public static void UpdateEntity(EcsWorld world, int entity)
         {
             world.GetComponent<ShardTower>(entity);
         }
 
         public void Update()
         {
-            // Todo optimize
-            var cursorPosition = CameraUtils.ToWorldPoint(Input.mousePosition);
+            // Todo optimize create system for hover cells
+            var cursorPosition = CameraUtils.ToWorldPoint(DI.GetShared<SharedData>()!.mainCamera, Input.mousePosition);
             var cursorCell = HexGridUtils.PositionToCell(cursorPosition);
 
             var cell = HexGridUtils.PositionToCell(transform.position);

@@ -10,14 +10,16 @@
     {
         Tags
         {
-            "Queue"="Transparent" "IgnoreProjector"="True" "RenderType"="Transparent"
+            "RenderType"="Transparent"
+            "Queue"="Transparent"
+            "IgnoreProjector"="True"
         }
         Lighting Off
         Fog {Mode Off}
         ZWrite On
         //        Blend SrcAlpha OneMinusSrcAlpha
         Blend SrcAlpha OneMinusSrcAlpha
-        Cull off
+        Cull Off
         LOD 100
 
         Pass

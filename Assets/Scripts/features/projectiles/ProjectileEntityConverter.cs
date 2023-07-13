@@ -2,6 +2,7 @@
 using td.components.behaviors;
 using td.components.flags;
 using td.components.refs;
+using td.features.projectiles.attributes;
 using td.monoBehaviours;
 using td.services.ecsConverter;
 using td.utils.ecs;
@@ -23,6 +24,13 @@ namespace td.features.projectiles
             
             world.DelComponent<IsDisabled>(entity);
             world.DelComponent<IsDestroyed>(entity);
+            
+            world.DelComponent<DamageAttribute>(entity);
+            world.DelComponent<ExplosiveAttribute>(entity);
+            world.DelComponent<LightningAttribute>(entity);
+            world.DelComponent<PoisonAttribute>(entity);
+            world.DelComponent<ShockingAttribute>(entity);
+            world.DelComponent<SlowingAttribute>(entity);
 
 #if UNITY_EDITOR
             if (!gameObject.GetComponent<EcsComponentsInfo>())

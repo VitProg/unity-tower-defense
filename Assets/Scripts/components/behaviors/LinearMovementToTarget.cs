@@ -12,5 +12,6 @@ namespace td.components.behaviors
         public Vector2 target;
         public float gap;
         public float speed;
+        public bool resetAnchoredPositionZ;
     }
 }

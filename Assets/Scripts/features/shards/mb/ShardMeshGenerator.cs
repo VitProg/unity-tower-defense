@@ -95,12 +95,14 @@ namespace td.features.shards.mb
             CalculateColorSegments();
             
             var nv = Math.Clamp(numVertices, 3, 512);
+            
+            var withShading = shading > 0.01f;
 
             // Создание массивов вершин, треугольников и нормалей
-            vertices = new Vector3[nv * 4];
-            triangles = new int[nv * 18];
-            normals = new Vector3[nv * 4];
-            colors = new Color[nv * 4];
+            vertices = new Vector3[nv * (withShading ? 4 : 2)];
+            triangles = new int[nv * (withShading ? 18 : 6)];
+            normals = new Vector3[nv * (withShading ? 4 : 2)];
+            colors = new Color[nv * (withShading ? 4 : 2)];
             
             var normal = -Vector3.forward;
 
@@ -121,107 +123,165 @@ namespace td.features.shards.mb
                 var cos = Mathf.Cos(angle);
                 var sin = Mathf.Sin(angle);
 
-                // outer
-                var x = cos * oRadius;
-                var y = sin * oRadius;
-                var c = segment.color;
-                c.a = 0f;
-                vertices[i] = new Vector3(x, y, 0f);
-                normals[i] = normal; // нормали указывают в сторону камеры
-                colors[i] = c;
-                
-                // outer - shading
-                x = cos * (oRadius - shading);
-                y = sin * (oRadius - shading);
-                c = segment.color;
-                vertices[nv + i] = new Vector3(x, y, 0f);
-                normals[nv + i] = normal;
-                colors[nv + i] = c;
-                
-                // inner + shading
-                x = cos * (iRadius + shading);
-                y = sin * (iRadius + shading);
-                c = segment.color;
-                vertices[2 * nv + i] = new Vector3(x, y, 0f);
-                normals[2 * nv + i] = normal;
-                colors[2 * nv + i] = c;
+                float x;
+                float y;
+                Color c;
 
-                // inner
-                x = cos * iRadius;
-                y = sin * iRadius;
-                c = segment.color;
-                c.a = 0f;
-                vertices[3 * nv + i] = new Vector3(x, y, 0f);
-                normals[3 * nv + i] = normal;
-                colors[3 * nv + i] = c;
+                if (withShading)
+                {
+                    // outer
+                    x = cos * oRadius;
+                    y = sin * oRadius;
+                    c = segment.color;
+                    c.a = 0f;
+                    vertices[i] = new Vector3(x, y, 0f);
+                    normals[i] = normal; // нормали указывают в сторону камеры
+                    colors[i] = c;
+                    
+                    // outer - shading
+                    x = cos * (oRadius - shading);
+                    y = sin * (oRadius - shading);
+                    c = segment.color;
+                    vertices[nv + i] = new Vector3(x, y, 0f);
+                    normals[nv + i] = normal;
+                    colors[nv + i] = c;
+
+                    // inner + shading
+                    x = cos * (iRadius + shading);
+                    y = sin * (iRadius + shading);
+                    c = segment.color;
+                    vertices[2 * nv + i] = new Vector3(x, y, 0f);
+                    normals[2 * nv + i] = normal;
+                    colors[2 * nv + i] = c;
+
+                    // inner
+                    x = cos * iRadius;
+                    y = sin * iRadius;
+                    c = segment.color;
+                    c.a = 1f;
+                    vertices[3 * nv + i] = new Vector3(x, y, 0f);
+                    normals[3 * nv + i] = normal;
+                    colors[3 * nv + i] = c;
+                }
+                else
+                {
+                    // outer
+                    x = cos * oRadius;
+                    y = sin * oRadius;
+                    c = segment.color;
+                    vertices[i] = new Vector3(x, y, 0f);
+                    normals[i] = normal; // нормали указывают в сторону камеры
+                    colors[i] = c;
+                    
+                    // inner
+                    x = cos * iRadius;
+                    y = sin * iRadius;
+                    c = segment.color;
+                    vertices[nv + i] = new Vector3(x, y, 0f);
+                    normals[nv + i] = normal;
+                    colors[nv + i] = c;
+                }
             }
             
             // Создание треугольников для триангуляции
             for (var i = 0; i < nv; i++)
             {
-                var ti = i * 18;
-                
-                var outer0 = i;
-                var outer = i % nv + nv;
-                var inner = i % nv + (nv * 2);
-                var inner0 = i % nv + (nv * 3);
-
-                var outer0N = (outer0 + 1) % nv;
-                var outerN = (outer + 1) % nv + nv;
-                var innerN = (inner + 1) % nv + (nv * 2);
-                var inner0N = (inner0 + 1) % nv + (nv * 3);
-
-                if (i % 2 == 0)
+                if (withShading)
                 {
-                    triangles[ti++] = outer0;
-                    triangles[ti++] = outerN;
-                    triangles[ti++] = outer0N;
-                
-                    triangles[ti++] = outer0;
-                    triangles[ti++] = outer;
-                    triangles[ti++] = outerN;
+                    var ti = i * 18;
+                    
+                    var outer0 = i;
+                    var outer = i % nv + nv;
+                    var inner = i % nv + (nv * 2);
+                    var inner0 = i % nv + (nv * 3);
 
-                    triangles[ti++] = outer;
-                    triangles[ti++] = inner;
-                    triangles[ti++] = outerN;
+                    var outer0N = (outer0 + 1) % nv;
+                    var outerN = (outer + 1) % nv + nv;
+                    var innerN = (inner + 1) % nv + (nv * 2);
+                    var inner0N = (inner0 + 1) % nv + (nv * 3);
 
-                    triangles[ti++] = outerN;
-                    triangles[ti++] = inner;
-                    triangles[ti++] = innerN;
+                    if (i % 2 == 0)
+                    {
+                        triangles[ti++] = outer0;
+                        triangles[ti++] = outerN;
+                        triangles[ti++] = outer0N;
 
-                    triangles[ti++] = inner;
-                    triangles[ti++] = inner0N;
-                    triangles[ti++] = innerN;
+                        triangles[ti++] = outer0;
+                        triangles[ti++] = outer;
+                        triangles[ti++] = outerN;
 
-                    triangles[ti++] = inner;
-                    triangles[ti++] = inner0;
-                    triangles[ti++] = inner0N;
+                        triangles[ti++] = outer;
+                        triangles[ti++] = inner;
+                        triangles[ti++] = outerN;
+
+                        triangles[ti++] = outerN;
+                        triangles[ti++] = inner;
+                        triangles[ti++] = innerN;
+
+                        triangles[ti++] = inner;
+                        triangles[ti++] = inner0N;
+                        triangles[ti++] = innerN;
+
+                        triangles[ti++] = inner;
+                        triangles[ti++] = inner0;
+                        triangles[ti++] = inner0N;
+                    }
+                    else
+                    {
+                        triangles[ti++] = outer0;
+                        triangles[ti++] = outer;
+                        triangles[ti++] = outer0N;
+
+                        triangles[ti++] = outer0N;
+                        triangles[ti++] = outer;
+                        triangles[ti++] = outerN;
+
+                        triangles[ti++] = outer;
+                        triangles[ti++] = innerN;
+                        triangles[ti++] = outerN;
+
+                        triangles[ti++] = outer;
+                        triangles[ti++] = inner;
+                        triangles[ti++] = innerN;
+
+                        triangles[ti++] = inner;
+                        triangles[ti++] = inner0;
+                        triangles[ti++] = innerN;
+
+                        triangles[ti++] = innerN;
+                        triangles[ti++] = inner0;
+                        triangles[ti++] = inner0N;
+                    }
                 }
                 else
                 {
-                    triangles[ti++] = outer0;
-                    triangles[ti++] = outer;
-                    triangles[ti++] = outer0N;
-
-                    triangles[ti++] = outer0N;
-                    triangles[ti++] = outer;
-                    triangles[ti++] = outerN;                   
-
-                    triangles[ti++] = outer;
-                    triangles[ti++] = innerN;
-                    triangles[ti++] = outerN;
+                    var ti = i * 6;
                     
-                    triangles[ti++] = outer;
-                    triangles[ti++] = inner;
-                    triangles[ti++] = innerN;
+                    var o1 = i;
+                    var o2 = (i + 1) % nv;
+                    var i1 = i + nv;
+                    var i2 = (i + 1) % nv + nv;
 
-                    triangles[ti++] = inner;
-                    triangles[ti++] = inner0;
-                    triangles[ti++] = innerN;
-
-                    triangles[ti++] = innerN;
-                    triangles[ti++] = inner0;
-                    triangles[ti++] = inner0N;
+                    if (i % 2 == 0)
+                    {
+                        triangles[ti++] = o1;
+                        triangles[ti++] = i1;
+                        triangles[ti++] = i2;
+                        
+                        triangles[ti++] = o1;
+                        triangles[ti++] = o2;
+                        triangles[ti++] = i2;
+                    }
+                    else
+                    {
+                        triangles[ti++] = o2;
+                        triangles[ti++] = i1;
+                        triangles[ti++] = i2;
+                        
+                        triangles[ti++] = o2;
+                        triangles[ti++] = o1;
+                        triangles[ti++] = i1;
+                    }
                 }
             }
             

@@ -6,6 +6,7 @@ using td.components.events;
 using td.components.flags;
 using td.components.refs;
 using td.features.enemies.components;
+using td.features.enemies.mb;
 using td.monoBehaviours;
 using td.services;
 using td.utils;
@@ -68,7 +69,9 @@ namespace td.features.enemies.systems
                 {
                     var rotation = EnemyUtils.LookToNextCell(currentCell, nextCell);
 
-                    var transform = gameObjectLink.reference.transform;
+                    var enemyMb = gameObjectLink.reference.GetComponent<EnemyMonoBehaviour>();
+
+                    var transform = enemyMb.body.transform;
 
                     if (transform.rotation != rotation)
                     {
@@ -80,6 +83,7 @@ namespace td.features.enemies.systems
                             smoothRotation.from = transform.rotation;
                             smoothRotation.to = rotation;
                             smoothRotation.angularSpeed = angularSpeed;
+                            smoothRotation.targetBody = enemyMb.body;
                         }
                         else
                         {

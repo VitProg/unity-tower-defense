@@ -26,7 +26,7 @@ namespace td.features.projectiles
                 ref var target = ref projectileEntities.Pools.Inc3.Get(projectileEntity);
 
                 if (
-                    !fireTarget.TargetEntity.Unpack(world, out var targetEntity) ||
+                    !fireTarget.targetEntity.Unpack(world, out var targetEntity) ||
                     world.HasComponent<IsDestroyed>(targetEntity) ||
                     world.HasComponent<IsDestroyed>(targetEntity) ||
                     world.HasComponent<IsDestroyed>(targetEntity)

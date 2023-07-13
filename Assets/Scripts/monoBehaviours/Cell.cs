@@ -7,6 +7,7 @@ using td.features.state;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
+using UnityEngine.VFX;
 using Random = UnityEngine.Random;
 
 namespace td.monoBehaviours
@@ -65,14 +66,17 @@ namespace td.monoBehaviours
         // todo
         public EcsPackedEntity? buildingPackedEntity = null;
 
-        public bool HasBuilding<T>(EcsWorld world) where T : struct
+        public bool HasBuilding<T>(EcsWorld world) where T : struct => HasBuilding<T>(world, out var unused);
+
+        public bool HasBuilding<T>(EcsWorld world, out int buildingEntity) where T : struct
         {
+            buildingEntity = default;
             if (buildingPackedEntity == null)
             {
                 return false;
             }
 
-            buildingPackedEntity.Value.Unpack(world, out var buildingEntity);
+            buildingPackedEntity.Value.Unpack(world, out buildingEntity);
 
             return world.HasComponent<T>(buildingEntity);
         }
@@ -88,35 +92,13 @@ namespace td.monoBehaviours
             
             return ref world.GetComponent<T>(buildingEntity);
         }
-
-        public bool TryGetBuilding<T>(EcsWorld world, out int entity, out T component) where T : struct
-        {
-            entity = default;
-            component = default;
-            
-            if (!HasBuilding<T>(world))
-            {
-                return false;
-            }
-            
-            buildingPackedEntity!.Value.Unpack(world, out entity);
-            component = ref world.GetComponent<T>(entity);
-
-            return true;
-        }
-
-        public bool TryGetBuildngEntity(EcsWorld world, out int entity) 
-        {
-            if (!HasBuilding())
-            {
-                entity = default;
-                return false;
-            }
-
-            return buildingPackedEntity!.Value.Unpack(world, out entity);
-        }
-
+        
         public bool HasBuilding() => buildingPackedEntity != null;
+        public bool HasBuilding(EcsWorld world, out int buildingEntity)
+        {
+            buildingEntity = default;
+            return HasBuilding() && buildingPackedEntity!.Value.Unpack(world, out buildingEntity);
+        }
 
         private Int2? coords;
         public Int2 Coords

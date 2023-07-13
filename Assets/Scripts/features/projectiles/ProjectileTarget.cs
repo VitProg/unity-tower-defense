@@ -6,6 +6,6 @@ namespace td.features.projectiles
     [Serializable]
     public struct ProjectileTarget
     {
-        public EcsPackedEntity TargetEntity;
+        public EcsPackedEntity targetEntity;
     }
 }

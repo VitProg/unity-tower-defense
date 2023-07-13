@@ -42,6 +42,8 @@ namespace td.features.shards.executors
                         ref var shard = ref shardEntities.Pools.Inc1.Get(shardEntity);
                         var shardGO = shardEntities.Pools.Inc3.Get(shardEntity).reference;
                         var shardUIButton = shardGO.GetComponentInParent<ShardUIButton>();
+                        
+                        world.DelComponent<ShardColor>(shardEntity);
 
                         world.DelComponent<IsHidden>(shardEntity);
                         

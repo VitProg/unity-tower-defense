@@ -1,23 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using Leopotam.EcsLite;
+using td.components.flags;
+using td.features.dragNDrop;
 using td.features.shards.config;
+using td.features.shards.flags;
 using td.features.towers;
 using td.utils;
 using td.utils.ecs;
+using Unity.Collections;
 using UnityEngine;
 
 namespace td.features.shards
 {
     public static class ShardUtils
     {
-        public static Color GetHoverColor(byte[] values, float a, ShardsConfig config) {
+        public static Color GetHoverColor(byte[] values, float a, ShardsConfig config)
+        {
             var mixedColor = GetMixedColor(values, config) * 1.5f;
             return new Color(mixedColor.r + 0.15f, mixedColor.g + 0.15f, mixedColor.b + 0.15f, a);
         }
 
         public static Color GetMixedColor(byte[] values, ShardsConfig config) =>
-            GetMixedColor(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7], config);
+            GetMixedColor(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7],
+                config);
+
         public static Color GetMixedColor(ref Shard shard, ShardsConfig config) =>
             GetMixedColor(
                 shard.red,
@@ -54,12 +62,46 @@ namespace td.features.shards
             AddColorsToList(ShardTypes.Violet, violet, config, ref colors);
 
             var mixedColor = AvgColorFromList(colors);
-            
+
             colors.Clear();
 
             return mixedColor;
         }
 
+        public static void GetColors(byte red,
+            byte green,
+            byte blue,
+            byte aquamarine,
+            byte yellow,
+            byte orange,
+            byte pink,
+            byte violet,
+            ShardsConfig config,
+            List<Color> colors,
+            uint count = 32)
+        {
+            colors.Clear();
+
+            var shardArray = new[] { red, green, blue, aquamarine, yellow, orange, pink, violet };
+            var quantity = GetQuantity(shardArray);
+            
+            var index = 0;
+            for (var i = 0; i < shardArray.Length; i++)
+            {
+                var w = (float)shardArray[i] / quantity;
+                if (!(w > 0.01f)) continue;
+
+                var wInt = Mathf.CeilToInt(w * 10);
+
+                var color = config[i];
+                // var size = count * w;
+                var limit = (index - 1) + wInt;
+                for (; index < limit && index < count; index++)
+                {
+                    colors.Add(color);
+                }
+            }
+        }
 
         public static void MixShards(ref Shard targetShard, ref Shard sourceShard)
         {
@@ -96,6 +138,27 @@ namespace td.features.shards
             shard.violet,
         };
 
+        public static byte[] ToArray(
+            byte red,
+            byte green,
+            byte blue,
+            byte aquamarine,
+            byte yellow,
+            byte orange,
+            byte pink,
+            byte violet
+        ) => new[]
+        {
+            red,
+            green,
+            blue,
+            aquamarine,
+            yellow,
+            orange,
+            pink,
+            violet,
+        };
+
         public static byte GetMin(ref Shard shard) => ByteUtils.Min(ToArray(ref shard));
         public static byte GetMax(ref Shard shard) => ByteUtils.Max(ToArray(ref shard));
 
@@ -104,8 +167,9 @@ namespace td.features.shards
             return shard.red + shard.green + shard.blue + shard.aquamarine +
                    shard.yellow + shard.orange + shard.pink + shard.violet;
         }
-        
-        public static int GetQuantity(byte[] values) {
+
+        public static int GetQuantity(byte[] values)
+        {
             var quantity = 0;
             foreach (var value in values)
             {
@@ -115,7 +179,8 @@ namespace td.features.shards
             return quantity;
         }
 
-        public static Color GetColor(ShardTypes type, ShardsConfig config) {
+        public static Color GetColor(ShardTypes type, ShardsConfig config)
+        {
             return type switch
             {
                 ShardTypes.Red => config.redShardColor,
@@ -129,12 +194,11 @@ namespace td.features.shards
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
-        
-        
+
+
         /////////////////\
-        
-        
-        
+
+
         private static void AddColorsToList(ShardTypes type, byte quantity, ShardsConfig config, ref List<Color> colors)
         {
             var color = GetColor(type, config);
@@ -201,7 +265,7 @@ namespace td.features.shards
             target.violet = source.violet;
             target.yellow = source.yellow;
         }
-        
+
         public static void Copy(ref Shard target, Shard source)
         {
             target.red = source.red;
@@ -230,54 +294,113 @@ namespace td.features.shards
         {
             switch (fieldName)
             {
-                case ShardTypes.Red: shard.red = value; break;
-                case ShardTypes.Green: shard.green = value; break;
-                case ShardTypes.Blue: shard.blue = value; break;
-                case ShardTypes.Aquamarine: shard.aquamarine = value; break;
-                case ShardTypes.Pink: shard.pink = value; break;
-                case ShardTypes.Orange: shard.orange = value; break;
-                case ShardTypes.Violet: shard.violet = value; break;
-                case ShardTypes.Yellow: shard.yellow = value; break;
+                case ShardTypes.Red:
+                    shard.red = value;
+                    break;
+                case ShardTypes.Green:
+                    shard.green = value;
+                    break;
+                case ShardTypes.Blue:
+                    shard.blue = value;
+                    break;
+                case ShardTypes.Aquamarine:
+                    shard.aquamarine = value;
+                    break;
+                case ShardTypes.Pink:
+                    shard.pink = value;
+                    break;
+                case ShardTypes.Orange:
+                    shard.orange = value;
+                    break;
+                case ShardTypes.Violet:
+                    shard.violet = value;
+                    break;
+                case ShardTypes.Yellow:
+                    shard.yellow = value;
+                    break;
             }
         }
+
         public static void Set(ref Shard shard, string fieldName, byte value = 1)
         {
             var f = fieldName.ToLower().Trim();
             switch (f)
             {
-                case "red": shard.red = value; break;
-                case "green": shard.green = value; break;
-                case "blue": shard.blue = value; break;
-                case "aquamarine": shard.aquamarine = value; break;
-                case "pink": shard.pink = value; break;
-                case "orange": shard.orange = value; break;
-                case "violet": shard.violet = value; break;
-                case "yellow": shard.yellow = value; break;
+                case "red":
+                    shard.red = value;
+                    break;
+                case "green":
+                    shard.green = value;
+                    break;
+                case "blue":
+                    shard.blue = value;
+                    break;
+                case "aquamarine":
+                    shard.aquamarine = value;
+                    break;
+                case "pink":
+                    shard.pink = value;
+                    break;
+                case "orange":
+                    shard.orange = value;
+                    break;
+                case "violet":
+                    shard.violet = value;
+                    break;
+                case "yellow":
+                    shard.yellow = value;
+                    break;
             }
         }
 
         public static void ReduceToOne(ref Shard shard)
         {
-            shard.red        = (byte)Mathf.Min(shard.red, 1);
-            shard.green      = (byte)Mathf.Min(shard.green, 1);
-            shard.blue       = (byte)Mathf.Min(shard.blue, 1);
+            shard.red = (byte)Mathf.Min(shard.red, 1);
+            shard.green = (byte)Mathf.Min(shard.green, 1);
+            shard.blue = (byte)Mathf.Min(shard.blue, 1);
             shard.aquamarine = (byte)Mathf.Min(shard.aquamarine, 1);
-            shard.pink       = (byte)Mathf.Min(shard.pink, 1);
-            shard.orange     = (byte)Mathf.Min(shard.orange, 1);
-            shard.violet     = (byte)Mathf.Min(shard.violet, 1);
-            shard.yellow     = (byte)Mathf.Min(shard.yellow, 1);
+            shard.pink = (byte)Mathf.Min(shard.pink, 1);
+            shard.orange = (byte)Mathf.Min(shard.orange, 1);
+            shard.violet = (byte)Mathf.Min(shard.violet, 1);
+            shard.yellow = (byte)Mathf.Min(shard.yellow, 1);
         }
 
         public static void Multiple(ref Shard shard, int mul)
         {
-            shard.red        = (byte)Mathf.Min(shard.red * mul, 255);
-            shard.green      = (byte)Mathf.Min(shard.green * mul, 255);
-            shard.blue       = (byte)Mathf.Min(shard.blue * mul, 255);
+            shard.red = (byte)Mathf.Min(shard.red * mul, 255);
+            shard.green = (byte)Mathf.Min(shard.green * mul, 255);
+            shard.blue = (byte)Mathf.Min(shard.blue * mul, 255);
             shard.aquamarine = (byte)Mathf.Min(shard.aquamarine * mul, 255);
-            shard.pink       = (byte)Mathf.Min(shard.pink * mul, 255);
-            shard.orange     = (byte)Mathf.Min(shard.orange * mul, 255);
-            shard.violet     = (byte)Mathf.Min(shard.violet * mul, 255);
-            shard.yellow     = (byte)Mathf.Min(shard.yellow * mul, 255);
+            shard.pink = (byte)Mathf.Min(shard.pink * mul, 255);
+            shard.orange = (byte)Mathf.Min(shard.orange * mul, 255);
+            shard.violet = (byte)Mathf.Min(shard.violet * mul, 255);
+            shard.yellow = (byte)Mathf.Min(shard.yellow * mul, 255);
+        }
+
+        private static EcsFilter GetHoveredShardFilter(EcsWorld world) => world.Filter<Shard>()
+            .Inc<ShardInCollection>()
+            .Inc<ShardIsHovered>()
+            .Exc<ShardInStore>()
+            .Exc<IsHidden>()
+            .Exc<IsDisabled>()
+            .Exc<IsDestroyed>()
+            .Exc<DraggingStartedData>()
+            .End(3);
+
+        public static bool HasHoveredShard(EcsWorld world) => GetHoveredShardFilter(world).GetEntitiesCount() == 1;
+
+        public static ref Shard GetHoveredShard(EcsWorld world, out int shardEntity)
+        {
+            var filter = GetHoveredShardFilter(world);
+
+            foreach (var entity in filter)
+            {
+                shardEntity = entity;
+                return ref world.GetComponent<Shard>(shardEntity);
+            }
+
+            throw new NullReferenceException(
+                "Hovered Shard nott found! Use HasHoveredShard check before get hovered shard");
         }
     }
 }

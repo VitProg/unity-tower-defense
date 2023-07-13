@@ -5,9 +5,8 @@ using td.common;
 namespace td.features.projectiles
 {
     [Serializable]
-    [GenerateProvider]
     public struct Projectile
     {
-        public EcsPackedEntity WhoFired;
+        public EcsPackedEntity whoFired;
     }
 }

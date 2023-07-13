@@ -29,5 +29,6 @@ namespace td.utils
         public static Vector2 Vector2(float min, float max) =>
             new Vector2(Range(min, max),Range(min, max));
 
+        public static bool Bool(float probability = 0.5f) => Random.Range(0f, 1f) >= probability;
     }
 }

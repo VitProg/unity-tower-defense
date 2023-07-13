@@ -21,6 +21,7 @@ namespace td.features.shards.init
     {
         [Inject] private LevelMap levelMap;
         [Inject] private EntityConverters converters;
+        [Inject] private PrefabService prefabService;
         [InjectWorld] private EcsWorld world;
         [InjectShared] private SharedData shared;
         [InjectSystems] private IEcsSystems systems;
@@ -78,7 +79,7 @@ namespace td.features.shards.init
         
         private void InitShardCollection()
         {
-            var shardUiButtonPrefab = (GameObject)Resources.Load("Prefabs/ShardUIButton", typeof(GameObject));
+            var shardUiButtonPrefab = prefabService.GetPrefab(PrefabCategory.Shard, "ShardUIButton");
             var ui = shared.shardCollection;
 
             var draggableShardGO = shared.draggableShard.gameObject;

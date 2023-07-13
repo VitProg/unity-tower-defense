@@ -18,6 +18,7 @@ namespace td.features.dragNDrop
     {
         [Inject] private State state;
         [Inject] private LevelMap levelMap;
+        [InjectShared] private SharedData shared;
         
         [InjectWorld] private EcsWorld world;
         [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
@@ -27,7 +28,7 @@ namespace td.features.dragNDrop
         
         public void Run(IEcsSystems systems)
         {
-            var cursorPosition = CameraUtils.ToWorldPoint(Input.mousePosition);
+            var cursorPosition = CameraUtils.ToWorldPoint(shared.mainCamera, Input.mousePosition);
             var currentTime = Time.timeSinceLevelLoadAsDouble;
             
             foreach (var entity in entities.Value)

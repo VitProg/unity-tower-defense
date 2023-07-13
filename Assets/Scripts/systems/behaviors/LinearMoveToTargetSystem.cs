@@ -27,7 +27,7 @@ namespace td.systems.behaviors
 
         private readonly EcsFilterInject<
             Inc<Ref<GameObject>, LinearMovementToTarget>,
-            Exc<SmoothRotation, IsDisabled, RemoveGameObjectCommand, IsDestroyed>
+            Exc<SmoothRotation, IsDisabled, IsDestroyed, IsFreezed>
         > entities = default;
 
         public void Run(IEcsSystems systems)
@@ -37,6 +37,7 @@ namespace td.systems.behaviors
             var entitiesNativeArray = new NativeArray<EcsPackedEntity>(entitiesCount, Allocator.TempJob);
             var targetNativeArray = new NativeArray<TargetPoint>(entitiesCount, Allocator.TempJob);
             var speedNativeArray = new NativeArray<float>(entitiesCount, Allocator.TempJob);
+            var resetZNativeArray = new NativeArray<bool>(entitiesCount, Allocator.TempJob);
             var transforms = new TransformAccessArray(entitiesCount, 3);
             var onTargetNativeList = new NativeList<int>(Allocator.TempJob);
 
@@ -51,6 +52,8 @@ namespace td.systems.behaviors
                 targetNativeArray[index] = new TargetPoint
                     { target = movementToTarget.target, gap = movementToTarget.gap };
                 speedNativeArray[index] = movementToTarget.speed;
+
+                resetZNativeArray[index] = movementToTarget.resetAnchoredPositionZ;
 
                 if (gameObjectLink.reference && gameObjectLink.reference.activeSelf)
                 {
@@ -80,11 +83,28 @@ namespace td.systems.behaviors
                 }
             }
 
+            index = 0;
+            foreach (var entity in entities.Value)
+            {
+                if (resetZNativeArray[index])
+                {
+                    entitiesNativeArray[index] = world.PackEntity(entity);
+                    ref var gameObjectLink = ref entities.Pools.Inc1.Get(entity);
+                    
+                    var rectTransform = ((RectTransform)gameObjectLink.reference.transform);
+                    var ap = rectTransform.anchoredPosition3D;
+                    rectTransform.anchoredPosition3D = new Vector3(ap.x, ap.y, 0.0f);
+                }
+
+                index++;
+            }
+
             targetNativeArray.Dispose();
             speedNativeArray.Dispose();
             transforms.Dispose();
             onTargetNativeList.Dispose();
             entitiesNativeArray.Dispose();
+            resetZNativeArray.Dispose();
         }
     }
 
@@ -106,7 +126,7 @@ namespace td.systems.behaviors
             //-----
 
             transform.position = Vector3.MoveTowards(transform.position, target.target, DeltaTime * speed);
-
+            
             //-----
 
             var distance = (target.target - (Vector2)transform.position).sqrMagnitude;

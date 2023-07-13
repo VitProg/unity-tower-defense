@@ -39,6 +39,7 @@ namespace td.features.shards
                 ShardUtils.Copy(ref shard, ref sourceShard);
 
                 world.DelComponent<IsDisabled>(freeShardInCollectionEntity);
+                world.DelComponent<ShardColor>(freeShardInCollectionEntity);
 
                 systems.OuterSingle<UIRefreshShardCollectionOuterCommand>();
                 systems.OuterSingle<UIHideShardStoreOuterCommand>();

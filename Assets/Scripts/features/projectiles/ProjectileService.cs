@@ -4,7 +4,6 @@ using Leopotam.EcsLite;
 using td.components.behaviors;
 using td.components.flags;
 using td.components.refs;
-using td.features.projectiles.attributes;
 using td.features.shards;
 using td.features.shards.config;
 using td.monoBehaviours;
@@ -16,30 +15,18 @@ using UnityEngine;
 
 namespace td.features.projectiles
 {
-    public class ProjectileService
+    public sealed class ProjectileService
     {
         [Inject] private GameObjectPoolService poolService;
         [Inject] private EntityConverters converters;
+        [Inject] private PrefabService prefabService;
         [Inject] private ShardsConfig shardsConfig; // todo
         [InjectWorld] private EcsWorld world;
         [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
-        private readonly Dictionary<string, GameObject> prefabsDictionary = new();
-
-        private GameObject GetPrefab(string name)
+        private PoolableObject CreateObject(string name, Vector2 position)
         {
-            if (!prefabsDictionary.TryGetValue(name, out var prefab))
-            {
-                prefab = (GameObject)Resources.Load($"Prefabs/projectiles/{name}", typeof(GameObject));
-                prefabsDictionary.Add(name, prefab);
-            }
-
-            return prefab;
-        }
-
-        public PoolableObject CreateObject(string name, Vector2 position)
-        {
-            var prefab = GetPrefab(name);
+            var prefab = prefabService.GetPrefab(PrefabCategory.Projectiles, name);
             var projectilePoolableObject = poolService.Get(
                 prefab,
                 // todo add parent
@@ -58,20 +45,11 @@ namespace td.features.projectiles
             return projectilePoolableObject;
         }
 
-        private void ActionOnRelease(PoolableObject o)
+        private static void ActionOnRelease(PoolableObject o)
         {
             o.gameObject.SetActive(false);
             var projectileMb = o.GetComponent<ProjectileMonoBehaviour>();
             projectileMb.trailRenderer.Clear();
-        }
-
-        public void ApplyCommandAttributes(int commandEntity, int projectileEntity)
-        {
-            outerWorld.CopyComponent<DamageAttribute>(commandEntity, projectileEntity);
-            outerWorld.CopyComponent<ExplosiveAttribute>(commandEntity, projectileEntity);
-            outerWorld.CopyComponent<LightningAttribute>(commandEntity, projectileEntity);
-            outerWorld.CopyComponent<PoisonAttribute>(commandEntity, projectileEntity);
-            outerWorld.CopyComponent<SlowingAttribute>(commandEntity, projectileEntity);
         }
 
         //todo
@@ -98,14 +76,14 @@ namespace td.features.projectiles
 
             var targetPosition = (Vector2)targetGameObjectRef.reference.transform.position;
 
-            world.GetComponent<Projectile>(projectileEntity).WhoFired = world.PackEntity(whoFired);
+            world.GetComponent<Projectile>(projectileEntity).whoFired = world.PackEntity(whoFired);
 
             ref var movement = ref world.GetComponent<LinearMovementToTarget>(projectileEntity);
             movement.target = targetPosition;
             movement.speed = speed;
             movement.gap = Constants.DefaultGap;
 
-            world.GetComponent<ProjectileTarget>(projectileEntity).TargetEntity = world.PackEntity(targetEntity);
+            world.GetComponent<ProjectileTarget>(projectileEntity).targetEntity = world.PackEntity(targetEntity);
 
             world.DelComponent<IsDisabled>(projectileEntity);
             world.DelComponent<IsDestroyed>(projectileEntity);

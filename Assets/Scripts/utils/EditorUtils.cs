@@ -4,6 +4,7 @@ using System.Reflection;
 using JetBrains.Annotations;
 using Leopotam.EcsLite;
 using td.common;
+using td.utils.ecs;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -150,9 +151,11 @@ namespace td.utils
                 // }
                 // catch
                 // {
-                    EditorGUILayout.TextField($"Entity#{value}");
+                
+                (value is EcsPackedEntity entity ? entity : default).Unpack(DI.GetWorld(), out var unpacked);
+                EditorGUILayout.TextField($"Entity#{value}:{unpacked}");
                 // }
-
+                
                 EditorGUI.EndDisabledGroup();
             }
             else if (type == typeof(bool))

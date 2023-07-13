@@ -5,6 +5,7 @@ using td.common;
 using td.components.behaviors;
 using td.components.flags;
 using td.features.enemies.components;
+using td.features.enemies.mb;
 using td.features.state;
 using td.monoBehaviours;
 using td.services;
@@ -66,10 +67,19 @@ namespace td.features.enemies.systems
                     null,
                     ActionOnDestroy
                 );
+                
+                var enemyMb = enemyPoolableObject.GetComponent<EnemyMonoBehaviour>();
+                
                 var transform = enemyPoolableObject.transform;
                 transform.position = position;
-                transform.rotation = rotation;
                 transform.localScale = Vector2.one;
+                
+                enemyMb.body.transform.rotation = rotation;
+
+                enemyMb.hp.minValue = 0.0f;
+                enemyMb.hp.maxValue = spawnCommand.health;
+                enemyMb.hp.value = spawnCommand.health;
+                enemyMb.hpLine.color = new Color(1, 1, 0);
 
                 if (!converters.Convert<Enemy>(enemyPoolableObject.gameObject, out var enemyEntity))
                 {

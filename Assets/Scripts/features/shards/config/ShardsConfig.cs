@@ -31,7 +31,7 @@ namespace td.features.shards.config
         public float slowDurationMin = 3f;
 
         [Header("* Explosive")] public float explosiveDamageReducer = 6f;
-        public float explosiveRadiusAdd = 3f;
+        public float explosiveRadiusAdd = 1f;
         public float explosiveFadingReducer = 6f;
 
         [Header("* Poison")] public float poisonDamageBase = 0.5f;
@@ -49,23 +49,25 @@ namespace td.features.shards.config
 
         [Header("Levels Cooficients")]
         public readonly int[] triangularPyramids = {
-            1,
-            4,
-            10,
-            20,
-            35,
-            56,
-            84,
-            120,
-            165,
-            220,
-            286,
-            364,
-            455,
-            560,
-            680,
+            /* 1*/ 1,
+            /* 2*/ 4,
+            /* 3*/ 10,
+            /* 4*/ 20,
+            /* 5*/ 35,
+            /* 6*/ 56,
+            /* 7*/ 84,
+            /* 8*/ 120,
+            /* 9*/ 165,
+            /*10*/ 220,
+            /*11*/ 286,
+            /*12*/ 364,
+            /*13*/ 455,
+            /*14*/ 560,
+            /*15*/ 680,
         };
 
+        [Header("Levels Sprites")]
+        public Sprite[] levelSprites;
 
         public Color GetColor(int index)
         {
@@ -83,7 +85,24 @@ namespace td.features.shards.config
             };
         }
 
-        public int GetLevelCooficient(int quantity)
+        public byte GetColorIndex(string color)
+        {
+            return (color.ToLower().Trim()) switch
+            {
+                "red" => 0,
+                "green" => 1,
+                "blue" => 2,
+                "aquamarine" => 3,
+                "yellow" => 4,
+                "orange" => 5,
+                "pink" => 6,
+                "violet" => 7,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+            
+        }
+
+        public int GetLevelCoefficient(int quantity)
         {
             var o = triangularPyramids;
             for (var i = o.Length - 1; i >= 0; i--) {

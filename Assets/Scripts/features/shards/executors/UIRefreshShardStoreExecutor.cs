@@ -19,6 +19,7 @@ namespace td.features.shards.executors
     {
         [Inject] private LevelMap levelMap;
         [Inject] private EntityConverters converters;
+        [Inject] private PrefabService prefabService;
         [InjectWorld] private EcsWorld world;
         [InjectShared] private SharedData shared;
         [InjectSystems] private IEcsSystems systems;
@@ -30,7 +31,7 @@ namespace td.features.shards.executors
 
         public void Init(IEcsSystems unused)
         {
-            shardUiButtonPrefab = (GameObject)Resources.Load("Prefabs/ShardUIButton", typeof(GameObject));
+            shardUiButtonPrefab = prefabService.GetPrefab(PrefabCategory.Shard, "ShardUIButton");
         }
         
         public void Run(IEcsSystems systems)

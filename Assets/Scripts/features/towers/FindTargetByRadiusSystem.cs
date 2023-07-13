@@ -90,7 +90,7 @@ namespace td.features.towers
 
                 if (targetEntity >= 0)
                 {
-                    world.GetComponent<ProjectileTarget>(towerEntity).TargetEntity = world.PackEntity(targetEntity);
+                    world.GetComponent<ProjectileTarget>(towerEntity).targetEntity = world.PackEntity(targetEntity);
                 }
             }
         }

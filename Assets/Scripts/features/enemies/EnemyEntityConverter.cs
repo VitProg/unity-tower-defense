@@ -3,6 +3,7 @@ using Leopotam.EcsLite;
 using td.components.flags;
 using td.components.refs;
 using td.features.enemies.components;
+using td.features.impactsEnemy;
 using td.monoBehaviours;
 using td.services.ecsConverter;
 using td.utils.ecs;
@@ -22,6 +23,13 @@ namespace td.features.enemies
             
             world.DelComponent<IsDisabled>(entity);
             world.DelComponent<IsDestroyed>(entity);
+            
+            world.DelComponent<IsFreezed>(entity);
+            
+            world.DelComponent<PoisonDebuff>(entity);
+            world.DelComponent<ShockingDebuff>(entity);
+            world.DelComponent<SpeedDebuff>(entity);
+            
 #if UNITY_EDITOR
             if (!gameObject.GetComponent<EcsComponentsInfo>())
             {

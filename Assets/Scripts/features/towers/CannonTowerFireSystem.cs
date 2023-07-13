@@ -55,7 +55,7 @@ namespace td.features.towers
                 
                 var target = world.GetComponent<ProjectileTarget>(cannonEntity);
 
-                if (target.TargetEntity.Unpack(world, out var enemyEntity))
+                if (target.targetEntity.Unpack(world, out var enemyEntity))
                 {
                     if (world.HasComponent<IsDisabled>(enemyEntity) ||
                         world.HasComponent<IsDestroyed>(enemyEntity))

@@ -18,6 +18,7 @@ namespace td.features.towers
         [Inject] private ProjectileService projectileService;
         [Inject] private ShardCalculator shardCalculator;
         [InjectWorld] private EcsWorld world;
+        [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
 
         private readonly EcsFilterInject<
             Inc<Tower, ShardTower, Ref<GameObject>>,
@@ -44,7 +45,7 @@ namespace td.features.towers
                 if (!lunchProjectile || !world.HasComponent<ProjectileTarget>(towerEntity)) continue;
 
                 var target = world.GetComponent<ProjectileTarget>(towerEntity);
-                if (!target.TargetEntity.Unpack(world, out var enemyEntity)) continue;
+                if (!target.targetEntity.Unpack(world, out var enemyEntity)) continue;
                 
                 ref var enemyGORef = ref world.GetComponent<Ref<GameObject>>(enemyEntity);
                     
@@ -107,7 +108,15 @@ namespace td.features.towers
                 if (shardCalculator.HasLightning(ref shard))
                 {
                     ref var lightningAtr = ref world.GetComponent<LightningAttribute>(projectileEntity);
-                    shardCalculator.CalculateLightningParams(ref shard, out lightningAtr.damage, out lightningAtr.damageReduction, out lightningAtr.chainReaction);
+                    shardCalculator.CalculateLightningParams(
+                        ref shard, 
+                        out lightningAtr.duration,
+                        out lightningAtr.damage,
+                        out lightningAtr.damageReduction,
+                        out lightningAtr.damageInterval,
+                        out lightningAtr.chainReaction,
+                        out lightningAtr.chainReactionRadius
+                    );
                 }
 
                 // violet - шок, кантузия… останавливает цель на короткое время. срабатывает с % вероятности

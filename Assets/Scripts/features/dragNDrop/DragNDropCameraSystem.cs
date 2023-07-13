@@ -8,6 +8,7 @@ using td.components.flags;
 using td.components.refs;
 using td.features.state;
 using td.services;
+using td.utils;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ namespace td.features.dragNDrop
     {
         [Inject] private State state;
         [Inject] private LevelMap levelMap;
+        [InjectShared] private SharedData shared;
         
         [InjectWorld] private EcsWorld world;
         [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
@@ -28,7 +30,8 @@ namespace td.features.dragNDrop
 
         public void Run(IEcsSystems systems)
         {
-            var cursorPosition = Input.mousePosition;
+            var cursorPositionOnScreen = Input.mousePosition;
+            var cursorPositionOnCanvasCamera = shared.canvasCamera.ScreenToWorldPoint(cursorPositionOnScreen);
             var currentTime = Time.timeSinceLevelLoadAsDouble;
             
             foreach (var entity in entities.Value)
@@ -41,7 +44,7 @@ namespace td.features.dragNDrop
                 ref var refGameObject = ref entities.Pools.Inc3.Get(entity);
                 var gameObject = refGameObject.reference;
 
-                var position = (Vector2)cursorPosition;
+                var position = cursorPositionOnCanvasCamera;
 
                 var isSmooth = world.HasComponent<IsSmoothDragging>(entity);
 
@@ -50,12 +53,17 @@ namespace td.features.dragNDrop
                     ref var movement = ref world.GetComponent<LinearMovementToTarget>(entity);
                     movement.target = position;
 
-                    var distance = (position - (Vector2)gameObject.transform.position).magnitude;
+                    var distance = (position - gameObject.transform.position).magnitude;
                     movement.speed = distance * Constants.UI.DragNDrop.SmoothSpeed;
+                    
+                    movement.resetAnchoredPositionZ = true;
                 }
                 else
                 {
                     gameObject.transform.position = position;
+                    var rectTransform = ((RectTransform)gameObject.transform);
+                    var ap = rectTransform.anchoredPosition3D;
+                    rectTransform.anchoredPosition3D = new Vector3(ap.x, ap.y, 0.0f);
                 }
 
                 var isUnableToDrop = world.HasComponent<IsUnableToDrop>(entity);
@@ -69,10 +77,8 @@ namespace td.features.dragNDrop
                         if (Input.GetMouseButtonUp(0))
                         {
                             var deltaTime = currentTime - draggingStartedData.startedTime;
-                            // Debug.Log($"> DnD: state=NONE; mb=UP; dt:{deltaTime:0.000s}; isUnableToDrop:{(isUnableToDrop ? "+" : "-")}");
                             if (deltaTime < Constants.UI.DragNDrop.TimeForAwaitDown)
                             {
-                                // Debug.Log($"> ...delta time is small switch state to DOWN");
                                 isDragging.state = IsDraggingState.Down;
                             }
                             else
@@ -80,7 +86,6 @@ namespace td.features.dragNDrop
                                 //todo
                                 if (!isUnableToDrop)
                                 {
-                                    // Debug.Log($"> ...REMOVE IsDraging !!!");
                                     removeIsDraging = true;
                                 }
                             }
@@ -90,10 +95,8 @@ namespace td.features.dragNDrop
                     case IsDraggingState.Down:
                         if (Input.GetMouseButtonDown(0))
                         {
-                            // Debug.Log($"> DnD: state=DOWN; mb=DOWN; isUnableToDrop:{(isUnableToDrop ? "+" : "-")}");
                             if (!isUnableToDrop)
                             {
-                                // Debug.Log($"> ...switch state to UP");
                                 isDragging.state = IsDraggingState.Up;
                             }
                         }
@@ -101,16 +104,13 @@ namespace td.features.dragNDrop
 
                     case IsDraggingState.Up:
                         if (Input.GetMouseButtonUp(0))
-                        {
-                            // Debug.Log($"> DnD: state=UP; mb=UP; isUnableToDrop:{(isUnableToDrop ? "+" : "-")}");
+                        { 
                             if (isUnableToDrop)
                             {
-                                // Debug.Log($"> ...switch state to DOWN");
                                 isDragging.state = IsDraggingState.Down;
                             }
                             else
                             {
-                                // Debug.Log($"> ...REMOVE IsDraging !!!");
                                 removeIsDraging = true;
                             }
                         }
@@ -154,10 +154,11 @@ namespace td.features.dragNDrop
                     if (isRollback)
                     {
                         world.GetComponent<IsRollbackDragging>(entity).mode = DragMode.Camera;
-                        ref var target = ref world.GetComponent<LinearMovementToTarget>(entity);
-                        target.from = refGameObject.reference.transform.position;
-                        target.target = draggingStartedData.startedPosition;
-                        target.speed = Mathf.Max(Screen.width, Screen.height) * Constants.UI.DragNDrop.RollbackSpeed;
+                        ref var movement = ref world.GetComponent<LinearMovementToTarget>(entity);
+                        movement.from = refGameObject.reference.transform.position;
+                        movement.target = draggingStartedData.startedPosition;
+                        movement.speed = Mathf.Max(Screen.width, Screen.height) * Constants.UI.DragNDrop.RollbackSpeed;
+                        movement.resetAnchoredPositionZ = true;
                     }
                 }
             }
@@ -205,7 +206,9 @@ namespace td.features.dragNDrop
 
             world.GetComponent<DragStartEvent>(entity).mode = DragMode.Camera;
             
-            refGameObject.reference.transform.position = Input.mousePosition;
+            var cursorPosition = CameraUtils.ToWorldPoint(DI.GetShared<SharedData>()!.canvasCamera, Input.mousePosition);
+            
+            refGameObject.reference.transform.position = cursorPosition;
             refGameObject.reference.transform.SetParent(canvasDragLayer.transform);
             
             if (smoothDragging)

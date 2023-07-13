@@ -25,7 +25,8 @@ namespace td.features.towers
         [Inject] private State state;
         [Inject] private LevelMap levelMap;
         [Inject] private EntityConverters converters;
-        [InjectShared] private SharedData sharedData;
+        [Inject] private PrefabService prefabService;
+        [InjectShared] private SharedData shared;
 
         [InjectWorld] private EcsWorld world;
         [InjectWorld(Constants.Worlds.Outer)] private EcsWorld outerWorld;
@@ -52,9 +53,9 @@ namespace td.features.towers
                 var cell = levelMap.GetCell(position, CellTypes.CanBuild);
                 var canBuild = cell && cell.HasBuilding() == false;
                 
-                if (sharedData.hightlightGrid)
+                if (shared.hightlightGrid)
                 {
-                    sharedData.hightlightGrid.state = canBuild ? GridHightlightState.Fine : GridHightlightState.Error;
+                    shared.hightlightGrid.state = canBuild ? GridHightlightState.Fine : GridHightlightState.Error;
                 }
                 
                 if (canBuild)
@@ -105,8 +106,8 @@ namespace td.features.towers
             }
             
             // todo
-            var position = CameraUtils.ToWorldPoint(e.Position);
-            var prefab = Resources.Load<GameObject>("Prefabs/buildings/shard_tower");
+            var position = CameraUtils.ToWorldPoint(shared.canvasCamera, e.Position);
+            var prefab = prefabService.GetPrefab(PrefabCategory.Buildings, "shard_tower");
             var gameObject = Object.Instantiate(prefab, position, Quaternion.identity, buildingsContainer.transform);
 
             if (!converters.Convert<Tower>(gameObject, out var entity))

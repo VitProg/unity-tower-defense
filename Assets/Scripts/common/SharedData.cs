@@ -15,6 +15,7 @@ namespace td.common
         public CinemachineVirtualCamera virtualCamera;
         public EcsUguiEmitter uguiEmitter;
         public Camera mainCamera;
+        public Camera canvasCamera;
         public HightlightGridByCursor hightlightGrid;
 
         public ShardCollectionPanel shardCollection;
@@ -22,6 +23,7 @@ namespace td.common
         public ShardInfoPanel shardInfo;
         public ShardMonoBehaviour draggableShard;
         public EcsPackedEntity draggableShardPackedEntity;
+        public CombineShardCostPopup combineShardCostPopup;
 
         public bool IsPerspectiveCameraMode =>
             virtualCamera && mainCamera && 

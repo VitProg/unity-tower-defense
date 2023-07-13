@@ -78,11 +78,14 @@ namespace td.features.shards.mb
             // aquamarine - молния. цепная реакция от моба к мобу
             if (shardCalculator.HasLightning(ref shard))
             {
-                shardCalculator.CalculateLightningParams(ref shard, out var damage, out var damageReduction, out var chainReaction);
+                shardCalculator.CalculateLightningParams(ref shard, out var interval, out var damage, out var damageReduction, out var damageInterval, out var chainReaction, out var chainReactionRadius);
                 sb.Append($"Lightning\n");
+                sb.Append($" - duration: {interval:0.00}s\n");
                 sb.Append($" - damage: {damage:0.00}\n");
                 sb.Append($" - damage reduction: {damageReduction:0.00}\n");
-                sb.Append($" - chain reaction: {chainReaction:0.00}\n");
+                sb.Append($" - damage interval: {damageInterval:0.00}s\n");
+                sb.Append($" - chain reaction: {chainReaction:0}\n");
+                sb.Append($" - chain reaction radius: {chainReactionRadius:0.00}\n");
                 sb.Append($"\n");
             }
 

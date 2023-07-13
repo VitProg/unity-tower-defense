@@ -6,7 +6,8 @@ namespace td.features.impactsEnemy
     [Serializable]
     public struct TakeDamageOuter
     {
-        public EcsPackedEntity TargetEntity;
+        public EcsPackedEntity targetEntity;
         public float damage;
+        public DamageType type;
     }
 }

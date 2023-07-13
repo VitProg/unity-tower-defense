@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using td.common;
 using td.components.flags;
 using td.components.refs;
 using td.features.shards;
@@ -20,6 +21,7 @@ namespace td.features.towers
         [Inject] private LevelMap levelMap;
         [Inject] private ShardCalculator shardCalculator;
         [Inject] private ShardsConfig config;
+        [InjectShared] private SharedData shared;
         [InjectWorld] private EcsWorld world;
 
         private readonly EcsFilterInject<Inc<Tower, IsRadiusShown>, Exc<IsDestroyed>> towerEntities = default;
@@ -36,7 +38,7 @@ namespace td.features.towers
             {
                 // todo плавное исчезновение радисуса
                 world.DelComponent<IsRadiusShown>(towerEntity);
-                
+
                 ref var gameObjectRef = ref world.GetComponent<Ref<GameObject>>(towerEntity);
                 var shardTowerMb = gameObjectRef.reference.transform.GetComponent<ShardTowerMonoBehaviour>();
 
@@ -44,45 +46,45 @@ namespace td.features.towers
                 {
                     shardTowerMb.lineRenderer.enabled = false;
                 }
-
-                // if (tower.radiusGameObject)
-                // {
-                    // tower.radiusGameObject.SetActive(false);
-                // }
             }
         }
 
         private void ShowRadiusForTowerUnderCursor()
         {
-            var cursorPosition = CameraUtils.ToWorldPoint(Input.mousePosition);
+            var cursorPosition = CameraUtils.ToWorldPoint(shared.mainCamera, Input.mousePosition);
             var cell = levelMap.GetCell(cursorPosition, CellTypes.CanBuild);
-            
+
             if (
-                cell &&
-                cell.HasBuilding<ShardTower>(world) &&
-                cell.TryGetBuildngEntity(world, out var towerEntity) &&
-                ShardTowerUtils.HasShard(world, towerEntity)
-            )
+                !cell ||
+                !cell.HasBuilding<ShardTower>(world) ||
+                !cell.HasBuilding(world, out var towerEntity) ||
+                !ShardTowerUtils.HasShard(world, towerEntity)
+            ) return;
+            
+            ref var shardTower = ref world.GetComponent<ShardTower>(towerEntity);
+            ref var gameObjectRef = ref world.GetComponent<Ref<GameObject>>(towerEntity);
+            ref var shard = ref ShardTowerUtils.GetShard(world, ref shardTower, out var shardEntity);
+
+            var shardTowerMb = gameObjectRef.reference.transform.GetComponent<ShardTowerMonoBehaviour>();
+
+            if (shardTowerMb)
             {
-                ref var shardTower = ref world.GetComponent<ShardTower>(towerEntity);
-                ref var gameObjectRef = ref world.GetComponent<Ref<GameObject>>(towerEntity);
-                ref var shard = ref ShardTowerUtils.GetShard(world, ref shardTower, out var shardEntity);
+                // ref var shardPackedEntity = ref world.GetComponent<Shard>(shardEntity);
+                var radius = shardCalculator.GetTowerRadius(ref shard);
 
-                var shardTowerMb = gameObjectRef.reference.transform.GetComponent<ShardTowerMonoBehaviour>();
-                
-                if (shardTowerMb)
+                var color = ShardUtils.GetMixedColor(ref shard, config);;
+
+                if (world.HasComponent<ShardColor>(shardEntity))
                 {
-                    // ref var shardPackedEntity = ref world.GetComponent<Shard>(shardEntity);
-                    var radius = shardCalculator.GetTowerRadius(ref shard);
-
-                    var color = ShardUtils.GetMixedColor(ref shard, config);
-                    
-                    shardTowerMb.lineRenderer.enabled = true;
-
-                    DrawRadius(shardTowerMb.lineRenderer, radius, color);
-                    
-                    world.GetComponent<IsRadiusShown>(towerEntity);
+                    ref var sc = ref world.GetComponent<ShardColor>(shardEntity);
+                    color = sc.resultColor;
                 }
+
+                shardTowerMb.lineRenderer.enabled = true;
+
+                DrawRadius(shardTowerMb.lineRenderer, radius, color);
+
+                world.GetComponent<IsRadiusShown>(towerEntity);
             }
         }
 
@@ -107,7 +109,7 @@ namespace td.features.towers
             for (var i = 0; i <= triangelesCount; i++)
             {
                 var angleRad = angle * (Mathf.PI / 180f);
-                var vectorFromAngle = new Vector2(Mathf.Cos(angleRad),Mathf.Sin(angleRad) * .85f);
+                var vectorFromAngle = new Vector2(Mathf.Cos(angleRad), Mathf.Sin(angleRad) * .85f);
 
                 Vector3 vertex = origin + vectorFromAngle * radius;
                 vertices[vertexIndex] = vertex;

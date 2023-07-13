@@ -15,14 +15,14 @@ namespace td.features.impactsEnemy
     {
         [InjectWorld] private EcsWorld world;
         
-        private readonly EcsFilterInject<Inc<SpeedDebuff, Enemy>, Exc<IsDestroyed>> speedDebufEntities = default;
+        private readonly EcsFilterInject<Inc<SpeedDebuff, Enemy>, Exc<IsDestroyed>> speedDebuffEntities = default;
 
         public void Run(IEcsSystems systems)
         {
-            foreach (var enemyEntity in speedDebufEntities.Value)
+            foreach (var enemyEntity in speedDebuffEntities.Value)
             {
-                ref var debuff = ref speedDebufEntities.Pools.Inc1.Get(enemyEntity);
-                ref var enemy = ref speedDebufEntities.Pools.Inc2.Get(enemyEntity);
+                ref var debuff = ref speedDebuffEntities.Pools.Inc1.Get(enemyEntity);
+                ref var enemy = ref speedDebuffEntities.Pools.Inc2.Get(enemyEntity);
                 
                 if (!debuff.started)
                 {

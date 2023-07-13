@@ -63,51 +63,51 @@ namespace td.features.shards.mb
             infoPanel ??= FindObjectOfType<ShardInfoPanel>();
         }
 
-        protected void Update()
-        {
-            // Todo optimize
-            var radius = Radius;
-            var sqrRadius = radius * radius;
-            var distance = ((Vector2)Input.mousePosition - (Vector2)rectTransform.position).sqrMagnitude;
-            
-            if (!ecsEntity || !ecsEntity.TryGetEntity(out var shardEntity)) return;
-                
-            systems ??= DI.GetSystems();
-            world ??= DI.GetWorld();
-
-            if (distance < sqrRadius)
-            {
-                if (shardMB) hover.color = ShardUtils.GetHoverColor(shardMB.Values, hover.color.a, shardMB.config);
-                hover.gameObject.SetActive(true);
-                world.GetComponent<ShardIsHovered>(shardEntity);
-
-                var canDrag = shardUIButton?.druggable ?? true;
-
-                if (canDrag && Input.GetMouseButtonDown(0))
-                {
-                    var alreadyDragged = world.HasComponent<IsDragging>(shardEntity);
-                    var anyoneAlreadyDragged = world.Filter<Shard>().Inc<IsDragging>().Exc<IsDisabled>()
-                        .Exc<IsDestroyed>().End().GetEntitiesCount() > 0;
-                    
-                    if (!alreadyDragged && !anyoneAlreadyDragged)
-                    {
-                        ref var downEvent = ref systems.Outer<UIShardDownEvent>();
-                        downEvent.packedEntity = world.PackEntity(shardEntity);
-                        downEvent.position = Input.mousePosition;
-                    }
-                }
-
-                if (infoPanel && shardMB.HasShard())
-                {
-                    ref var shard = ref shardMB.GetShard();
-                    infoPanel.ShowInfo(ref shard);
-                }
-            }
-            else
-            {
-                world.DelComponent<ShardIsHovered>(shardEntity);
-                hover.gameObject.SetActive(false);
-            }
-        }
+        // protected void Update()
+        // {
+        //     // Todo optimize
+        //     var radius = Radius;
+        //     var sqrRadius = radius * radius;
+        //     var distance = ((Vector2)Input.mousePosition - (Vector2)rectTransform.position).sqrMagnitude;
+        //     
+        //     if (!ecsEntity || !ecsEntity.TryGetEntity(out var shardEntity)) return;
+        //         
+        //     systems ??= DI.GetSystems();
+        //     world ??= DI.GetWorld();
+        //
+        //     if (distance < sqrRadius)
+        //     {
+        //         if (shardMB) hover.color = ShardUtils.GetHoverColor(shardMB.Values, hover.color.a, shardMB.config);
+        //         hover.gameObject.SetActive(true);
+        //         world.GetComponent<ShardIsHovered>(shardEntity);
+        //
+        //         var canDrag = shardUIButton?.druggable ?? true;
+        //
+        //         if (canDrag && Input.GetMouseButtonDown(0))
+        //         {
+        //             var alreadyDragged = world.HasComponent<IsDragging>(shardEntity);
+        //             var anyoneAlreadyDragged = world.Filter<Shard>().Inc<IsDragging>().Exc<IsDisabled>()
+        //                 .Exc<IsDestroyed>().End().GetEntitiesCount() > 0;
+        //             
+        //             if (!alreadyDragged && !anyoneAlreadyDragged)
+        //             {
+        //                 ref var downEvent = ref systems.Outer<UIShardDownEvent>();
+        //                 downEvent.packedEntity = world.PackEntity(shardEntity);
+        //                 downEvent.position = Input.mousePosition;
+        //             }
+        //         }
+        //
+        //         if (infoPanel && shardMB.HasShard())
+        //         {
+        //             ref var shard = ref shardMB.GetShard();
+        //             infoPanel.ShowInfo(ref shard);
+        //         }
+        //     }
+        //     else
+        //     {
+        //         world.DelComponent<ShardIsHovered>(shardEntity);
+        //         hover.gameObject.SetActive(false);
+        //     }
+        // }
     }
 }
