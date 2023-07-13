@@ -1,33 +1,18 @@
 using System.Collections;
 using System.Collections.Generic;
+using td.common;
 using td.monoBehaviours;
+using td.utils;
+using td.utils.ecs;
 using UnityEngine;
 
-namespace td
+namespace td.monoBehaviours
 {
     public class ShowDebugInfo : MonoBehaviour
     {
-        // Start is called before the first frame update
-        void Start()  
-        {
-        
-        }
-
-        // Update is called once per frame
-        void Update()
-        {
-        
-        }
-
-        private bool show = true;
-
         public void OnCheckBoxChanged()
         {
-            show = !show;
-            foreach (var cellDebug in FindObjectsOfType<CellDebug>(true))
-            {
-                cellDebug.gameObject.SetActive(show);
-            }
+            DebugUtils.debugInfoVisible = !DebugUtils.debugInfoVisible;
         }
     }
 }

@@ -1,13 +1,12 @@
 ﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.components.behaviors;
 using td.components.flags;
 using td.components.refs;
 using td.features.dragNDrop;
-using td.features.enemies.components;
 using td.features.projectiles;
 using td.features.projectiles.attributes;
 using td.features.shards;
+using td.features.state;
 using td.services;
 using td.utils.ecs;
 using UnityEngine;
@@ -16,6 +15,7 @@ namespace td.features.towers
 {
     public class CannonTowerFireSystem : IEcsRunSystem
     {
+        [Inject] private State state;
         [Inject] private LevelMap levelMap;
         [Inject] private ProjectileService projectileService;
         [InjectWorld] private EcsWorld world;
@@ -37,7 +37,7 @@ namespace td.features.towers
 
                 if (cannon.fireCountdown > 0)
                 {
-                    cannon.fireCountdown -= Time.deltaTime;
+                    cannon.fireCountdown -= Time.deltaTime * state.GameSpeed;
                 }
 
                 if (cannon.fireCountdown < Constants.ZeroFloat)

@@ -26,7 +26,7 @@ namespace td.features.waves
             ref var countdown = ref eventEntities.Pools.Inc1.Get((int)eventEntity);
 
             var last = countdown.countdown;
-            var current = last - Time.deltaTime;
+            var current = last - Time.deltaTime * state.GameSpeed;
                 
             countdown.countdown = current;
 

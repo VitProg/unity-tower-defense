@@ -37,6 +37,7 @@ namespace td.systems.behaviors
             var entitiesCount = entities.Value.GetEntitiesCount();
 
             var entitiesNativeArray = new NativeArray<EcsPackedEntity>(entitiesCount, Allocator.TempJob);
+            var deltaTimeNativeArray = new NativeArray<float>(entitiesCount, Allocator.TempJob);
             var targetNativeArray = new NativeArray<TargetPoint>(entitiesCount, Allocator.TempJob);
             var speedNativeArray = new NativeArray<float>(entitiesCount, Allocator.TempJob);
             var resetZNativeArray = new NativeArray<bool>(entitiesCount, Allocator.TempJob);
@@ -57,6 +58,10 @@ namespace td.systems.behaviors
 
                 resetZNativeArray[index] = movementToTarget.resetAnchoredPositionZ;
 
+                deltaTimeNativeArray[index] = movementToTarget.speedOfGameAffected
+                    ? Time.deltaTime * state.GameSpeed
+                    : Time.deltaTime;
+
                 if (gameObjectLink.reference && gameObjectLink.reference.activeSelf)
                 {
                     transforms.Add(gameObjectLink.reference.transform);
@@ -67,7 +72,8 @@ namespace td.systems.behaviors
 
             var newJob = new MoveToTargetSystemJob
             {
-                DeltaTime = Time.deltaTime * state.TimeFlow,
+                // DeltaTime = Time.deltaTime * state.TimeFlow,
+                DeltaTimeArray = deltaTimeNativeArray,
                 TargetArray = targetNativeArray,
                 SpeedArray = speedNativeArray,
                 OnTargetNativeList = onTargetNativeList,
@@ -114,20 +120,20 @@ namespace td.systems.behaviors
     [BurstCompile]
     internal struct MoveToTargetSystemJob : IJobParallelForTransform
     {
-        public float DeltaTime;
-
         [NativeDisableParallelForRestriction] public NativeArray<TargetPoint> TargetArray;
         [NativeDisableParallelForRestriction] public NativeArray<float> SpeedArray;
         [NativeDisableParallelForRestriction] public NativeList<int> OnTargetNativeList;
+        [NativeDisableParallelForRestriction] public NativeArray<float> DeltaTimeArray;
 
         public void Execute(int index, TransformAccess transform)
         {
             var target = TargetArray[index];
             var speed = SpeedArray[index];
+            var deltaTime = DeltaTimeArray[index];
 
             //-----
 
-            transform.position = Vector3.MoveTowards(transform.position, target.target, DeltaTime * speed);
+            transform.position = Vector3.MoveTowards(transform.position, target.target, deltaTime * speed);
             
             //-----
 

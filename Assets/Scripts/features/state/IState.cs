@@ -11,5 +11,6 @@
         public int WaveCount { get; set; }
         public int EnemiesCount { get; set; }
         public bool IsBuildingProcess { get; set; }
+        public float GameSpeed { get; set; }
     }
 }

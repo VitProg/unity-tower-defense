@@ -2,7 +2,9 @@
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.Unity.Ugui;
+using td.features.gameSpeed;
 using td.features.state;
+using td.utils;
 using td.utils.ecs;
 using TMPro;
 using UnityEngine;
@@ -23,6 +25,11 @@ namespace td.features.ui
         
         [EcsUguiNamed("NewWaveTimer")] private GameObject newWaveTimerContainer;
         [EcsUguiNamed("NewWaveTimer_Timer")] private TMP_Text newWaveTimer;
+        
+        [EcsUguiNamed("GameSpeed_Pause")] private UIGameSpeedButton gameSpeedPause;
+        [EcsUguiNamed("GameSpeed_1x")] private UIGameSpeedButton gameSpeed1X;
+        [EcsUguiNamed("GameSpeed_2x")] private UIGameSpeedButton gameSpeed2X;
+        [EcsUguiNamed("GameSpeed_5x")] private UIGameSpeedButton gameSpeed5X;
         
         private readonly Regex oneNumberRegex = new(@"[\d#.-]+");
         private readonly Regex waveRegex = new(@"(\d+|#+)/(\d+|#+)");
@@ -64,7 +71,9 @@ namespace td.features.ui
                     {
                         newWaveTimerContainer.SetActive(true);
                         var text = $"{state.NextWaveCountdown:0.00}";
-                        var l = text.Split(',');
+                        var l = text.Contains('.')
+                            ? text.Split('.')
+                            : text.Split(',');
                         newWaveTimer.text = $"{l[0]}<size=75%>:{l[1]}</size>";
                     }
                     else
@@ -77,10 +86,18 @@ namespace td.features.ui
                 {
                     enemiesLabelText.text = oneNumberRegex.Replace(enemiesLabelText.text, IntegerFormat(state.EnemiesCount));
                 }
+
+                if (data.gameSpeed == true)
+                {
+                    if (gameSpeedPause != null) gameSpeedPause.Refresh();
+                    if (gameSpeed1X != null) gameSpeed1X.Refresh();
+                    if (gameSpeed2X != null) gameSpeed2X.Refresh();
+                    if (gameSpeed5X != null) gameSpeed5X.Refresh();
+                }
             }
         }
 
-        private string IntegerFormat(float number) => number.ToString("N0").Replace(',', '\'');
-        private string IntegerFormat(int number) => number.ToString("N0").Replace(',', '\'');
+        private string IntegerFormat(float number) => number.ToString("N0").Replace(',', '\'').Replace('.', '\'');
+        private string IntegerFormat(int number) => number.ToString("N0").Replace(',', '\'').Replace('.', '\'');
     }
 }

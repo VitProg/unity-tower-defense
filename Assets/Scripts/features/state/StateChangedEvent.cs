@@ -11,7 +11,7 @@ namespace td.features.state
         public bool? waveNumber;
         public bool? waveCount;
         public bool? enemiesCount;
-        public bool? timeFlow;
         public bool? isBuildingProcess;
+        public bool? gameSpeed;
     }
 }

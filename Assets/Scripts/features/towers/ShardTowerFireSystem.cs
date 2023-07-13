@@ -6,6 +6,7 @@ using td.features.dragNDrop;
 using td.features.projectiles;
 using td.features.projectiles.attributes;
 using td.features.shards;
+using td.features.state;
 using td.services;
 using td.utils.ecs;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace td.features.towers
 {
     public class ShardTowerFireSystem : IEcsRunSystem, IEcsInitSystem
     {
+        [Inject] private State state;
         [Inject] private LevelMap levelMap;
         [Inject] private ProjectileService projectileService;
         [Inject] private ShardCalculator shardCalculator;
@@ -40,7 +42,7 @@ namespace td.features.towers
                 
                 var lunchProjectile = false;
 
-                if (shardTower.fireCountdown > 0) shardTower.fireCountdown -= Time.deltaTime;
+                if (shardTower.fireCountdown > 0) shardTower.fireCountdown -= Time.deltaTime * state.GameSpeed;
                 if (shardTower.fireCountdown < Constants.ZeroFloat) lunchProjectile = true;
                 if (!lunchProjectile || !world.HasComponent<ProjectileTarget>(towerEntity)) continue;
 

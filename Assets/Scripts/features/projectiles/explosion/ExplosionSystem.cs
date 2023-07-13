@@ -6,6 +6,7 @@ using td.components.refs;
 using td.features.enemies.components;
 using td.features.impactsEnemy;
 using td.features.projectiles.attributes;
+using td.features.state;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -14,6 +15,7 @@ namespace td.features.projectiles.explosion
 {
     public class ExplosionSystem : IEcsRunSystem
     {
+        [Inject] private State state;
         [InjectWorld] private EcsWorld world;
         
         private readonly EcsFilterInject<Inc<Explosion, ExplosiveAttribute, Ref<GameObject>>, Exc<IsDisabled, IsDestroyed>> entities = default;
@@ -28,7 +30,7 @@ namespace td.features.projectiles.explosion
                 var explosionGO = entities.Pools.Inc3.Get(entity).reference;
                 var explosionMb = explosionGO.GetComponent<ExplosionMonoBehaviour>();
 
-                explosion.progress += explosion.diameterIncreaseSpeed * Time.deltaTime;
+                explosion.progress += explosion.diameterIncreaseSpeed * Time.deltaTime * state.GameSpeed;
 
                 explosion.currentDiameter = Mathf.Lerp(
                     0f,

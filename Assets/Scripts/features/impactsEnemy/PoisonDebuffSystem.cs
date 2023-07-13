@@ -2,6 +2,7 @@
 using Leopotam.EcsLite.Di;
 using td.components.flags;
 using td.features.enemies.components;
+using td.features.state;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ namespace td.features.impactsEnemy
 {
     public class PoisonDebuffSystem : IEcsRunSystem
     {
+        [Inject] private State state;
         [InjectWorld] private EcsWorld world;
 
         private readonly EcsFilterInject<Inc<PoisonDebuff, Enemy>, Exc<IsDestroyed>> poisonDebuffEntities = default;
@@ -26,8 +28,8 @@ namespace td.features.impactsEnemy
                     debuff.started = true;
                 }
                 
-                debuff.timeRemains -= Time.deltaTime;
-                debuff.damageIntervalRemains -= Time.deltaTime;
+                debuff.timeRemains -= Time.deltaTime * state.GameSpeed;
+                debuff.damageIntervalRemains -= Time.deltaTime * state.GameSpeed;
 
                 if (debuff.timeRemains < Constants.ZeroFloat)
                 {

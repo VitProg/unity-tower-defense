@@ -1,43 +1,43 @@
-﻿using UnityEngine;
+﻿using NaughtyAttributes;
+using UnityEngine;
 using td.utils.ecs;
 using td.features.state;
-using UnityEngine.Serialization;
+using td.utils;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace td.features.gameSpeed
 {
-    public class UITimeFlowButton : MonoBehaviour
+    public class UIGameSpeedButton : MonoBehaviour, IPointerDownHandler
     {
         [Inject] private State state;
-        [SerializeField] private float gameSpeed;
         
-        public void ChangeTimeFlow()
+        [Required][SerializeField] private Image image;
+        
+        [Required][SerializeField] private float gameSpeed;
+        
+        [Required][SerializeField] private Sprite onStateSprite;
+        [Required][SerializeField] private Sprite offStateSprite;
+        
+        public void Refresh()
         {
             if (state == null)
             {
                 DI.Resolve(this);
             }
             
-            state!.GameSpeed = gameSpeed; 
-
-            // todo
-            var aColorSelected = 1;
-            var aColorNotSelected = 0.6f;
-            float aColorNewClick;
-            
-            foreach (var timeButtonGO in transform.parent.GetComponentsInChildren<Button>())
+            var isOn = FloatUtils.IsEquals(state!.GameSpeed, gameSpeed);
+            image.sprite = isOn ? onStateSprite : offStateSprite;
+        }
+        
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            if (state == null)
             {
-                aColorNewClick = timeButtonGO.gameObject == gameObject ? aColorSelected : aColorNotSelected;
-
-                if (timeButtonGO.transform.GetChild(0).TryGetComponent<Image>(out var imageUnderTimeButton))
-                {
-                    imageUnderTimeButton.color = new Color(
-                        imageUnderTimeButton.color.r,
-                        imageUnderTimeButton.color.g,
-                        imageUnderTimeButton.color.b,
-                        aColorNewClick);
-                }
+                DI.Resolve(this);
             }
+            
+            state!.GameSpeed = gameSpeed;
         }
     }
 }

@@ -7,6 +7,7 @@ using td.common.level;
 using td.features.enemies;
 using td.features.enemies.components;
 using td.features.enemies.mb;
+using td.features.state;
 using td.services;
 using td.utils;
 using td.utils.ecs;
@@ -17,6 +18,7 @@ namespace td.features.waves
 {
     public class SpawnSequenceSystem : IEcsRunSystem
     {
+        [Inject] private State state;
         [Inject] private LevelMap levelMap;
         [InjectShared] private SharedData shared;
         [InjectWorld] private EcsWorld world;
@@ -32,7 +34,7 @@ namespace td.features.waves
 
                 if (spawnData.started == false)
                 {
-                    spawnData.delayBeforeCountdown -= Time.deltaTime;
+                    spawnData.delayBeforeCountdown -= Time.deltaTime * state.GameSpeed;
 
                     if (spawnData.delayBeforeCountdown < Constants.ZeroFloat)
                     {
@@ -56,7 +58,7 @@ namespace td.features.waves
 
         private SpawnSequence Tick(ref SpawnSequence spawnData, int entity, IEcsSystems systems)
         {
-            spawnData.delayBetweenCountdown -= Time.deltaTime;
+            spawnData.delayBetweenCountdown -= Time.deltaTime * state.GameSpeed;
 
             if (!(spawnData.delayBetweenCountdown <= Constants.ZeroFloat)) return spawnData;
 

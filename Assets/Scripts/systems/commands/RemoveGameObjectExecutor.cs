@@ -30,7 +30,6 @@ namespace td.systems.commands
                 if (poolableObject != null)
                 {
                     poolServise.Release(poolableObject);
-                    // world.UnConvertEntity(entity, gameObject);
                     
                     // ToDo
                     world.GetComponent<IsDestroyed>(entity);

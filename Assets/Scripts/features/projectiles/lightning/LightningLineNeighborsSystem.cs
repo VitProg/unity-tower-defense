@@ -7,6 +7,7 @@ using td.components.flags;
 using td.components.refs;
 using td.features.enemies.components;
 using td.features.projectiles.attributes;
+using td.features.state;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ namespace td.features.projectiles.lightning
      */
     public class LightningLineNeighborsSystem : IEcsRunSystem
     {
+        [Inject] private State state;
         [InjectWorld] private EcsWorld world;
 
         private readonly EcsFilterInject<Inc<LightningLine, LightningAttribute, Ref<GameObject>>, Exc<IsDisabled, IsDestroyed>> entities = default;
@@ -30,7 +32,7 @@ namespace td.features.projectiles.lightning
                 ref var lightningLine = ref entities.Pools.Inc1.Get(lightningLineEntity);
                 ref var lightning = ref entities.Pools.Inc2.Get(lightningLineEntity);
 
-                lightningLine.findNeighborsTimeRemains -= Time.deltaTime;
+                lightningLine.findNeighborsTimeRemains -= Time.deltaTime * state.GameSpeed;
 
                 if (lightningLine.findNeighborsTimeRemains > 0) continue;
 

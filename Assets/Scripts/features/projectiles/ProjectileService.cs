@@ -82,6 +82,7 @@ namespace td.features.projectiles
             movement.target = targetPosition;
             movement.speed = speed;
             movement.gap = Constants.DefaultGap;
+            movement.speedOfGameAffected = true;
 
             world.GetComponent<ProjectileTarget>(projectileEntity).targetEntity = world.PackEntity(targetEntity);
 

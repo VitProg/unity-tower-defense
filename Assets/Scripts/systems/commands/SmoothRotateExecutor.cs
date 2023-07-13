@@ -4,12 +4,15 @@ using td.components;
 using td.components.commands;
 using td.components.flags;
 using td.components.refs;
+using td.features.state;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.systems.commands
 {
     public class SmoothRotateExecutor : IEcsRunSystem
     {
+        [Inject] private State state;
         private readonly EcsFilterInject<Inc<SmoothRotation>, Exc<IsDestroyed>> entities = default;
         
         public void Run(IEcsSystems systems)
@@ -35,7 +38,7 @@ namespace td.systems.commands
                 }
                 else
                 {
-                    smoothRotate.time += smoothRotate.angularSpeed * Time.deltaTime;
+                    smoothRotate.time += smoothRotate.angularSpeed * Time.deltaTime * state.GameSpeed;
 
                     var newRotate = Quaternion.Lerp(
                         smoothRotate.from,

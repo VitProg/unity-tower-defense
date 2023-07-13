@@ -103,15 +103,16 @@ namespace td.features.enemies.systems
                 enemy.offset = spawnCommand.offset;
                 enemy.money = spawnCommand.money;
 
-                ref var toTarget = ref world.GetComponent<LinearMovementToTarget>(enemyEntity);
-                toTarget.from = position;
-                toTarget.target = EnemyUtils.Position(
+                ref var movement = ref world.GetComponent<LinearMovementToTarget>(enemyEntity);
+                movement.from = position;
+                movement.target = EnemyUtils.Position(
                     nextCell.Coords,
                     rotation,
                     spawnCommand.offset
                 );
-                toTarget.speed = spawnCommand.speed;
-                toTarget.gap = Constants.DefaultGap;
+                movement.speed = spawnCommand.speed;
+                movement.gap = Constants.DefaultGap;
+                movement.speedOfGameAffected = true;
                 
                 world.DelComponent<IsEnemyDead>(enemyEntity);
                 world.DelComponent<IsDisabled>(enemyEntity);

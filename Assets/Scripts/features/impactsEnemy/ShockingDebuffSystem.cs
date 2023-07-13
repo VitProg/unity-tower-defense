@@ -3,6 +3,7 @@ using Leopotam.EcsLite.Di;
 using td.components.flags;
 using td.components.refs;
 using td.features.enemies.components;
+using td.features.state;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -11,6 +12,7 @@ namespace td.features.impactsEnemy
 {
     public class ShockingDebuffSystem: IEcsRunSystem
     {
+        [Inject] private State state;
         [InjectWorld] private EcsWorld world;
 
         private readonly EcsFilterInject<Inc<ShockingDebuff, Enemy, Ref<GameObject>>, Exc<IsDestroyed>> debuffEntities = default;
@@ -30,7 +32,7 @@ namespace td.features.impactsEnemy
                     debuff.started = true;
                 }
                 
-                debuff.shiftPositionTimeRemains -= Time.deltaTime;
+                debuff.shiftPositionTimeRemains -= Time.deltaTime * state.GameSpeed;
                 if (debuff.shiftPositionTimeRemains < 0f)
                 {
                     var shift = new Vector3(

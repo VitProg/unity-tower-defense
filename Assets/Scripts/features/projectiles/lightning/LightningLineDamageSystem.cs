@@ -1,5 +1,4 @@
-﻿using System;
-using Leopotam.EcsLite;
+﻿using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using td.components.commands;
 using td.components.flags;
@@ -7,6 +6,7 @@ using td.components.refs;
 using td.features.enemies.components;
 using td.features.impactsEnemy;
 using td.features.projectiles.attributes;
+using td.features.state;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -17,6 +17,7 @@ namespace td.features.projectiles.lightning
      */
     public class LightningLineDamageSystem : IEcsRunSystem
     {
+        [Inject] private State state;
         [InjectWorld] private EcsWorld world;
         
         private readonly EcsFilterInject<Inc<LightningLine, LightningAttribute, Ref<GameObject>>, Exc<IsDisabled, IsDestroyed>> entities = default;
@@ -35,8 +36,8 @@ namespace td.features.projectiles.lightning
                     lightningLine.started = true;
                 }
                 
-                lightningLine.timeRemains -= Time.deltaTime;
-                lightningLine.damageIntervalRemains -= Time.deltaTime;
+                lightningLine.timeRemains -= Time.deltaTime * state.GameSpeed;
+                lightningLine.damageIntervalRemains -= Time.deltaTime * state.GameSpeed;
 
                 if (lightningLine.timeRemains < Constants.ZeroFloat)
                 {

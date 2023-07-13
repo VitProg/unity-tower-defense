@@ -20,7 +20,10 @@ namespace td.features.projectiles
             world.GetComponent<ProjectileTarget>(entity);
             world.GetComponent<OnlyOnLevel>(entity);
             world.GetComponent<Ref<GameObject>>(entity).reference = gameObject;
-            world.GetComponent<LinearMovementToTarget>(entity).gap = Constants.DefaultGap;
+
+            ref var movement = ref world.GetComponent<LinearMovementToTarget>(entity);
+            movement.gap = Constants.DefaultGap;
+            movement.speedOfGameAffected = true;
             
             world.DelComponent<IsDisabled>(entity);
             world.DelComponent<IsDestroyed>(entity);

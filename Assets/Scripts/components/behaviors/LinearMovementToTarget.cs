@@ -1,6 +1,7 @@
 ﻿using System;
 using td.common;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td.components.behaviors
 {
@@ -13,5 +14,6 @@ namespace td.components.behaviors
         public float gap;
         public float speed;
         public bool resetAnchoredPositionZ;
+        [FormerlySerializedAs("isSpeedOfGameAffected")] public bool speedOfGameAffected;
     }
 }
