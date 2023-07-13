@@ -1,28 +1,35 @@
 ﻿using UnityEngine;
 using td.utils.ecs;
 using td.features.state;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
-namespace td.features.timeFlow
+namespace td.features.gameSpeed
 {
     public class UITimeFlowButton : MonoBehaviour
     {
-        [SerializeField] private float timeFlowRate;
+        [Inject] private State state;
+        [SerializeField] private float gameSpeed;
         
         public void ChangeTimeFlow()
         {
-            DI.GetCustom<State>().TimeFlow = timeFlowRate; 
+            if (state == null)
+            {
+                DI.Resolve(this);
+            }
+            
+            state!.GameSpeed = gameSpeed; 
 
-            float aColorSelected = 1;
-            float aColorNotSelected = 0.6f;
+            // todo
+            var aColorSelected = 1;
+            var aColorNotSelected = 0.6f;
             float aColorNewClick;
             
             foreach (var timeButtonGO in transform.parent.GetComponentsInChildren<Button>())
             {
-                _= timeButtonGO.gameObject == gameObject ? aColorNewClick = aColorSelected 
-                    : aColorNewClick = aColorNotSelected;
+                aColorNewClick = timeButtonGO.gameObject == gameObject ? aColorSelected : aColorNotSelected;
 
-                if (timeButtonGO.transform.GetChild(0).TryGetComponent<Image>(out Image imageUnderTimeButton))
+                if (timeButtonGO.transform.GetChild(0).TryGetComponent<Image>(out var imageUnderTimeButton))
                 {
                     imageUnderTimeButton.color = new Color(
                         imageUnderTimeButton.color.r,
