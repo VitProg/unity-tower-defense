@@ -644,10 +644,9 @@ PlayerSettings:
   webGLMemoryGeometricGrowthStep: 0.2
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
-  scriptingDefineSymbols: {}
-  additionalCompilerArguments:
-    Standalone:
-    - LEOECSLITE_DI
+  scriptingDefineSymbols:
+    Standalone: LEOECSLITE_DI
+  additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
     Standalone: 0
