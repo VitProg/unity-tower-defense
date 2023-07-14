@@ -31,6 +31,14 @@ namespace td.monoBehaviours
         private string data;
         private readonly Dictionary<string, object> componnents = new();
 
+        private bool diResolved;
+        
+        public async void Awake()
+        {
+            await DI.Resolve(this);
+            diResolved = true;
+        }
+
         private void Start()
         {
             ecsEntityInternal = GetComponent<EcsEntity>();
@@ -38,11 +46,7 @@ namespace td.monoBehaviours
 
         private void Update()
         {
-            if (world == null)
-            {
-                DI.Resolve(this);
-                Initialize();
-            }
+            if (!diResolved) return;
             
             componnents.Clear();
 
@@ -65,20 +69,6 @@ namespace td.monoBehaviours
                     }
                 }
             }
-        }
-
-        private void Initialize()
-        {
-            
-            // if (!ConvertToEntity.IsConverted)
-            // {
-            //     return;
-            // }
-            //
-            // Initialized = true;
-            //
-            // World = ConvertToEntity.World;
-            // PackedEntity = ConvertToEntity.PackedEntity;
         }
 #endif
     }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 using td.common;
 using td.common.level;
 using td.features.state;
@@ -33,7 +34,7 @@ namespace td.services
             {
                 //todo
                 levelConfig = value;
-                var state = DI.GetCustom<State>();
+                var state = DI.Get<State>();
                 if (state == null) return;
                 state.SuspendEvents();
                 state.MaxLives = levelConfig?.lives ?? 0;
@@ -155,7 +156,8 @@ namespace td.services
             return true;
         }
 
-        public Cell? GetCell(int x, int y, CellTypes? type = null)
+        [CanBeNull]
+        public Cell GetCell(int x, int y, CellTypes? type = null)
         {
             var oX = x - mapOffset.x;
             var oY = y - mapOffset.y;
@@ -171,10 +173,12 @@ namespace td.services
             if (type == null || cell == null || cell.type == type) return cell;
             return null;
         }
-        public Cell? GetCell(Int2? coords, CellTypes? type = null) =>
+        [CanBeNull]
+        public Cell GetCell(Int2? coords, CellTypes? type = null) =>
             coords != null ? GetCell(coords.Value.x, coords.Value.y, type) : null;
         
-        public Cell? GetCell(Vector2 position, CellTypes? type = null) =>
+        [CanBeNull]
+        public Cell GetCell(Vector2 position, CellTypes? type = null) =>
             GetCell(HexGridUtils.PositionToCell(position), type);
 
         public bool TryGetCell(int x, int y, out Cell cell, CellTypes? type = null)

@@ -1,8 +1,6 @@
 ﻿using Cinemachine;
 using Leopotam.EcsLite;
-using Leopotam.EcsLite.Unity.Ugui;
 using td.features.shards.mb;
-using td.features.ui;
 using td.monoBehaviours;
 using UnityEngine;
 
@@ -13,7 +11,7 @@ namespace td.common
         public EnemyConfig[] enemyConfigs;
 
         public CinemachineVirtualCamera virtualCamera;
-        public EcsUguiEmitter uguiEmitter;
+        // public EcsUguiEmitter uguiEmitter;
         public Camera mainCamera;
         public Camera canvasCamera;
         public HightlightGridByCursor hightlightGrid;

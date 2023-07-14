@@ -128,23 +128,26 @@ namespace td.monoBehaviours
 
         #endregion
 
+        private bool diResolved;
+        
+        public async void Awake()
+        {
+            await DI.Resolve(this);
+            diResolved = true;
+        }
+
         private void Update()
         {
+            if (!diResolved) return;
+            
             if (transform.hasChanged)
             {
                 coords = HexGridUtils.PositionToCell(this.transform.position);
-            }
-
-            if (levelMap == null && DI.IsReady)
-            {
-                DI.Resolve(this);
             }
         }
         
         private void Start()
         {
-            // DI.Resolve(this);
-            
             coords = HexGridUtils.PositionToCell(this.transform.position);
 
 #if UNITY_EDITOR

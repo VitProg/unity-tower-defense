@@ -1,5 +1,6 @@
 using System;
 using Leopotam.EcsLite;
+using td.features.eventBus;
 using td.utils;
 using td.utils.ecs;
 
@@ -9,7 +10,9 @@ namespace td.features.state
     [Serializable]
     public abstract class StateBase : IState
     {
+        [Inject] protected EventBus eventBus = default;
         [InjectSystems] protected IEcsSystems systems = default;
+        
         protected bool eventsSuspended;
 
         protected float maxLives;
@@ -20,7 +23,8 @@ namespace td.features.state
             {
                 if (FloatUtils.IsEquals(maxLives, value)) return;
                 maxLives = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().maxLives = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().maxLives = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { maxLives = value });
             }
         }
 
@@ -32,7 +36,8 @@ namespace td.features.state
             {
                 if (FloatUtils.IsEquals(lives, value)) return;
                 lives = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().lives = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().lives = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { lives = value });
             }
         }
 
@@ -44,7 +49,8 @@ namespace td.features.state
             {
                 if (levelNumber == value) return;
                 levelNumber = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().levelNumber = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().levelNumber = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { levelNumber = value });
             }
         }
 
@@ -56,7 +62,8 @@ namespace td.features.state
             {
                 if (money == value) return;
                 money = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().money = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().money = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { money = value });
             }
         }
 
@@ -68,7 +75,8 @@ namespace td.features.state
             {
                 if (FloatUtils.IsEquals(nextWaveCountdown, value)) return;
                 nextWaveCountdown = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().nextWaveCountdown = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().nextWaveCountdown = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { nextWaveCountdown = value });
             }
         }
 
@@ -80,7 +88,8 @@ namespace td.features.state
             {
                 if (waveNumber == value) return;
                 waveNumber = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().waveNumber = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().waveNumber = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { waveNumber = value, waveCount = waveCount});
             }
         }
 
@@ -92,7 +101,8 @@ namespace td.features.state
             {
                 if (waveCount == value) return;
                 waveCount = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().waveCount = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().waveCount = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { waveNumber = waveNumber, waveCount = value });
             }
         }
 
@@ -104,7 +114,8 @@ namespace td.features.state
             {
                 if (enemiesCount == value) return;
                 enemiesCount = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().enemiesCount = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().enemiesCount = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { enemiesCount = value });
             }
         }
         
@@ -116,7 +127,8 @@ namespace td.features.state
             {
                 if (FloatUtils.IsEquals(gameSpeed,value)) return;
                 gameSpeed = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().gameSpeed = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().gameSpeed = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { gameSpeed = value });
             }
         }
 
@@ -128,25 +140,22 @@ namespace td.features.state
             {
                 if (isBuildingProcess == value) return;
                 isBuildingProcess = value;
-                if (!eventsSuspended) systems.Outer<StateChangedEvent>().isBuildingProcess = true;
+                if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().isBuildingProcess = true;
+                if (!eventsSuspended) eventBus.Send(new StateChangedEvent { isBuildingProcess = value });
             }
         }
 
         public void SuspendEvents() => eventsSuspended = true;
-        public void ResumeEvents() => eventsSuspended = false;
+        public void ResumeEvents()
+        {
+            eventsSuspended = false;
+            eventBus.Send(StateChangedEvent.FromState(this));
+        }
 
         public void Refresh() {
             eventsSuspended = false;
-            ref var e = ref systems.Outer<StateChangedEvent>();
-            e.maxLives = true;
-            e.lives = true;
-            e.levelNumber = true;
-            e.money = true;
-            e.nextWaveCountdown = true;
-            e.waveNumber = true;
-            e.waveCount = true;
-            e.enemiesCount = true;
-            e.isBuildingProcess = true;
+            systems.Outer<StateChangedOuterEvent>() = StateChangedOuterEvent.AllTrue();
+            eventBus.Send(StateChangedEvent.FromState(this));
         }
 
         public void Clear() {

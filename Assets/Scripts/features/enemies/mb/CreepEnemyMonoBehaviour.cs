@@ -1,5 +1,7 @@
 ﻿using NaughtyAttributes;
+using td.features.state;
 using td.utils;
+using td.utils.ecs;
 using UnityEngine;
 using UnityEngine.U2D.Animation;
 
@@ -24,6 +26,7 @@ namespace td.features.enemies.mb
             spriteLibrary.spriteLibraryAsset = enemiesConfig.GetCreepSprites(type, variant);
             spriteResolver.SetCategoryAndLabel("Run", "1");
             animator.runtimeAnimatorController = enemiesConfig.GetAnimatorController(type);
+            // animator.speed = (DI.GetCustom<State>()?.GameSpeed ?? 1) * 3;
             // animator.SetInteger(SType, (int)type);
             // animator.Play(((int)type).ToString());
         }

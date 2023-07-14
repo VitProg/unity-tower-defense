@@ -10,7 +10,7 @@ namespace td.monoBehaviours
     [RequireComponent(typeof(Renderer))]
     public class HightlightGridByCursor : MonoBehaviour
     {
-        private Renderer renderer;
+        private new Renderer renderer;
 
         private static readonly int SGridColor = Shader.PropertyToID("_GridColor");
         private static readonly int SBgColor = Shader.PropertyToID("_BgColor");
@@ -49,7 +49,15 @@ namespace td.monoBehaviours
         
         //
         [InjectShared] private SharedData shared;
+
+        private bool diResolved;
         //
+
+        public async void Awake()
+        {
+            await DI.Resolve(this);
+            diResolved = true;
+        }
 
         // Start is called before the first frame update
         void Start()
@@ -63,10 +71,8 @@ namespace td.monoBehaviours
         // Update is called once per frame
         void Update()
         {
-            if (shared == null && DI.IsReady)
-            {
-                DI.Resolve(this);
-            } 
+            if (!diResolved) return;
+            
             var mousePressed = Input.GetMouseButton(0);
             
             var mousePosition = Input.mousePosition;

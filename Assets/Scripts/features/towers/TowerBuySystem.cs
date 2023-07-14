@@ -1,7 +1,6 @@
 ﻿using System;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using Leopotam.EcsLite.Unity.Ugui;
 using td.common;
 using td.components.commands;
 using td.components.events;
@@ -20,7 +19,7 @@ using Object = UnityEngine.Object;
 
 namespace td.features.towers
 {
-    public class TowerBuySystem : EcsUguiCallbackSystem
+    public class TowerBuySystem : IEcsRunSystem
     {
         [Inject] private State state;
         [Inject] private LevelMap levelMap;
@@ -33,18 +32,16 @@ namespace td.features.towers
 
         [InjectSystems] private IEcsSystems systems;
 
-        [EcsUguiNamed(Constants.UI.Components.AddTowerButton)]
-        private GameObject addTowerButton;
+        // [EcsUguiNamed(Constants.UI.Components.AddTowerButton)]
+        // private GameObject addTowerButton;
 
         private readonly EcsFilterInject<Inc<Tower, DragEndEvent, Ref<GameObject>>, Exc<IsDestroyed>> dragEndEventEntities = default;
         private readonly EcsFilterInject<Inc<Tower, IsDragging, Ref<GameObject>>, Exc<IsDestroyed>> draggableEntities = default;
 
         private GameObject buildingsContainer;
 
-        public override void Run(IEcsSystems systems)
+        public void Run(IEcsSystems systems)
         {
-            base.Run(systems);
-            
             foreach (var draggableEntity in draggableEntities.Value)
             {
                 ref var refGameObject = ref draggableEntities.Pools.Inc3.Get(draggableEntity);
@@ -95,39 +92,40 @@ namespace td.features.towers
             }
         }
 
-        [Preserve]
-        [EcsUguiDownEvent(Constants.UI.Components.AddTowerButton, Constants.Worlds.UI)]
-        private void OnBuyTowerDown(in EcsUguiDownEvent e)
-        {
-            Debug.Log("OnBuyTowerDown");
-            if (buildingsContainer == null)
-            {
-                buildingsContainer = GameObject.FindGameObjectWithTag(Constants.Tags.BuildingsContainer);
-            }
-            
-            // todo
-            var position = CameraUtils.ToWorldPoint(shared.canvasCamera, e.Position);
-            var prefab = prefabService.GetPrefab(PrefabCategory.Buildings, "shard_tower");
-            var gameObject = Object.Instantiate(prefab, position, Quaternion.identity, buildingsContainer.transform);
-
-            if (!converters.Convert<Tower>(gameObject, out var entity))
-            {
-                throw new NullReferenceException($"Failed to convert GameObject {gameObject.name}");
-            }
-            
-            ref var tower = ref world.GetComponent<Tower>(entity);
-            
-            // todo
-            tower.cost = 5;
-            
-            gameObject.transform.localScale = Vector3.one;
-            
-            DragNDropWorldSystem.BeginDrag(
-                systems,
-                entity,
-                true,
-                Constants.UI.DragNDrop.Smooth
-            );
-        }
+        // todo
+        // [Preserve]
+        // [EcsUguiDownEvent(Constants.UI.Components.AddTowerButton, Constants.Worlds.UI)]
+        // private void OnBuyTowerDown(in EcsUguiDownEvent e)
+        // {
+        //     Debug.Log("OnBuyTowerDown");
+        //     if (buildingsContainer == null)
+        //     {
+        //         buildingsContainer = GameObject.FindGameObjectWithTag(Constants.Tags.BuildingsContainer);
+        //     }
+        //     
+        //     // todo
+        //     var position = CameraUtils.ToWorldPoint(shared.canvasCamera, e.Position);
+        //     var prefab = prefabService.GetPrefab(PrefabCategory.Buildings, "shard_tower");
+        //     var gameObject = Object.Instantiate(prefab, position, Quaternion.identity, buildingsContainer.transform);
+        //
+        //     if (!converters.Convert<Tower>(gameObject, out var entity))
+        //     {
+        //         throw new NullReferenceException($"Failed to convert GameObject {gameObject.name}");
+        //     }
+        //     
+        //     ref var tower = ref world.GetComponent<Tower>(entity);
+        //     
+        //     // todo
+        //     tower.cost = 5;
+        //     
+        //     gameObject.transform.localScale = Vector3.one;
+        //     
+        //     DragNDropWorldSystem.BeginDrag(
+        //         systems,
+        //         entity,
+        //         true,
+        //         Constants.UI.DragNDrop.Smooth
+        //     );
+        // }
     }
 }

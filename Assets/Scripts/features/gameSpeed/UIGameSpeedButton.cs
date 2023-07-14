@@ -1,4 +1,5 @@
 ﻿using NaughtyAttributes;
+using td.features.eventBus;
 using UnityEngine;
 using td.utils.ecs;
 using td.features.state;
@@ -8,36 +9,44 @@ using UnityEngine.UI;
 
 namespace td.features.gameSpeed
 {
-    public class UIGameSpeedButton : MonoBehaviour, IPointerDownHandler
+    public class UIGameSpeedButton : MonoBehaviour, IPointerDownHandler, IEventReceiver<StateChangedEvent>
     {
+        public UniqueId Id { get; } = new UniqueId();
+        
         [Inject] private State state;
+        [Inject] private EventBus eventBus;
         
         [Required][SerializeField] private Image image;
         
-        [Required][SerializeField] private float gameSpeed;
+        [SerializeField] private float gameSpeed = 1.0f;
         
         [Required][SerializeField] private Sprite onStateSprite;
         [Required][SerializeField] private Sprite offStateSprite;
         
+        private bool diResolved;
+
+        public async void Awake()
+        {
+            await DI.Resolve(this);
+            DI.Get<EventBus>()!.Subscribe(this);
+            diResolved = true;
+        }
+
         public void Refresh()
         {
-            if (state == null)
-            {
-                DI.Resolve(this);
-            }
-            
             var isOn = FloatUtils.IsEquals(state!.GameSpeed, gameSpeed);
             image.sprite = isOn ? onStateSprite : offStateSprite;
         }
         
         public void OnPointerDown(PointerEventData eventData)
         {
-            if (state == null)
-            {
-                DI.Resolve(this);
-            }
-            
+            if (!diResolved) return;
             state!.GameSpeed = gameSpeed;
+        }
+
+        public void OnEvent(StateChangedEvent @event)
+        {
+            Refresh();
         }
     }
 }

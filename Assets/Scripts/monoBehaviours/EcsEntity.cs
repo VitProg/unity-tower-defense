@@ -30,8 +30,8 @@ namespace td.monoBehaviours
             if (PackedEntity.Value.Unpack(DI.GetWorld(), out entityID)) return;
             world = "outer";
             if (PackedEntity.Value.Unpack(DI.GetWorld(Constants.Worlds.Outer), out entityID)) return;
-            world = "ui";
-            PackedEntity.Value.Unpack(DI.GetWorld(Constants.Worlds.UI), out entityID);
+            // world = "ui";
+            // PackedEntity.Value.Unpack(DI.GetWorld(Constants.Worlds.UI), out entityID);
         } 
 #endif
         

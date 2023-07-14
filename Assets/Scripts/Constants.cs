@@ -52,7 +52,7 @@ namespace td
         {
             public const string Default = default;
             public const string Outer = "outer";
-            public const string UI = "ui";
+            // public const string UI = "ui";
         }
         
         public static class Camera

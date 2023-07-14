@@ -82,7 +82,7 @@ namespace td.features.shards.mb
         {
             if (shardCalculator == null)
             {
-                shardCalculator = DI.GetCustom<ShardCalculator>();
+                shardCalculator = DI.Get<ShardCalculator>();
             }
             
             shardMeshGenerator.colorWeights = ShardUtils.ToArray(red, green, blue, aquamarine, yellow, orange, pink, violet);

@@ -112,11 +112,11 @@ namespace td.services.ecsConverter
             return true;
         }
 
-        public void ResolveDependencies()
+        public async void ResolveDependencies()
         {
             foreach (var (key, value) in dictionary)
             {
-                DI.Resolve(value);
+                await DI.Resolve(value);
             }
         }
     }

@@ -51,7 +51,6 @@ namespace td.features.shards.init
             
             // reset shards in collection
             var index = 0;
-            var plusShowed = false;
             foreach (var shardEntity in shardEntitiseInCollection)
             {
                 var shardGO = shardInCollectionEntities.Pools.Inc3.Get(shardEntity);

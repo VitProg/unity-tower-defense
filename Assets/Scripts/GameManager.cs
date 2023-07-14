@@ -2,9 +2,7 @@
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
 using Leopotam.EcsLite.ExtendedSystems;
-using Leopotam.EcsLite.Unity.Ugui;
 using Leopotam.EcsLite.UnityEditor;
-// using Mitfart.LeoECSLite.UniLeo;
 using NaughtyAttributes;
 using td.common;
 using td.components.commands;
@@ -14,6 +12,7 @@ using td.features.dragNDrop;
 using td.features.enemies;
 using td.features.enemies.components;
 using td.features.enemies.systems;
+using td.features.eventBus;
 using td.features.impactsEnemy;
 using td.features.impactsKernel;
 using td.features.levels;
@@ -47,7 +46,7 @@ namespace td
 {
     public class GameManager : MonoBehaviour
     {
-        [Required] [SerializeField] private EcsUguiEmitter uguiEmitter;
+        // [Required] [SerializeField] private EcsUguiEmitter uguiEmitter;
         [Required] [SerializeField] private CinemachineVirtualCamera virtualCamera;
         [SerializeField] private Camera mainCamera;
         [Required] [SerializeField] private Camera canvasCamera;
@@ -69,7 +68,7 @@ namespace td
         {
             var sharedData = new SharedData()
             {
-                uguiEmitter = uguiEmitter,
+                // uguiEmitter = uguiEmitter,
                 virtualCamera = virtualCamera,
                 mainCamera = mainCamera ? mainCamera : Camera.main,
                 canvasCamera = canvasCamera,
@@ -85,7 +84,7 @@ namespace td
 
             var world = new EcsWorld();
             var outerWorld = new EcsWorld();
-            var uguiWorld = new EcsWorld();
+            // var uguiWorld = new EcsWorld();
 
             var state = new State();
             state.SuspendEvents();
@@ -107,7 +106,8 @@ namespace td
 
             systems
                 .AddWorld(outerWorld, Constants.Worlds.Outer)
-                .AddWorld(uguiWorld, Constants.Worlds.UI);
+                // .AddWorld(uguiWorld, Constants.Worlds.UI);
+                ;
 
             #region Levels
             systems
@@ -217,11 +217,11 @@ namespace td
                 .DelHere<KernelHealOuterCommand>(Constants.Worlds.Outer);
             #endregion
 
-            #region UI
-            systems
-                .Add(new UIUpdateSystem())
-                .DelHere<UpdateUIOuterCommand>(Constants.Worlds.Outer);
-            #endregion
+            // #region UI
+            // systems
+            //     .Add(new UIUpdateSystem())
+            //     .DelHere<UpdateUIOuterCommand>(Constants.Worlds.Outer);
+            // #endregion
 
             #region Drug'n'Drop
             systems
@@ -238,6 +238,10 @@ namespace td
                 .Add(new CameraZoomSystem());
             #endregion
 
+            // systems
+                // .Add(new GameSpeedChangeHandler())
+                // ;
+
             // обработка команды удаления GameObject со сцены
             systems
                 .Add(new IdleRemoveGameObjectExecutor())
@@ -247,27 +251,25 @@ namespace td
             // очистка
             systems
                 .DelHere<ReachingTargetEvent>()
-                .DelHere<StateChangedEvent>(Constants.Worlds.Outer)
-                .DelHere<StateChangedExEvent>(Constants.Worlds.Outer)
+                .DelHere<StateChangedOuterEvent>(Constants.Worlds.Outer)
+                // .DelHere<StateChangedExEvent>(Constants.Worlds.Outer)
                 .DelHere<LevelLoadedOuterEvent>(Constants.Worlds.Outer)
                 ;
-                // .DelHere<UIRefreshShardStoreOuterCommand>(Constants.Worlds.Outer)
-                // .DelHere<UIRefreshShardCollectionOuterCommand>(Constants.Worlds.Outer)
-                // .DelHere<UIShowShardStoreOuterCommand>(Constants.Worlds.Outer)
-                // .DelHere<UIHideShardStoreOuterCommand>(Constants.Worlds.Outer);
 
 
 #if UNITY_EDITOR
             systems
                 .Add(new EcsWorldDebugSystem())
                 .Add(new EcsWorldDebugSystem(Constants.Worlds.Outer))
-                .Add(new EcsWorldDebugSystem(Constants.Worlds.UI));
+                // .Add(new EcsWorldDebugSystem(Constants.Worlds.UI))
+                ;
 #endif
 
             systems.Add(new SturtupInitSystem());
 
             systems.InjectLite(
                 state,
+                new EventBus(),
                 new PrefabService(),
                 new LevelMap(),
                 new LevelLoader(),
@@ -283,7 +285,7 @@ namespace td
             );
 
             systems.Inject();
-            systems.InjectUgui(uguiEmitter, Constants.Worlds.UI);
+            // systems.InjectUgui(uguiEmitter, Constants.Worlds.UI);
             systems.Init();
         }
 
@@ -294,7 +296,7 @@ namespace td
 
         private void OnDestroy()
         {
-            systems?.GetWorld(Constants.Worlds.UI).Destroy();
+            // systems?.GetWorld(Constants.Worlds.UI).Destroy();
             systems?.GetWorld()?.Destroy();
             systems?.GetWorld(Constants.Worlds.Outer).Destroy();
             ;
@@ -318,7 +320,7 @@ namespace td
             EditorGUI.BeginChangeCheck();
             EditorUtils.RenderAllPropertiesOfObject(
                 ref idLevelState,
-                DI.GetCustom<State>(),
+                DI.Get<State>(),
                 "Level State");
             EditorGUI.EndChangeCheck();
 
@@ -327,7 +329,7 @@ namespace td
             EditorGUI.BeginChangeCheck();
             EditorUtils.RenderAllPropertiesOfObject(
                 ref idLevelMap,
-                DI.GetCustom<LevelMap>(),
+                DI.Get<LevelMap>(),
                 "Level Map");
             EditorGUI.EndChangeCheck();
 

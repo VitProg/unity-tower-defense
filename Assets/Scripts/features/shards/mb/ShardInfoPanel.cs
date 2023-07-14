@@ -13,7 +13,7 @@ namespace td.features.shards.mb
 
         public void ShowInfo(ref Shard shard)
         {
-            shardCalculator ??= DI.GetCustom<ShardCalculator>();
+            shardCalculator ??= DI.Get<ShardCalculator>();
 
             var sb = new StringBuilder();
 

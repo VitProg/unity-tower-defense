@@ -76,7 +76,7 @@ SpriteRenderer:
   m_SortingLayerID: -188871507
   m_SortingLayer: 7
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 02c6023193c843e409cb9a2c7fd2160b, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 0f916dc7353c8b944a30dc805e269a09, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -121,7 +121,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Library: []
-  m_SpriteLibraryAsset: {fileID: 7108339969198208228, guid: 2b24f99c7ec856f4db01c7dfed2b44e4, type: 3}
+  m_SpriteLibraryAsset: {fileID: 7108339969198208228, guid: db4b6e79b5ab1a241ad6e7c7c49fed47, type: 3}
 --- !u!114 &7041228850552907418
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -137,7 +137,7 @@ MonoBehaviour:
   m_CategoryHash: 1.0429618e-14
   m_labelHash: 1.2985474e-36
   m_SpriteKey: 0.0000049058085
-  m_SpriteHash: 916757651
+  m_SpriteHash: 344861273
 --- !u!1 &3640389777054674657
 GameObject:
   m_ObjectHideFlags: 0
@@ -264,8 +264,8 @@ MonoBehaviour:
   spriteLibrary: {fileID: 4027653261200570837}
   spriteResolver: {fileID: 7041228850552907418}
   enemiesConfig: {fileID: 11400000, guid: 9de594a5c5cffde4788a2a86143ff2ba, type: 2}
-  type: 3
-  variant: 2
+  type: 1
+  variant: 1
 --- !u!114 &1663794601820514068
 MonoBehaviour:
   m_ObjectHideFlags: 0

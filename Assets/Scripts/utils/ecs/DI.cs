@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Leopotam.EcsLite;
 using UnityEngine;
@@ -53,8 +54,8 @@ namespace td.utils.ecs
 
     internal struct IdleCustomInject
     {
-        public FieldInfo FieldInfo;
-        public object Target;
+        public FieldInfo fieldInfo;
+        public object target;
     }
 
     public interface IHaveCostomResolve
@@ -165,19 +166,23 @@ namespace td.utils.ecs
 
         public static bool IsReady => Systems != null;
         
-        public static T Resolve<T>(T target) where T : class
+        public static async Task Resolve<T>(T target) where T : class
         {
-            if (Systems == null)
+            while (true)
             {
-                throw new NullReferenceException(
-                    "First you need to initialize the DI in ECS Lite by calling InjectLite from systems");
+                if (Systems != null) break;
+                await Task.Delay(10);
             }
+            
+            // if (Systems == null)
+            // {
+                // throw new NullReferenceException(
+                    // "First you need to initialize the DI in ECS Lite by calling InjectLite from systems");
+            // }
 
             ResolveInternal(target);
 
             Idle();
-
-            return target;
         }
 
         private static void Idle()
@@ -194,7 +199,7 @@ namespace td.utils.ecs
                 
             foreach (var inject in _idleCustomInjectsCopy)
             {
-                InjectCustomData(inject.FieldInfo, inject.Target);
+                InjectCustomData(inject.fieldInfo, inject.target);
             }
             _idleCustomInjectsCopy.Clear();
         }
@@ -215,7 +220,7 @@ namespace td.utils.ecs
         public static EcsWorld GetWorld(string worldName = null) => Systems.GetWorld(worldName);
 
         [CanBeNull]
-        public static T GetCustom<T>() where T : class
+        public static T Get<T>() where T : class
         {
             var type = typeof(T);
             if (CustomInjects.TryGetValue(type, out var instance))
@@ -336,8 +341,8 @@ namespace td.utils.ecs
             {
                 _idleCustomInjects.Add(new IdleCustomInject()
                 {
-                    FieldInfo = fieldInfo,
-                    Target = target
+                    fieldInfo = fieldInfo,
+                    target = target
                 });
             }
             
