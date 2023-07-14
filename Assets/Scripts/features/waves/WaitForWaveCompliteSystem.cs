@@ -9,7 +9,7 @@ using td.utils.ecs;
 
 namespace td.features.waves
 {
-    public class WaitForWaveComliteSystem : IEcsRunSystem
+    public class WaitForWaveCompliteSystem : IEcsRunSystem
     {
         [Inject] private State state;
         [Inject] private LevelMap levelMap;

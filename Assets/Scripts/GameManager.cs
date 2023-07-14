@@ -119,134 +119,124 @@ namespace td
             systems.Add(new LinearMoveToTargetSystem());
             systems.Add(new SmoothRotateExecutor());
 
+            
+            systems.AddGroup("GameSimulation", true, Constants.Worlds.Outer,
             #region Tower
-            systems
-                .Add(new CalcDistanceToKernelSystem())
-                .Add(new FindTargetByRadiusSystem())
-                .Add(new CannonTowerFireSystem())
-                .Add(new ShardTowerFireSystem())
-                .Add(new TowerBuySystem())
-                .Add(new TowerShowRadiusSystem());
+                new CalcDistanceToKernelSystem(),
+                new FindTargetByRadiusSystem(),
+                new CannonTowerFireSystem(),
+                new ShardTowerFireSystem(),
+                new TowerBuySystem(),
+                new TowerShowRadiusSystem(),
             #endregion
 
             #region Shard
-            systems
-                .Add(new ShardDragNDropSystem())
-                .DelHere<UIShardDownEvent>()
-                .Add(new ShardAnimateColorSystem())
-                .Add(new InitShardCollectionSystem())
-                .Add(new InitShardStoreSystem())
-                .Add(new ShardCollectionRemoveHiddenExecutor())
-                .Add(new UIRefreshShardCollectionExecutor())
-                .Add(new UIRefreshShardStoreExecutor())
-                .Add(new UIShardStoreShowHideExecutor())
-                .Add(new UIShardStoreLevelChangedHandler())
-                .Add(new BuyShardExecutor())
-                .DelHere<BuyShardCommand>(Constants.Worlds.Outer);
+                new ShardDragNDropSystem(),
+                new DelHereSystem<UIShardDownEvent>(world),
+                new ShardAnimateColorSystem(),
+                new InitShardCollectionSystem(),
+                new InitShardStoreSystem(),
+                new ShardCollectionRemoveHiddenExecutor(),
+                new UIRefreshShardCollectionExecutor(),
+                new UIRefreshShardStoreExecutor(),
+                new UIShardStoreShowHideExecutor(),
+                new UIShardStoreLevelChangedHandler(),
+                new BuyShardExecutor(),
+                new DelHereSystem<BuyShardCommand>(outerWorld),
             #endregion
 
             #region Fire/Projectile
-            systems
-                .Add(new ProjectileTargetCorrectionSystem())
-                .Add(new ProjectileReachEnemyHandler())
+                new ProjectileTargetCorrectionSystem(),
+                new ProjectileReachEnemyHandler(),
                 
-                .Add(new LightningLineDamageSystem())
-                .Add(new LightningLineNeighborsSystem())
-                .Add(new LightningLineCorrectionSystem())
+                new LightningLineDamageSystem(),
+                new LightningLineNeighborsSystem(),
+                new LightningLineCorrectionSystem(),
                 
-                .Add(new ExplosionSystem())
-                ;
+                new ExplosionSystem(),
             #endregion
 
             #region Inpacts
-            systems
                 // обработка команды получения урона вррагом
-                .Add(new TakeDamageSystem())
-                .DelHere<TakeDamageOuter>(Constants.Worlds.Outer)
+                new TakeDamageSystem(),
+                new DelHereSystem<TakeDamageOuter>(outerWorld),
 
                 // обработка события получение врагом бафа/дебафа
-                .Add(new SpeedDebuffSystem())
-                .Add(new PoisonDebuffSystem())
-                .Add(new ShockingDebuffSystem())
-                ;
+                new SpeedDebuffSystem(),
+                new PoisonDebuffSystem(),
+                new ShockingDebuffSystem(),
             #endregion
 
             #region Waves
-            systems
                 // отсчет до следующей волны
-                .Add(new NextWaveCountdownTimerSystem())
+                new NextWaveCountdownTimerSystem(),
 
                 // ожидания окончания волны (когда все враги выйдут и будут убиты или достигнут ядра
-                .Add(new WaitForWaveComliteSystem())
+                new WaitForWaveCompliteSystem(),
 
                 // обработка события увеличени счетчика волн
-                .Add(new IncreaseWaveEcecutor())
-                .DelHere<IncreaseWaveOuterCommand>(Constants.Worlds.Outer)
+                new IncreaseWaveEcecutor(),
+                new DelHereSystem<IncreaseWaveOuterCommand>(outerWorld),
 
                 // обработка события запуска волны
-                .Add(new StartWaveExecutor())
-                .DelHere<StartWaveOuterCommand>(Constants.Worlds.Outer)
-                .Add(new SpawnSequenceSystem())
-                .Add(new SpawnSequenceFinishedHandler())
-                .DelHere<SpawnSequenceFinishedOuterEvent>(Constants.Worlds.Outer)
-                ;
+                new StartWaveExecutor(),
+                new DelHereSystem<StartWaveOuterCommand>(outerWorld),
+                new SpawnSequenceSystem(),
+                new SpawnSequenceFinishedHandler(),
+                new DelHereSystem<SpawnSequenceFinishedOuterEvent>(outerWorld),
             #endregion
 
             #region Enemies
-            systems
                 // обработка команды спавна нового врага
-                .Add(new SpawnEnemyExecutor())
-                .DelHere<SpawnEnemyOuterCommand>(Constants.Worlds.Outer)
+                new SpawnEnemyExecutor(),
+                new DelHereSystem<SpawnEnemyOuterCommand>(outerWorld),
 
                 // обработка события достижения следующей клетки
-                .Add(new EnemyReachingCellHandler())
+                new EnemyReachingCellHandler(),
 
                 // обработка события смерти врага
-                .Add(new EnemyDiedExecutor())
-                .DelHere<EnemyDiedCommand>()
+                new EnemyDiedExecutor(),
+                new DelHereSystem<EnemyDiedCommand>(world),
 
                 // обработка события достижения врагом ядра
-                .Add(new EnemyReachingKernelEventHandle())
-                .DelHere<EnemyReachingKernelEvent>();
+                new EnemyReachingKernelEventHandle(),
+                new DelHereSystem<EnemyReachingKernelEvent>(world),
             #endregion
 
             #region Kernel
-            systems
-                .Add(new KernalChangeLivesExecutor())
-                .DelHere<KernalDamageOuterCommand>(Constants.Worlds.Outer)
-                .DelHere<KernelHealOuterCommand>(Constants.Worlds.Outer);
+                new KernalChangeLivesExecutor(),
+                new DelHereSystem<KernalDamageOuterCommand>(outerWorld),
+                new DelHereSystem<KernelHealOuterCommand>(outerWorld)
+            );
             #endregion
-
-            // #region UI
-            // systems
-            //     .Add(new UIUpdateSystem())
-            //     .DelHere<UpdateUIOuterCommand>(Constants.Worlds.Outer);
-            // #endregion
 
             #region Drug'n'Drop
             systems
-                .DelHere<DragRollbackEvent>()
-                .DelHere<DragStartEvent>()
-                .DelHere<DragEndEvent>()
-                .Add(new DragNDropWorldSystem())
-                .Add(new DragNDropCameraSystem());
+                .AddGroup("DragNDrop", true, Constants.Worlds.Outer,
+                    new DelHereSystem<DragRollbackEvent>(world),
+                    new DelHereSystem<DragStartEvent>(world),
+                    new DelHereSystem<DragEndEvent>(world),
+                    new DragNDropWorldSystem(),
+                    new DragNDropCameraSystem()
+                );
             #endregion
 
             #region Camera
-            systems
-                .Add(new CameraMoveSystem())
-                .Add(new CameraZoomSystem());
-            #endregion
 
-            // systems
-                // .Add(new GameSpeedChangeHandler())
-                // ;
+            systems
+                .AddGroup("Camera", true, Constants.Worlds.Outer,
+                    new CameraMoveSystem(),
+                    new CameraZoomSystem()
+                );
+            #endregion
 
             // обработка команды удаления GameObject со сцены
             systems
-                .Add(new IdleRemoveGameObjectExecutor())
-                .Add(new RemoveGameObjectExecutor())
-                .DelHere<RemoveGameObjectCommand>();
+                .AddGroup("RemoveGameObject", true, Constants.Worlds.Outer,
+                    new IdleRemoveGameObjectExecutor(),
+                    new RemoveGameObjectExecutor(),
+                    new DelHereSystem<RemoveGameObjectCommand>(world)
+                );
 
             // очистка
             systems

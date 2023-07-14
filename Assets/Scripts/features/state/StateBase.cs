@@ -1,5 +1,6 @@
 using System;
 using Leopotam.EcsLite;
+using Leopotam.EcsLite.ExtendedSystems;
 using td.features.eventBus;
 using td.utils;
 using td.utils.ecs;
@@ -11,6 +12,7 @@ namespace td.features.state
     public abstract class StateBase : IState
     {
         [Inject] protected EventBus eventBus = default;
+        [InjectWorld] protected EcsWorld world;
         [InjectSystems] protected IEcsSystems systems = default;
         
         protected bool eventsSuspended;
@@ -127,6 +129,9 @@ namespace td.features.state
             {
                 if (FloatUtils.IsEquals(gameSpeed,value)) return;
                 gameSpeed = value;
+                ref var e = ref systems.Outer<EcsGroupSystemState>();
+                e.Name = "GameSimulation";
+                e.State = gameSpeed > 0.1;
                 if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().gameSpeed = true;
                 if (!eventsSuspended) eventBus.Send(new StateChangedEvent { gameSpeed = value });
             }

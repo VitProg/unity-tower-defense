@@ -11,6 +11,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Leopotam.EcsLite;
+using Leopotam.EcsLite.ExtendedSystems;
 using UnityEngine;
 
 namespace td.utils.ecs
@@ -101,7 +102,17 @@ namespace td.utils.ecs
 
             foreach (var system in allSystems)
             {
-                ResolveInternal((object)system);
+                if (system is EcsGroupSystem groupSystem)
+                {
+                    foreach (var nestedSystem in groupSystem.GetNestedSystems())
+                    {
+                        ResolveInternal((object)nestedSystem);
+                    }
+                }
+                else
+                {
+                    ResolveInternal((object)system);
+                }
             }
 
             foreach (var customInject in CustomInjects)
