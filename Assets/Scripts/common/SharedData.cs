@@ -1,8 +1,11 @@
 ﻿using Cinemachine;
 using Leopotam.EcsLite;
+using td.features.menu;
 using td.features.shards.mb;
+using td.features.windows;
 using td.monoBehaviours;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace td.common
 {
@@ -22,6 +25,8 @@ namespace td.common
         public ShardMonoBehaviour draggableShard;
         public EcsPackedEntity draggableShardPackedEntity;
         public CombineShardCostPopup combineShardCostPopup;
+        public Canvas canvas;
+        public FadeInOut fade;
 
         public bool IsPerspectiveCameraMode =>
             virtualCamera && mainCamera && 

@@ -1,12 +1,15 @@
 ﻿using System;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using Leopotam.EcsLite.ExtendedSystems;
 using td.common;
 using td.components.commands;
 using td.components.flags;
 using td.components.refs;
 using td.features.enemies;
+using td.features.menu;
 using td.features.shards;
+using td.features.shards.commands;
 using td.features.state;
 using td.features.towers;
 using td.features.towers.mb;
@@ -34,25 +37,29 @@ namespace td.features.levels
         [InjectSystems] private IEcsSystems systems;
         [InjectShared] private SharedData shared;
 
-        private readonly EcsFilterInject<Inc<LoadLevelOuterCommand>> loadCommandEntities = Constants.Worlds.Outer;
-        private readonly EcsFilterInject<Inc<LevelLoadedOuterEvent>> loadedEventEntities = Constants.Worlds.Outer;
+        // private readonly EcsFilterInject<Inc<LoadLevelOuterCommand>> loadCommandEntities = Constants.Worlds.Outer;
+        // private readonly EcsFilterInject<Inc<LevelLoadedOuterEvent>> loadedEventEntities = Constants.Worlds.Outer;
 
         public void Run(IEcsSystems systems)
         {
             try
             {
-                foreach (var entity in loadCommandEntities.Value)
-                {
-                    Load(systems, entity);
+                if (systems.HasOuter<LoadLevelOuterCommand>()) {
+                    // todo
+                    //systems.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, true);
+                    systems.SetGroupSystemState(Constants.EcsSystemGroups.ShardSimulation, true);
+                    systems.SetGroupSystemState(Constants.EcsSystemGroups.Camera, true);
+                    systems.SetGroupSystemState(Constants.EcsSystemGroups.DragNDrop, true);
+                    systems.SetGroupSystemState(Constants.EcsSystemGroups.RemoveGameObject, true);
+                    
+                    Load(systems, systems.GetOuter<LoadLevelOuterCommand>().levelNumber);
                     systems.DelOuter<LoadLevelOuterCommand>();
-                    break;
                 }
 
-                foreach (var entity in loadedEventEntities.Value)
-                {
+                if (systems.HasOuter<LevelLoadedOuterEvent>()) {
+                    // todo
                     InitBuildings();
                     //systems.DelOuter<LevelLoadedOuterEvent>();
-                    break;
                 }
             }
             catch (Exception e)
@@ -89,10 +96,11 @@ namespace td.features.levels
             }
         }
 
-        private void Load(IEcsSystems systems, int entity)
+        private void Load(IEcsSystems systems, uint levelNumber)
         {
-            var levelNumber = loadCommandEntities.Pools.Inc1.Get(entity).levelNumber;
             state.LevelNumber = levelNumber;
+            
+            systems.Outer<UIHideShardStoreOuterCommand>();
 
             if (levelLoader.HasLevel())
             {

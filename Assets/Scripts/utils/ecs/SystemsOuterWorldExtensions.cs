@@ -1,6 +1,7 @@
 ﻿using System;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
+using Leopotam.EcsLite.ExtendedSystems;
 
 namespace td.utils.ecs
 {
@@ -52,6 +53,22 @@ namespace td.utils.ecs
             }
 
             throw new NullReferenceException($"Outer {(typeof(T).Name)} not found!");
+        }
+
+        public static bool TryGetOuter<T>(this IEcsSystems systems, out int entity) where T : struct
+        {
+            var world = systems.GetWorld(Constants.Worlds.Outer);
+            var filter = world.Filter<T>().End();
+            return filter.TryGetFirst(out entity);
+        }
+
+        public static void SetGroupSystemState(this IEcsSystems systems, string groupName, bool enabled)
+        {
+            var world = systems.GetWorld(Constants.Worlds.Outer);
+            var entity = world.NewEntity ();
+            ref var evt = ref world.GetPool<EcsGroupSystemState>().Add(entity);
+            evt.Name = groupName;
+            evt.State = enabled;
         }
         
 //         public static void Outer<T>(this IEcsSystems systems, T component) where T : struct

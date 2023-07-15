@@ -7,6 +7,15 @@ namespace td
         public const float DefaultGap = 0.2f;
         public const float ZeroFloat = 0.0001f;
         
+        public static class EcsSystemGroups
+        {
+            public const string GameSimulation = "GameSimulation";
+            public const string ShardSimulation = "ShardSimulation";
+            public const string DragNDrop = "DragNDrop";
+            public const string Camera = "Camera";
+            public const string RemoveGameObject = "RemoveGameObject";
+        }
+        
         public static class Enemy
         {
             public const uint DeltaRespawnRect = 10; 

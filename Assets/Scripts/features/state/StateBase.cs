@@ -129,9 +129,7 @@ namespace td.features.state
             {
                 if (FloatUtils.IsEquals(gameSpeed,value)) return;
                 gameSpeed = value;
-                ref var e = ref systems.Outer<EcsGroupSystemState>();
-                e.Name = "GameSimulation";
-                e.State = gameSpeed > 0.1;
+                systems.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, gameSpeed > 0.1f);
                 if (!eventsSuspended) systems.Outer<StateChangedOuterEvent>().gameSpeed = true;
                 if (!eventsSuspended) eventBus.Send(new StateChangedEvent { gameSpeed = value });
             }

@@ -16,6 +16,7 @@ using td.features.eventBus;
 using td.features.impactsEnemy;
 using td.features.impactsKernel;
 using td.features.levels;
+using td.features.menu;
 using td.features.projectiles;
 using td.features.projectiles.explosion;
 using td.features.projectiles.lightning;
@@ -30,6 +31,7 @@ using td.features.state;
 using td.features.towers;
 using td.features.ui;
 using td.features.waves;
+using td.features.windows;
 using td.monoBehaviours;
 using td.services;
 using td.services.ecsConverter;
@@ -53,12 +55,15 @@ namespace td
         [Required] [SerializeField] private HightlightGridByCursor hightlightGridByCursor;
         [Required] [SerializeField] private ShardsConfig shardsConfig;
 
-        [Required] public ShardCollectionPanel shardCollectionPanel;
-        [Required] public ShardStorePopup shardStorePopup;
-        [Required] public ShardInfoPanel shardInfoPanel;
-        [Required] public CombineShardCostPopup combineShardCostPopup;
+        [Required] [SerializeField]  private ShardCollectionPanel shardCollectionPanel;
+        [Required] [SerializeField]  private ShardStorePopup shardStorePopup;
+        [Required] [SerializeField]  private ShardInfoPanel shardInfoPanel;
+        [Required] [SerializeField]  private CombineShardCostPopup combineShardCostPopup;
         
-        [Required] public ShardMonoBehaviour draggableShard;
+        [Required] [SerializeField]  private ShardMonoBehaviour draggableShard;
+        
+        [Required] [SerializeField]  private Canvas canvas;
+        [Required] [SerializeField]  private FadeInOut fade;
 
         [MinValue(1), MaxValue(4)] public uint levelNumber;
 
@@ -78,6 +83,8 @@ namespace td
                 shardInfo = shardInfoPanel,
                 draggableShard = draggableShard,
                 combineShardCostPopup = combineShardCostPopup,
+                canvas = canvas,
+                fade = fade,
             };
             
             combineShardCostPopup.Hide();
@@ -118,18 +125,8 @@ namespace td
 
             systems.Add(new LinearMoveToTargetSystem());
             systems.Add(new SmoothRotateExecutor());
-
             
-            systems.AddGroup("GameSimulation", true, Constants.Worlds.Outer,
-            #region Tower
-                new CalcDistanceToKernelSystem(),
-                new FindTargetByRadiusSystem(),
-                new CannonTowerFireSystem(),
-                new ShardTowerFireSystem(),
-                new TowerBuySystem(),
-                new TowerShowRadiusSystem(),
-            #endregion
-
+            systems.AddGroup(Constants.EcsSystemGroups.ShardSimulation, false, Constants.Worlds.Outer,
             #region Shard
                 new ShardDragNDropSystem(),
                 new DelHereSystem<UIShardDownEvent>(world),
@@ -142,7 +139,18 @@ namespace td
                 new UIShardStoreShowHideExecutor(),
                 new UIShardStoreLevelChangedHandler(),
                 new BuyShardExecutor(),
-                new DelHereSystem<BuyShardCommand>(outerWorld),
+                new DelHereSystem<BuyShardCommand>(outerWorld)
+            #endregion
+            );
+
+            systems.AddGroup(Constants.EcsSystemGroups.GameSimulation, false, Constants.Worlds.Outer,
+            #region Tower
+                new CalcDistanceToKernelSystem(),
+                new FindTargetByRadiusSystem(),
+                new CannonTowerFireSystem(),
+                new ShardTowerFireSystem(),
+                new TowerBuySystem(),
+                new TowerShowRadiusSystem(),
             #endregion
 
             #region Fire/Projectile
@@ -212,7 +220,7 @@ namespace td
 
             #region Drug'n'Drop
             systems
-                .AddGroup("DragNDrop", true, Constants.Worlds.Outer,
+                .AddGroup(Constants.EcsSystemGroups.DragNDrop, true, Constants.Worlds.Outer,
                     new DelHereSystem<DragRollbackEvent>(world),
                     new DelHereSystem<DragStartEvent>(world),
                     new DelHereSystem<DragEndEvent>(world),
@@ -224,7 +232,7 @@ namespace td
             #region Camera
 
             systems
-                .AddGroup("Camera", true, Constants.Worlds.Outer,
+                .AddGroup(Constants.EcsSystemGroups.Camera, false, Constants.Worlds.Outer,
                     new CameraMoveSystem(),
                     new CameraZoomSystem()
                 );
@@ -232,7 +240,7 @@ namespace td
 
             // обработка команды удаления GameObject со сцены
             systems
-                .AddGroup("RemoveGameObject", true, Constants.Worlds.Outer,
+                .AddGroup(Constants.EcsSystemGroups.RemoveGameObject, true, Constants.Worlds.Outer,
                     new IdleRemoveGameObjectExecutor(),
                     new RemoveGameObjectExecutor(),
                     new DelHereSystem<RemoveGameObjectCommand>(world)
@@ -270,6 +278,7 @@ namespace td
                 new EnemyPathService(),
                 new LightningLineService(),
                 new ExplosionService(),
+                new WindowsService(),
                 shardsConfig,
                 converters
             );

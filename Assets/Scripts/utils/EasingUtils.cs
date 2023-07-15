@@ -1,5 +1,7 @@
 ﻿// Source - https://github.com/ai/easings.net/blob/master/src/easings/easingsFunctions.ts
 // Demo - https://easings.net/
+
+using System;
 using UnityEngine;
 
 namespace td.utils
@@ -202,6 +204,79 @@ namespace td.utils
             return x < 0.5f
                 ? (1f - BounceOut(1f - 2f * x)) / 2f
                 : (1f + BounceOut(2f * x - 1f)) / 2f;
+        }
+
+        public static float EaseMethod(EasingMethod method, float x) => method switch
+        {
+            EasingMethod.Linear => Linear(x),
+            EasingMethod.BounceOut => BounceOut(x),
+            EasingMethod.InQuad => EaseInQuad(x),
+            EasingMethod.OutQuad => EaseOutQuad(x),
+            EasingMethod.InOutQuad => EaseInOutQuad(x),
+            EasingMethod.InCubic => EaseInCubic(x),
+            EasingMethod.OutCubic => EaseOutCubic(x),
+            EasingMethod.InOutCubic => EaseInOutCubic(x),
+            EasingMethod.InQuart => EaseInQuart(x),
+            EasingMethod.OutQuart => EaseOutQuart(x),
+            EasingMethod.InOutQuart => EaseInOutQuart(x),
+            EasingMethod.InQuint => EaseInQuint(x),
+            EasingMethod.OutQuint => EaseOutQuint(x),
+            EasingMethod.InOutQuint => EaseInOutQuint(x),
+            EasingMethod.InSine => EaseInSine(x),
+            EasingMethod.OutSine => EaseOutSine(x),
+            EasingMethod.InOutSine => EaseInOutSine(x),
+            EasingMethod.InExpo => EaseInExpo(x),
+            EasingMethod.OutExpo => EaseOutExpo(x),
+            EasingMethod.InOutExpo => EaseInOutExpo(x),
+            EasingMethod.InCirc => EaseInCirc(x),
+            EasingMethod.OutCirc => EaseOutCirc(x),
+            EasingMethod.InOutCirc => EaseInOutCirc(x),
+            EasingMethod.InBack => EaseInBack(x),
+            EasingMethod.OutBack => EaseOutBack(x),
+            EasingMethod.InOutBack => EaseInOutBack(x),
+            EasingMethod.InElastic => EaseInElastic(x),
+            EasingMethod.OutElastic => EaseOutElastic(x),
+            EasingMethod.InOutElastic => EaseInOutElastic(x),
+            EasingMethod.InBounce => EaseInBounce(x),
+            EasingMethod.OutBounce => EaseOutBounce(x),
+            EasingMethod.InOutBounce => EaseInOutBounce(x),
+            _ => Linear(x)
+        };
+        
+        public enum EasingMethod
+        {
+            Linear,
+            BounceOut,
+            InQuad,
+            OutQuad,
+            InOutQuad,
+            InCubic,
+            OutCubic,
+            InOutCubic,
+            InQuart,
+            OutQuart,
+            InOutQuart,
+            InQuint,
+            OutQuint,
+            InOutQuint,
+            InSine,
+            OutSine,
+            InOutSine,
+            InExpo,
+            OutExpo,
+            InOutExpo,
+            InCirc,
+            OutCirc,
+            InOutCirc,
+            InBack,
+            OutBack,
+            InOutBack,
+            InElastic,
+            OutElastic,
+            InOutElastic,
+            InBounce,
+            OutBounce,
+            InOutBounce,
         }
     }
 }

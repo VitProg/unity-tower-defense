@@ -32,6 +32,7 @@ namespace td.features.levels
                     enemiesCount <= 0)
                 {
                     Debug.Log("LEVEL COMPLETE!!!");
+                    //todo show vickoty screen
                     systems.Outer<LoadLevelOuterCommand>().levelNumber = state.LevelNumber + 1;
                 }
             }
