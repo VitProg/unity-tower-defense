@@ -31,6 +31,7 @@ namespace td.services
         Enemies,
         Shard,
         Buildings,
+        Windows,
         UI,
     }
 }

@@ -1,12 +1,9 @@
 using td.components.commands;
 using td.components.flags;
-using td.features.menu;
-using td.features.state;
+using td.features.windows.common;
 using td.utils.ecs;
-using UnityEditor.VersionControl;
 using UnityEngine;
 using UnityEngine.UI;
-using Task = System.Threading.Tasks.Task;
 
 namespace td.features.windows
 {

@@ -1,11 +1,9 @@
 ﻿using Cinemachine;
 using Leopotam.EcsLite;
-using td.features.menu;
 using td.features.shards.mb;
-using td.features.windows;
+using td.features.windows.common;
 using td.monoBehaviours;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace td.common
 {

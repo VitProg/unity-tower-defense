@@ -16,7 +16,6 @@ using td.features.eventBus;
 using td.features.impactsEnemy;
 using td.features.impactsKernel;
 using td.features.levels;
-using td.features.menu;
 using td.features.projectiles;
 using td.features.projectiles.explosion;
 using td.features.projectiles.lightning;
@@ -29,9 +28,9 @@ using td.features.shards.init;
 using td.features.shards.mb;
 using td.features.state;
 using td.features.towers;
-using td.features.ui;
 using td.features.waves;
 using td.features.windows;
+using td.features.windows.common;
 using td.monoBehaviours;
 using td.services;
 using td.services.ecsConverter;
@@ -42,7 +41,6 @@ using td.utils;
 using td.utils.ecs;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace td
 {
@@ -68,7 +66,21 @@ namespace td
         [MinValue(1), MaxValue(4)] public uint levelNumber;
 
         private IEcsSystems systems;
+        
+        //todo move to other place
+        public async void ShowSettings()
+        {
+            var windowsService = DI.Get<WindowsService>()!;
+            var state = DI.Get<State>()!;
+            var lastGameSpeed = state.GameSpeed;
+            state.GameSpeed = 0f;
+            await windowsService.Open(WindowsService.Type.SettingsMenu);
+            await windowsService.WaitClose(WindowsService.Type.SettingsMenu);
+            state.GameSpeed = lastGameSpeed;
 
+            //todo resume game when settings in closed
+        }
+        
         private void Start()
         {
             var sharedData = new SharedData()

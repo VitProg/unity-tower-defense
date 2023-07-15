@@ -3,6 +3,7 @@ using td.features.eventBus;
 using UnityEngine;
 using td.utils.ecs;
 using td.features.state;
+using td.features.windows;
 using td.utils;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -38,10 +39,20 @@ namespace td.features.gameSpeed
             image.sprite = isOn ? onStateSprite : offStateSprite;
         }
         
-        public void OnPointerDown(PointerEventData eventData)
+        public async void OnPointerDown(PointerEventData eventData)
         {
             if (!diResolved) return;
+            var lastGameSpeed = state!.GameSpeed;
+            
             state!.GameSpeed = gameSpeed;
+
+            if (FloatUtils.IsZero(gameSpeed))
+            {
+                var windowsService = DI.Get<WindowsService>()!;
+                await windowsService.Open(WindowsService.Type.PauseMenu);
+                await windowsService.WaitClose(WindowsService.Type.PauseMenu);
+                state.GameSpeed = lastGameSpeed;
+            }
         }
 
         public void OnEvent(StateChangedEvent @event)
