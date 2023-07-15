@@ -305,7 +305,7 @@ namespace td.features.shards.mb
             get => hover.gameObject.activeSelf;
             set
             {
-                hover.gameObject.SetActive(value);
+                if (hover != null) hover.gameObject.SetActive(value);
             }
         }
     }

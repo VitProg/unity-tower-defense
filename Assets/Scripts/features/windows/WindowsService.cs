@@ -138,8 +138,6 @@ namespace td.features.windows
 
         public async Task WaitClose(Type type)
         {
-            
-            
             if (!stack.Contains(type)) return;
 
             while (true)

@@ -7,6 +7,7 @@ using td.components.refs;
 using td.features.state;
 using td.features.towers;
 using td.monoBehaviours;
+using td.systems.commands;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -107,8 +108,9 @@ namespace td.services
                 // также удаляем привязанный GameObject
                 if (world.HasComponent<Ref<GameObject>>(entity))
                 {
-                    var refGameObject = world.GetComponent<Ref<GameObject>>(entity);
-                    Object.Destroy(refGameObject.reference);
+                    var go = world.GetComponent<Ref<GameObject>>(entity).reference;
+                    RemoveGameObjectExecutor.Remove(go, entity);
+                    // Object.Destroy(refGameObject.reference);
                 }
 
                 world.DelEntity(entity);

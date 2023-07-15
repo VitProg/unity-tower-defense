@@ -12,7 +12,7 @@ namespace td.features.towers.mb
     [RequireComponent(typeof(EcsEntity))]
     [SelectionBase]
     public class TowerMonoBehaviour : MonoBehaviour, IConvertibleToEntity, ISortingLayerChangeable
-    {   
+    {
         public GameObject barrel;
         public SpriteRenderer sprite;
         public EcsEntity ecsEntity;

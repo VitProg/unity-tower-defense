@@ -19,27 +19,36 @@ namespace td.systems.commands
 
         public void Run(IEcsSystems systems)
         {
-            var world = systems.GetWorld();
+            // var world = systems.GetWorld();
 
             foreach (var entity in entities.Value)
             {
                 var gameObject = entities.Pools.Inc2.Get(entity).reference;
 
-                var poolableObject = gameObject.GetComponent<PoolableObject>();
+                Remove(gameObject, entity);
+            }
+        }
+        
+        //todo ???
+        public static void Remove(GameObject gameObject, int entity)
+        {
+            var poolServise = DI.Get<GameObjectPoolService>()!;
+            var world = DI.GetWorld();
+            
+            var poolableObject = gameObject.GetComponent<PoolableObject>();
 
-                if (poolableObject != null)
-                {
-                    poolServise.Release(poolableObject);
+            if (poolableObject != null)
+            {
+                poolServise.Release(poolableObject);
                     
-                    // ToDo
-                    world.GetComponent<IsDestroyed>(entity);
-                    // world.DelEntity(entity);
-                }
-                else
-                {
-                    Object.Destroy(gameObject);
-                    world.DelEntity(entity);
-                }
+                // ToDo
+                world.GetComponent<IsDestroyed>(entity);
+                // world.DelEntity(entity);
+            }
+            else
+            {
+                Object.Destroy(gameObject);
+                world.DelEntity(entity);
             }
         }
     }

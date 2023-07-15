@@ -17,7 +17,11 @@
         {
           "spawner": 0,
           "enemies": [
-            "simple_walker"
+            {
+              "name": "creep",
+              "type": -1,
+              "variant": -1
+            }
           ],
           "quantity": 6,
           "speed": 1.1,
@@ -32,11 +36,11 @@
         {
           "spawner": 0,
           "enemies": [
-            "simple_walker",
-            "simple_walker",
-            "simple_walker",
-            "simple_walker",
-            "speedy_walker"
+            {
+              "name": "creep",
+              "type": -1,
+              "variant": -1
+            }
           ],
           "selectMethod": 2,
           "quantity": 10,
@@ -52,10 +56,11 @@
         {
           "spawner": 0,
           "enemies": [
-            "simple_walker",
-            "speedy_walker",
-            "speedy_walker",
-            "speedy_walker"
+            {
+              "name": "creep",
+              "type": -1,
+              "variant": -1
+            }
           ],
           "selectMethod": 2,
           "quantity": 15,

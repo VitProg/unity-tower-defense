@@ -72,12 +72,12 @@ namespace td
         {
             var windowsService = DI.Get<WindowsService>()!;
             var state = DI.Get<State>()!;
+            
             var lastGameSpeed = state.GameSpeed;
             state.GameSpeed = 0f;
             await windowsService.Open(WindowsService.Type.SettingsMenu);
             await windowsService.WaitClose(WindowsService.Type.SettingsMenu);
             state.GameSpeed = lastGameSpeed;
-
             //todo resume game when settings in closed
         }
         
@@ -276,7 +276,7 @@ namespace td
 #endif
 
             systems.Add(new SturtupInitSystem());
-
+            
             systems.InjectLite(
                 state,
                 new EventBus(),

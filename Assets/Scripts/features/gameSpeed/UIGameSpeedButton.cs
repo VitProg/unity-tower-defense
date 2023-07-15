@@ -57,7 +57,10 @@ namespace td.features.gameSpeed
 
         public void OnEvent(StateChangedEvent @event)
         {
-            Refresh();
+            if (@event.gameSpeed.HasValue)
+            {
+                Refresh();
+            }
         }
     }
 }

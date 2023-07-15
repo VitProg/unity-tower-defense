@@ -14,6 +14,6 @@ namespace td.components.behaviors
         public float gap;
         public float speed;
         public bool resetAnchoredPositionZ;
-        [FormerlySerializedAs("isSpeedOfGameAffected")] public bool speedOfGameAffected;
+        public bool speedOfGameAffected;
     }
 }
