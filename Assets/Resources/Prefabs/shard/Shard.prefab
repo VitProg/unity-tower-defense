@@ -146,8 +146,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0867817499b74eea85e83fd7b2192eda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldName: 
-  entityID: -1
 --- !u!33 &4801450334246199621
 MeshFilter:
   m_ObjectHideFlags: 0
@@ -225,6 +223,7 @@ MonoBehaviour:
     costCombine: 0
     costDrop: 0
     costRemove: 0
+    currentColor: {r: 0, g: 0, b: 0, a: 0}
   meshFilter: {fileID: 4801450334246199621}
   uiMeshRenderer: {fileID: 0}
   numVertices: 20
@@ -526,8 +525,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0867817499b74eea85e83fd7b2192eda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  worldName: 
-  entityID: -1
 --- !u!1 &8652586204198804001
 GameObject:
   m_ObjectHideFlags: 0

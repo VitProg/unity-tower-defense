@@ -58,7 +58,7 @@ namespace td.features.shard.components
         public uint costCombine;
         public uint costDrop;
         public uint costRemove;
-
+        
         public Color currentColor;
 
 #if UNITY_EDITOR && DEBUG

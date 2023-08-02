@@ -73,6 +73,7 @@ namespace td.features.level
                     );
                 }
 
+                if (shard.costInsert == 0) shardService.Value.PrecalcAllCosts(ref shard);
                 var insertCost = shard.costInsert; //calc.Value.CalculateInsertCost(ref shard);
                 return (
                     state.Value.Energy >= insertCost

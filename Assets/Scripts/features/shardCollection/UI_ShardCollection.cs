@@ -182,6 +182,8 @@ namespace td.features.shardCollection
             canDropStatus = CanDropStatus.False;
 
             ref var shard = ref shardButton.GetShard();
+
+            if (shard.costInsert == 0) shardService.Value.PrecalcAllCosts(ref shard);
             
             targetTower = null;
             targetShardInTower = null;
