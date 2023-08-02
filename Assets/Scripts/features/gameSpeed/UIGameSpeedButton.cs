@@ -1,21 +1,21 @@
-﻿using NaughtyAttributes;
-using td.features.eventBus;
+﻿using System;
+using Leopotam.EcsLite;
+using NaughtyAttributes;
 using UnityEngine;
-using td.utils.ecs;
 using td.features.state;
-using td.features.windows;
+using td.features.window;
 using td.utils;
+using td.utils.di;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace td.features.gameSpeed
 {
-    public class UIGameSpeedButton : MonoBehaviour, IPointerDownHandler, IEventReceiver<StateChangedEvent>
+    public class UIGameSpeedButton : MonoInjectable, IPointerDownHandler
     {
-        public UniqueId Id { get; } = new UniqueId();
-        
-        [Inject] private State state;
-        [Inject] private EventBus eventBus;
+        private readonly EcsInject<IState> state;
+        private readonly EcsInject<IEventBus> events;
+        private readonly EcsInject<Windows_Service> windowsService;
         
         [Required][SerializeField] private Image image;
         
@@ -24,42 +24,55 @@ namespace td.features.gameSpeed
         [Required][SerializeField] private Sprite onStateSprite;
         [Required][SerializeField] private Sprite offStateSprite;
         
-        private bool diResolved;
+        private IDisposable eventDispose;
 
-        public async void Awake()
+        // private bool diResolved;
+
+        // public new void Awake()
+        // {
+            // base.Awake();
+            // eventBus.Value.Subscribe(this);
+            // await DI.Resolve(this);
+            // DI.Get<EventBus>()!.Subscribe(this);
+            // diResolved = true;
+        // }
+
+        public void Start()
         {
-            await DI.Resolve(this);
-            DI.Get<EventBus>()!.Subscribe(this);
-            diResolved = true;
+            eventDispose = events.Value.Unique.SubscribeTo<Event_StateChanged>(OnStateChanged);
         }
 
-        public void Refresh()
-        {
-            var isOn = FloatUtils.IsEquals(state!.GameSpeed, gameSpeed);
-            image.sprite = isOn ? onStateSprite : offStateSprite;
-        }
-        
-        public async void OnPointerDown(PointerEventData eventData)
-        {
-            if (!diResolved) return;
-            var lastGameSpeed = state!.GameSpeed;
-            
-            state!.GameSpeed = gameSpeed;
-
-            if (FloatUtils.IsZero(gameSpeed))
-            {
-                var windowsService = DI.Get<WindowsService>()!;
-                await windowsService.Open(WindowsService.Type.PauseMenu);
-                await windowsService.WaitClose(WindowsService.Type.PauseMenu);
-                state.GameSpeed = lastGameSpeed;
-            }
-        }
-
-        public void OnEvent(StateChangedEvent @event)
+        private void OnStateChanged(ref Event_StateChanged @event)
         {
             if (@event.gameSpeed.HasValue)
             {
                 Refresh();
+            }
+        }
+
+        public void Refresh()
+        {
+            var isOn = FloatUtils.IsEquals(state.Value.GameSpeed, gameSpeed);
+            image.sprite = isOn ? onStateSprite : offStateSprite;
+        }
+
+        private void OnDestroy()
+        {
+            eventDispose.Dispose();
+        }
+
+        public async void OnPointerDown(PointerEventData eventData)
+        {
+            // if (!diResolved) return;
+            var lastGameSpeed = state.Value.GameSpeed;
+            
+            state.Value.GameSpeed = gameSpeed;
+
+            if (FloatUtils.IsZero(gameSpeed))
+            {
+                await windowsService.Value.Open(Windows_Service.Type.PauseMenu);
+                await windowsService.Value.WaitClose(Windows_Service.Type.PauseMenu);
+                state.Value.GameSpeed = lastGameSpeed;
             }
         }
     }

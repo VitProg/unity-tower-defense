@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using td.common;
 using UnityEngine;
 
@@ -10,24 +11,39 @@ namespace td.utils
         public const float HexOffsetY = 0.8660254f;
         public const float SkewY = 0.85f;
 
-        public static Vector2 CellToPosition(Int2 cell)
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static Vector2 CellToPosition(Int2 cell) => CellToPosition(cell.x, cell.y);
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static Vector2 CellToPosition(ref Int2 cell) => CellToPosition(cell.x, cell.y);
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static Vector2 CellToPosition(int cellX, int cellY)
         {
-            var x = HexOffsetX * (cell.x + 0.5f);
-            var y = HexOffsetY * (cell.y + (Math.Abs(cell.x) % 2) / 2f + 0.5f) * SkewY;
+            var x = HexOffsetX * (cellX + 0.5f);
+            var y = HexOffsetY * (cellY + (Math.Abs(cellX) % 2) / 2f + 0.5f) * SkewY;
             return new Vector2 { x = x, y = y };
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static Int2 PositionToCell(Vector2 position)
         {
             var x = Mathf.FloorToInt(position.x / HexOffsetX);
             var y = Mathf.FloorToInt(((position.y / SkewY) - (Math.Abs(x) % 2) * HexOffsetY / 2) / HexOffsetY);
             return new Int2() { x = x, y = y };
         }
+        
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static Int2 PositionToCell(float posX, float posY)
+        {
+            var x = Mathf.FloorToInt(posX / HexOffsetX);
+            var y = Mathf.FloorToInt(((posY / SkewY) - (Math.Abs(x) % 2) * HexOffsetY / 2) / HexOffsetY);
+            return new Int2() { x = x, y = y };
+        }
 
         public static Vector2 SnapToGrid(Vector2 position) =>
             CellToPosition(PositionToCell(position));
 
-        public static Int2 GetNeighborsCoords(Int2 cellCoords, HexDirections direction)
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static Int2 GetNeighborsCoords(ref Int2 cellCoords, HexDirections direction)
         {
             var x = cellCoords.x;
             var y = cellCoords.y;
@@ -46,7 +62,8 @@ namespace td.utils
             };
         }
 
-        public static HexDirections GetDirection(Int2 a, Int2 b)
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static HexDirections GetDirection(ref Int2 a, ref Int2 b)
         {
             var xDiff = b.x - a.x;
             var yDiff = b.y - a.y;
@@ -73,6 +90,7 @@ namespace td.utils
             return HexDirections.NONE;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static HexDirections ReverseDirection(HexDirections direction) =>
             direction switch
             {

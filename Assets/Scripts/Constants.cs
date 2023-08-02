@@ -1,10 +1,12 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 namespace td
 {
     public static class Constants
     {
-        public const float DefaultGap = 0.2f;
+        public const float DefaultGap = 0.25f;
+        public const float DefaultGapSqr = DefaultGap * DefaultGap;
         public const float ZeroFloat = 0.0001f;
         
         public static class EcsSystemGroups
@@ -31,6 +33,15 @@ namespace td
             public const float DefaultAngularSpeed = 5f;
             public const float MinAngularSpeed = 0.01f;
             public const float SmoothRotationThreshold = 100f;
+            public static readonly Color[] HpBarColors = {
+                new Color(1f, 0.0f, 0f),
+                new Color(1f, 0.1f, 0f),
+                new Color(1f, 0.2f, 0f),
+                new Color(1f, 0.3f, 0f),
+                new Color(1f, 0.4f, 0f),
+                new Color(1f, 0.5f, 0f),
+                new Color(1f, 0.6f, 0f),
+            };
         }
         
         public static class Tags
@@ -51,16 +62,17 @@ namespace td
         
         public static class Level
         {
-            public const uint MaxMapArrayWidth = 100;
-            public const uint MaxMapArrayHeight = 100;
+            public const uint MaxMapArrayWidth = 64;
+            public const uint MaxMapArrayHeight = 64;
             public const uint MaxSpawns = 10;
-            public const uint MaxTargets = 5;
+            public const uint MaxKernels = 5;
         }
         
         public static class Worlds
         {
             public const string Default = default;
-            public const string Outer = "outer";
+            // [Obsolete("",true)]public const string Outer = "outer";
+            public const string EventBus = "eventBus";
             // public const string UI = "ui";
         }
         
@@ -129,7 +141,16 @@ namespace td
             }
             
             public const string CurrencySign = "₮";
-            public const byte MaxShardsInCollection = 12;
+            
+            public static class Shard
+            {
+                // public const byte MaxShardsInCollection = 12;
+                public const float InTowerScaleY = 0.85f;
+                public const float RotationSpeed = 20f;
+                public const float RotationSpeedLevelImpact = 5f;
+                public const int ColorAnimNumVerticesDivider = 8;
+                public const float ColorAnimSpeed = 1f;
+            }
         }
 
         public static class Pools

@@ -1,17 +1,16 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using JetBrains.Annotations;
 using Leopotam.EcsLite;
 using td.common;
-using td.utils.ecs;
 using UnityEditor;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace td.utils
 {
-#if UNITY_EDITOR
     public static class EditorUtils
     {
         private static uint _lastID;
@@ -19,6 +18,7 @@ namespace td.utils
         private static readonly Dictionary<string, bool> _isShoweds = new();
         
         private static readonly Type intType = typeof(int);
+        private static readonly Type stringType = typeof(string);
         private static readonly Type uintType = typeof(uint);
         private static readonly Type shortType = typeof(short);
         private static readonly Type ushortType = typeof(ushort);
@@ -152,8 +152,9 @@ namespace td.utils
                 // catch
                 // {
                 
-                (value is EcsPackedEntity entity ? entity : default).Unpack(DI.GetWorld(), out var unpacked);
-                EditorGUILayout.TextField($"Entity#{value}:{unpacked}");
+                // (value is EcsPackedEntity entity ? entity : default).Unpack(DI.GetWorld(), out var unpacked);
+                // EditorGUILayout.TextField($"Entity#{value}:{unpacked}");
+                EditorGUILayout.TextField($"Entity#{value}");
                 // }
                 
                 EditorGUI.EndDisabledGroup();
@@ -231,13 +232,9 @@ namespace td.utils
                 if (!onlyValue && name != null) EditorGUILayout.PrefixLabel(name);
                 EditorGUI.BeginDisabledGroup(true);
                 if (value == null)
-                {
                     EditorGUILayout.LabelField("<null>");
-                }
                 else
-                {
                     EditorGUILayout.ObjectField((Object)value, value.GetType(), true);
-                }
                 EditorGUI.EndDisabledGroup();
             }
             else
@@ -255,13 +252,21 @@ namespace td.utils
                     if (_isShoweds.TryGetValue(key, out var showed)) isShowed = showed;
 
                     isShowed = EditorGUILayout.Foldout(isShowed, $"{name} [{((Array)value).Length}]", foldStyle);
+                    // isShowed = EditorGUILayout.Foldout(isShowed, $"{key}[]", foldStyle);
 
                     if (isShowed)
                     {
+                        var index = 0;
                         foreach (var item in (Array)value)
                         {
-                            RenderProperty($"{key}[]", item.GetType(), null, item, true, deep);
-                        }
+                            var k = $"{key}[{index}]";
+                            if (item == null)
+                                // RenderProperty(k,  stringType, null, "<null>", true, deep);
+                                EditorGUILayout.LabelField($"{index}: <null>");
+                            else
+                                RenderProperty(k, item.GetType(), null, item, true, deep);
+                            index++;
+                        }   
                     }
 
                     _isShoweds.Remove(key);
@@ -345,5 +350,5 @@ namespace td.utils
             GUI.color = c;
         }
     }
-#endif
 }
+#endif

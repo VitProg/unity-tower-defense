@@ -1,5 +1,4 @@
-﻿using td.features.shards;
-using td.features.shards.mb;
+﻿using td.features.shard.mb;
 using UnityEditor;
 using UnityEngine;
 
@@ -10,7 +9,7 @@ namespace td.editor
         [MenuItem("TD/Update All Shard Meshes", false, -200)]
         public static void UpdateShardMeshes()
         {
-            foreach (var shardMeshGenerator in FindObjectsOfType<ShardMeshGenerator>())
+            foreach (var shardMeshGenerator in FindObjectsOfType<ShardMonoBehaviour>())
             {
                 shardMeshGenerator.Refresh();
             }

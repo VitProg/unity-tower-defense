@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsLite;
 using td.common;
+using td.features._common;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace td.features.camera
 {
     public class CameraMoveSystem : IEcsRunSystem, IEcsInitSystem
     {
-        [InjectShared] private SharedData shared;
+        private readonly EcsInject<SharedData> shared;
 
         private Vector3 startCursorScreenPosition;
         private Vector3 lastCursorScreenPosition;
@@ -33,7 +34,7 @@ namespace td.features.camera
 
         public void Run(IEcsSystems systems)
         {
-            if (shared.virtualCamera == null) return;
+            if (shared.Value.virtualCamera == null) return;
 
             ///// MOUSE ////
             var cursorScreenPosition = Input.mousePosition;
@@ -100,7 +101,7 @@ namespace td.features.camera
                 mouseTime += Time.deltaTime;
 
                 var speed = (mouseVector.magnitude + keyboardVector.magnitude) *
-                            (shared.virtualCamera.m_Lens.OrthographicSize / Constants.Camera.MinOrthographicZoom) *
+                            (shared.Value.virtualCamera.m_Lens.OrthographicSize / Constants.Camera.MinOrthographicZoom) *
                             (Mathf.Max(Screen.width, Screen.height) / 1000f);
 
                 speed = Mathf.Clamp(speed, 0, Constants.Camera.MaxMoveSpeed);
@@ -113,15 +114,17 @@ namespace td.features.camera
 
                 /////
 
-                targetPosition = camera.transform.position + (Vector3)vector;
+                var cameraTransform = camera.transform;
+                var cameraPosition = cameraTransform.position;
+                targetPosition = cameraPosition + (Vector3)vector;
                 currentCameraPosition = targetPosition;
-                currentCameraPosition.z = camera.transform.position.z;
+                currentCameraPosition.z = cameraPosition.z;
 
                 var pos = currentCameraPosition;
 
-                pos.z = camera.transform.position.z;
+                pos.z = cameraPosition.z;
 
-                shared.virtualCamera.ForceCameraPosition(pos, camera.transform.rotation);
+                shared.Value.virtualCamera.ForceCameraPosition(pos, cameraTransform.rotation);
 
                 if (mouseInertia)
                 {

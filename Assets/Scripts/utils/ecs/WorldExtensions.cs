@@ -1,179 +1,80 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using Leopotam.EcsLite;
-using td.common;
-using td.common.ecs;
-using td.components.commands;
-using td.components.flags;
-using td.components.refs;
-using td.features.shards;
-using UnityEngine;
+// #if ENABLE_IL2CPP
+// using System;
+// using Unity.IL2CPP.CompilerServices;
+// #endif
 
 namespace td.utils.ecs
 {
+// #if ENABLE_IL2CPP
+//     [Il2CppSetOption (Option.NullChecks, false)]
+//     [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
+// #endif
     public static class WorldExtensions
     {
-        public static ref T GetComponent<T>(this EcsWorld world, int entity) where T : struct
-        {
-            var pool = world.GetPool<T>();
-            if (pool.Has(entity))
-            {
-                return ref pool.Get(entity);
-            }
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static bool Has<T>(this EcsPool<T> pool, EcsPackedEntity packedEntity) where T : struct =>
+            packedEntity.Unpack(pool.GetWorld(), out var entity) && pool.Has(entity);
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static bool Has<T>(this EcsPool<T> pool, EcsPackedEntityWithWorld packedEntity) where T : struct =>
+            packedEntity.Unpack(out _, out var entity) && pool.Has(entity);
 
+        public static ref T GetOrAdd<T>(this EcsPool<T> pool, EcsPackedEntity packedEntity) where T : struct
+        {
+            if (!packedEntity.Unpack(pool.GetWorld(), out var entity)) throw new Exception ($"Cant get \"{typeof (T).Name}\" component - not attached.");
+            return ref pool.GetOrAdd<T>(entity);
+        }
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static ref T GetOrAdd<T>(this EcsPool<T> pool, EcsPackedEntityWithWorld packedEntity) where T : struct
+        {
+            if (!packedEntity.Unpack(out _, out var entity)) throw new Exception ($"Cant get \"{typeof (T).Name}\" component - not attached.");
+            return ref pool.GetOrAdd<T>(entity);
+        }
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static ref T GetOrAdd<T>(this EcsPool<T> pool, int entity) where T : struct
+        {
+            if (pool.Has(entity)) return ref pool.Get(entity);
             return ref pool.Add(entity);
         }
 
-        // public static bool TryGetComponent<T>(this EcsWorld world, int entity, out T component) where T : struct
-        // {
-        //     var pool = world.GetPool<T>();
-        //     if (!pool.Has(entity))
-        //     {
-        //         component = default;
-        //         return false;
-        //     }
-        //
-        //     component = default;
-        //     component = ref GetComponent<T>(world, entity);
-        //
-        //     return true;
-        // }
-        
-        // public static ref T AddComponent<T>(this EcsWorld world, int entity, bool rewrite = false) where T : struct
-        // {
-        //     var pool = world.GetPool<T>();
-        //     
-        //     if (pool.Has(entity))
-        //     {
-        //         if (rewrite) pool.Del(entity);
-        //         else return ref pool.Get(entity);
-        //     }
-        //
-        //     return ref pool.Add(entity);
-        // }
-            
-        // [Obsolete]
-        // public static ref T AddComponent<T>(this EcsWorld world, int entity, T component)
-        //     where T : struct
-        // {
-        //     var pool = world.GetPool<T>();
-        //
-        //     if (pool.Has(entity))
-        //     {
-        //         pool.Del(entity);
-        //     }
-        //
-        //     ref var newComponent = ref pool.Add(entity);
-        //
-        //     if (newComponent is IEcsAutoMerge<T> merge)
-        //     {
-        //         merge.AutoMerge(ref component, newComponent);
-        //     }
-        //
-        //     newComponent = component;
-        //
-        //     return ref newComponent;
-        // }
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static ref T SafeAdd<T>(this EcsPool<T> pool, EcsPackedEntity packedEntity) where T : struct => ref pool.GetOrAdd(packedEntity);
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static ref T SafeAdd<T>(this EcsPool<T> pool, EcsPackedEntityWithWorld packedEntity) where T : struct => ref pool.GetOrAdd(packedEntity);
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static ref T SafeAdd<T>(this EcsPool<T> pool, int entity) where T : struct => ref pool.GetOrAdd(entity);
 
-        // public static ref T MergeComponent<T>(this EcsWorld world, int entity, T component) where T : struct
-        // {
-        //     var pool = world.GetPool<T>();
-        //
-        //     if (!pool.Has(entity))
-        //     {
-        //         return ref AddComponent(world, entity, component);
-        //     }
-        //
-        //     ref var componentInPool = ref pool.Get(entity);
-        //     
-        //     if (componentInPool is IEcsAutoMerge<T> merge)
-        //     {
-        //         merge.AutoMerge(ref componentInPool, component);
-        //         return ref componentInPool;
-        //     }
-        //
-        //     return ref AddComponent(world, entity, component);
-        // }
-        
-        // public static ref T GetComponent<T>(this EcsWorld world, int entity) where T : struct {
-        //     var pool = world.GetPool<T>();
-        //     return ref pool.Get(entity);
-        // }
-
-        // public static bool TryGetComponent<T>(this EcsWorld world, int entity, out T component) where T : struct
-        // {
-        //     var pool = world.GetPool<T>();
-        //
-        //     if (pool.Has(entity))
-        //     {
-        //         return 
-        //     }
-        //     if (!HasComponent<T>(world, entity))
-        //     {
-        //         component = default;
-        //         return false;
-        //     }
-        //
-        //     component = GetComponent<T>(world, entity);
-        //
-        //     return true;
-        // }
-
-        public static bool HasComponent<T>(this EcsWorld world, int entity) where T : struct
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static void SetExistence<T>(this EcsPool<T> pool, int entity, bool existence) where T : struct
         {
-            var pool = world.GetPool<T>();
-            return pool.Has(entity);
-        }
-
-        public static void DelComponent<T>(this EcsWorld world, int entity) where T : struct
-        {
-            var pool = world.GetPool<T>();
-            pool.Del(entity);
-        }
-
-        public static void CopyComponent<T>(this EcsWorld world, int srcEntity, int dstEntity) where T : struct
-        {
-            var pool = world.GetPool<T>();
-            pool.Copy(srcEntity, dstEntity);
+            if (existence) SafeAdd(pool, entity);
+            else SafeDel(pool, entity);
         }
         
-        public static int GetEntitiesCount<T>(this EcsWorld world) where T : struct =>
-            world.Filter<T>().End().GetEntitiesCount();
-
-        public static void SafeDelEntity(this EcsWorld world, int entity)
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static void SafeDel<T>(this EcsPool<T> pool, int entity) where T : struct
         {
-            if (world.HasComponent<Ref<GameObject>>(entity))
-            {
-                world.DelComponent<IsDisabled>(entity);
-                world.GetComponent<RemoveGameObjectCommand>(entity);
-            }
-            else
-            {
-                world.DelEntity(entity);
-            }
+            if (pool.Has(entity)) pool.Del(entity);
         }
-
-        public static int[] ToArray(this EcsFilter filter)
-        {
-            var entities = new int[filter.GetEntitiesCount()];
-            var i = 0;
-            foreach (var entity in filter)
-            {
-                entities[i++] = entity;
-            }
-
-            return entities;
-        }
-
+        
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static bool IsEmpty(this EcsFilter filter) => filter.GetEntitiesCount() <= 0;
+        
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static bool TryGetFirst(this EcsFilter filter, out int firstEntity)
         {
-            foreach (var entity in filter)
+            if (IsEmpty(filter))
             {
-                firstEntity = entity;
-                return true;
+                firstEntity = 1;
+                return false;
             }
-
-            firstEntity = -1;
-            return false;
+            firstEntity = filter.GetRawEntities()[0];
+            return true;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static int GetRawEntity(this EcsFilter filter, int index) => filter.GetRawEntities()[index];
     }
 }

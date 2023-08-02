@@ -13,7 +13,16 @@ namespace td.utils
             // }
             // var pos = new Vector3(inputPos.x, inputPos.y, -camera.transform.position.z);
             var pos = new Vector3(inputPos.x, inputPos.y, z);
-            return camera.ScreenToWorldPoint(pos);
+            var inCameraPos = camera.ScreenToWorldPoint(pos);
+
+            return inCameraPos;
+        }
+
+        public static void FixAnchoeredPosition(this Transform transform)
+        {
+            var rectTransform = ((RectTransform)transform);
+            var ap = rectTransform.anchoredPosition3D;
+            rectTransform.anchoredPosition3D = new Vector3(ap.x, ap.y, 0.0f);
         }
     }
 }

@@ -81,12 +81,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b0c7dbd6076748a7bb22fe92f68a701f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ecsEntity: {fileID: 5346290450441941547}
   barrel: {fileID: 3117892530278641205}
   sprite: {fileID: 910789065931594142}
-  ecsEntity: {fileID: 0}
-  radius: 5
-  cost: 10
-  _sortingLayer: Buildings
+  radiusRenderer: {fileID: 7822636247905777919}
+  size:
+    x: 0.43
+    y: 0.365
 --- !u!114 &5346290450441941547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -99,8 +100,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0867817499b74eea85e83fd7b2192eda, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  entityID: -1
-  world: 
 --- !u!114 &5690501739714861164
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,9 +124,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0eff9572fa384719b3beb2ca2119dbd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lineRenderer: {fileID: 7822636247905777919}
+  ecsEntity: {fileID: 5346290450441941547}
 --- !u!120 &7822636247905777919
 LineRenderer:
+  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -218,16 +218,20 @@ LineRenderer:
       atime6: 0
       atime7: 0
       m_Mode: 0
+      m_ColorSpace: -1
       m_NumColorKeys: 2
       m_NumAlphaKeys: 2
     numCornerVertices: 0
     numCapVertices: 0
     alignment: 0
     textureMode: 1
+    textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
+  m_MaskInteraction: 0
   m_UseWorldSpace: 0
   m_Loop: 1
+  m_ApplyActiveColorSpace: 0
 --- !u!1 &8159553305696006838
 GameObject:
   m_ObjectHideFlags: 0

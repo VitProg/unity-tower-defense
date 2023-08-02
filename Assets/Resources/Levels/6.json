@@ -3,16 +3,36 @@
   "delayBeforeFirstWave": 5,
   "delayBetweenWaves": 3,
   "lives": 10.0,
-  "startedMoney": 20,
-  "availableShards": ["red", "green", "blue", "violet", "aquamarine", "pink"],
-  "shardsCost":      [10,    10,      20,     30,       50,           25],
+  "startedEnergy": 1000000,
+  "maxShards": 10,
+  "shardsStore": {
+    "red": false,
+    "green": true,
+    "blue": true,
+    "aquamarine": true,
+    "yellow": false,
+    "orange": false,
+    "pink": true,
+    "violet": true
+  },
+  "shardsCost": {
+    "red": 10,
+    "green": 10,
+    "blue": 20,
+    "aquamarine": 50,
+    "yellow": 10,
+    "orange": 10,
+    "pink": 25,
+    "violet": 30
+  },
   "startedShards": [
-    {"red":  1},
-    {"red":  4},
-    {"violet":  1},
+    {"blue":  5, "yellow":  5},
+    {"yellow":  5},
     {"aquamarine": 1},
     {"green": 1, "red":  1, "blue":  1},
-    {"pink": 10}
+    {"pink": 10},
+    {"violet": 4, "blue":  5, "aquamarine":  10},
+    {"violet": 40, "pink":  5, "green":  10}
   ],
   "waves": [
     {

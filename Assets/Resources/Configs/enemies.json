@@ -75,7 +75,8 @@
           "angularSpeed": 10
         }
       ],
-      "animated": true
+      "animated": true,
+      "animationSpeed": 1
     }
   ]
 }

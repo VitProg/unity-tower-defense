@@ -2,6 +2,7 @@
 // Demo - https://easings.net/
 
 using System;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace td.utils
@@ -28,96 +29,115 @@ namespace td.utils
             };
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float Linear(float x)
         {
             return x;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInQuad(float x)
         {
             return x * x;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutQuad(float x)
         {
             return 1f - (1f - x) * (1f - x);
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutQuad(float x)
         {
             return x < 0.5f ? 2f * x * x : 1f - Mathf.Pow(-2f * x + 2f, 2f) / 2f;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInCubic(float x)
         {
             return x * x * x;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutCubic(float x)
         {
             return 1f - Mathf.Pow(1f - x, 3f);
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutCubic(float x)
         {
             return x < 0.5f ? 4f * x * x * x : 1f - Mathf.Pow(-2f * x + 2f, 3f) / 2f;
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInQuart(float x)
         {
             return x * x * x * x;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutQuart(float x)
         {
             return 1f - Mathf.Pow(1f - x, 4f);
         }
-
+        
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutQuart(float x)
         {
             return x < 0.5f ? 8f * x * x * x * x : 1f - Mathf.Pow(-2f * x + 2f, 4f) / 2f;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInQuint(float x)
         {
             return x * x * x * x * x;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutQuint(float x)
         {
             return 1f - Mathf.Pow(1f - x, 5f);
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutQuint(float x)
         {
             return x < 0.5f ? 16f * x * x * x * x * x : 1f - Mathf.Pow(-2f * x + 2f, 5f) / 2f;
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInSine(float x)
         {
             return 1f - Mathf.Cos((x * Mathf.PI) / 2f);
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutSine(float x)
         {
             return Mathf.Sin((x * Mathf.PI) / 2f);
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutSine(float x)
         {
             return -(Mathf.Cos(Mathf.PI * x) - 1f) / 2f;
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInExpo(float x)
         {
             return FloatUtils.IsEquals(x, 0f) ? 0f : Mathf.Pow(2f, 10f * x - 10f);
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutExpo(float x)
         {
             return FloatUtils.IsEquals(x ,1f) ? 1f : 1f - Mathf.Pow(2, -10 * x);
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutExpo(float x)
         {
             return FloatUtils.IsEquals(x, 0)
@@ -129,16 +149,19 @@ namespace td.utils
                         : (2f - Mathf.Pow(2, -20f * x + 10f)) / 2f;
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInCirc(float x)
         {
             return 1f - Mathf.Sqrt(1f - Mathf.Pow(x, 2));
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutCirc(float x)
         {
             return Mathf.Sqrt(1f - Mathf.Pow(x - 1f, 2));
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutCirc(float x)
         {
             return x < 0.5f
@@ -146,16 +169,19 @@ namespace td.utils
                 : (Mathf.Sqrt(1f - Mathf.Pow(-2f * x + 2f, 2)) + 1f) / 2f;
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInBack(float x)
         {
             return c3 * x * x * x - c1 * x * x;
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutBack(float x)
         {
             return 1f + c3 * Mathf.Pow(x - 1f, 3) + c1 * Mathf.Pow(x - 1f, 2);
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutBack(float x)
         {
             return x < 0.5f
@@ -163,6 +189,7 @@ namespace td.utils
                 : (Mathf.Pow(2f * x - 2f, 2) * ((c2 + 1f) * (x * 2f - 2f) + c2) + 2f) / 2f;
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInElastic(float x)
         {
             return FloatUtils.IsEquals(x, 0f)
@@ -172,6 +199,7 @@ namespace td.utils
                     : -Mathf.Pow(2f, 10f * x - 10f) * Mathf.Sin((x * 10f - 10.75f) * c4);
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutElastic(float x)
         {
             return FloatUtils.IsEquals(x, 0f)
@@ -181,6 +209,7 @@ namespace td.utils
                     : Mathf.Pow(2f, -10f * x) * Mathf.Sin((x * 10f - 0.75f) * c4) + 1f;
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutElastic(float x)
         {
             return FloatUtils.IsEquals(x, 0f)
@@ -192,13 +221,16 @@ namespace td.utils
                         : (Mathf.Pow(2f, -20f * x + 10f) * Mathf.Sin((20f * x - 11.125f) * c5)) / 2f + 1f;
         }
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInBounce(float x)
         {
             return 1f - BounceOut(1f - x);
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseOutBounce(float x) => BounceOut(x);
             
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float EaseInOutBounce(float x)
         {
             return x < 0.5f

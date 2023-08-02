@@ -1,6 +1,5 @@
-﻿using td.common;
-using td.monoBehaviours;
-using td.utils.ecs;
+﻿using Leopotam.EcsLite;
+using td.features._common;
 using UnityEngine;
 
 namespace td.utils
@@ -14,12 +13,13 @@ namespace td.utils
             get => _debugInfoVisible;
             set
             {
-                if (!DI.IsReady) return;
+                // if (!DI.IsReady) return;
                 
                 if (_debugInfoVisible == value) return;
                 _debugInfoVisible = value;
 
-                var shared = DI.GetShared<SharedData>()!;
+                // var shared = DI.GetShared<SharedData>()!;
+                var shared = ServiceContainer.Get<SharedData>();
                 
                 // @see https://discussions.unity.com/t/edit-camera-culling-mask/55812/3
                 // Toggle

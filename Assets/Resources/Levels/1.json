@@ -1,15 +1,38 @@
 ﻿{
   "levelNumber": 1,
-  "delayBeforeFirstWave": 5,
+  "delayBeforeFirstWave": 10,
   "delayBetweenWaves": 3,
-  "lives": 10.0,
-  "startedMoney": 20,
-  "availableShards": ["green", "blue", "violet", "aquamarine", "pink", "red"],
-  "shardsCost":      [10,      20,     30,       50,           25,     25],
+  "startedLives": 10.0,
+  "startedEnergy": 1000000,
+  "maxShards": 10,
+  "shardsStore": {
+    "red": true,
+    "green": true,
+    "blue": true,
+    "aquamarine": true,
+    "yellow": false,
+    "orange": false,
+    "pink": true,
+    "violet": true
+  },
+  "shardsCost": {
+    "red": 10, 
+    "green": 10, 
+    "blue": 20, 
+    "aquamarine": 50, 
+    "yellow": 10, 
+    "orange": 10, 
+    "pink": 25, 
+    "violet": 30
+  },
   "startedShards": [
+    {"blue":  5, "yellow":  5},
+    {"yellow":  5},
     {"aquamarine": 1},
     {"green": 1, "red":  1, "blue":  1},
-    {"pink": 10}
+    {"pink": 10},
+    {"violet": 4, "blue":  5, "aquamarine":  10},
+    {"violet": 40, "pink":  5, "green":  10}
   ],
   "waves": [
     {
@@ -19,15 +42,50 @@
           "enemies": [
             {
               "name": "creep",
-              "type": -1,
+              "type": 1,
               "variant": -1
             }
           ],
-          "quantity": 20,
-          "speed": 0.5,
-          "health": 0.5,
-          "delayBetween": 0.85,
-          "scale": [0.5, 0.8]
+          "quantity": 1,
+          "delayBetween": 0.35,
+          "speed": 0.45,
+          "health": 1000.0,
+          "scale": [0.45, 0.75]
+        }
+      ]
+    },
+    {
+      "spawns": [
+        {
+          "spawner": 0,
+          "enemies": [
+            {
+              "name": "creep",
+              "type": 1,
+              "variant": -1
+            }
+          ],
+          "quantity": 5,
+          "delayBetween": 0.35,
+          "speed": 1.0,
+          "health": 1.0,
+          "scale": [0.45, 0.75]
+        },
+        {
+          "spawner": 0,
+          "enemies": [
+            {
+              "name": "creep",
+              "type": 3,
+              "variant": -1
+            }
+          ],
+          "quantity": 10,
+          "delayBefore": 3,
+          "delayBetween": 0.55,
+          "speed": 0.8,
+          "health": 2.0,
+          "scale": [0.55, 0.95]
         }
       ]
     },
@@ -43,7 +101,7 @@
             }
           ],
           "selectMethod": 2,
-          "quantity": 10,
+          "quantity": 1,
           "speed": 0.8,
           "health": 1.5,
           "delayBetween": 0.5,

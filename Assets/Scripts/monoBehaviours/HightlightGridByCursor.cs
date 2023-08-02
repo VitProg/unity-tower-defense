@@ -1,6 +1,9 @@
 using JetBrains.Annotations;
+using Leopotam.EcsLite;
 using NaughtyAttributes;
 using td.common;
+using td.features._common;
+using td.utils.di;
 using td.utils.ecs;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -8,7 +11,7 @@ using UnityEngine.Serialization;
 namespace td.monoBehaviours
 {
     [RequireComponent(typeof(Renderer))]
-    public class HightlightGridByCursor : MonoBehaviour
+    public class HightlightGridByCursor : MonoInjectable
     {
         private new Renderer renderer;
 
@@ -48,16 +51,16 @@ namespace td.monoBehaviours
         private Plane plane;
         
         //
-        [InjectShared] private SharedData shared;
+        private readonly EcsInject<SharedData> shared;
 
         private bool diResolved;
         //
 
-        public async void Awake()
-        {
-            await DI.Resolve(this);
-            diResolved = true;
-        }
+        // public async void Awake()
+        // {
+            // await DI.Resolve(this);
+            // diResolved = true;
+        // }
 
         // Start is called before the first frame update
         void Start()
@@ -78,9 +81,9 @@ namespace td.monoBehaviours
             var mousePosition = Input.mousePosition;
             var worldPosition = Vector3.zero;
 
-            var mainCamera = shared!.mainCamera;
+            var mainCamera = shared.Value.mainCamera;
             
-            if (shared.IsPerspectiveCameraMode)
+            if (shared.Value.IsPerspectiveCameraMode)
             {
                 var ray = mainCamera.ScreenPointToRay(mousePosition);
 

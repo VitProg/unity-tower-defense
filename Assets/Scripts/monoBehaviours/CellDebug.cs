@@ -1,11 +1,8 @@
-﻿using System;
-using Leopotam.EcsLite;
-using NaughtyAttributes;
-using td.services;
-using td.common;
+﻿using NaughtyAttributes;
 using td.utils;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 
 namespace td.monoBehaviours
@@ -25,36 +22,40 @@ namespace td.monoBehaviours
         [BoxGroup("Links")] [SerializeField] private GameObject spawnLabel;
         [BoxGroup("Links")] [SerializeField] private GameObject manualLabel;
 
-        public Cell cell;
+        [FormerlySerializedAs("cell")] public CellEditorMB cellMB;
+        private bool isCellMBNull;
 
         private void Start()
         {
-            
+            isCellMBNull = cellMB == null;
         }
 
         private void Update()
         {
-            if (cell == null)
+            if (isCellMBNull)
             {
                 if (transform.parent)
                 {
-                    cell = transform.parent.GetComponent<Cell>();
+                    cellMB = transform.parent.GetComponent<CellEditorMB>();
+                    isCellMBNull = cellMB == null;
                 }
             }
 
-            if (cell == null) return;
-            
-            if (labelX) labelX.text = cell.Coords.x.ToString();
-            if (labelY) labelY.text = cell.Coords.y.ToString();
+            if (isCellMBNull) return;
 
-            if (cell.type == CellTypes.CanWalk)
+            var coords = HexGridUtils.PositionToCell(cellMB.transform.position);
+            
+            if (labelX) labelX.text = coords.x.ToString();
+            if (labelY) labelY.text = coords.y.ToString();
+
+            if (cellMB.type == CellTypes.CanWalk)
             {
-                if (switcherIcon) switcherIcon.SetActive(cell.isSwitcher && !cell.isKernel);
-                if (kernelLabel) kernelLabel.SetActive(cell.isKernel);
-                if (spawnLabel) spawnLabel.SetActive(cell.isSpawn);
-                if (manualLabel) manualLabel.SetActive(!cell.isAutoNextSearching);
-                RotateArrow(arrow1, cell.directionToNext, !cell.isKernel && cell.HasDirectionToNext);
-                RotateArrow(arrow2, cell.directionToAltNext, !cell.isKernel && cell.isSwitcher && cell.HasAltSirectionToNext);
+                if (switcherIcon) switcherIcon.SetActive(cellMB.isSwitcher && !cellMB.isKernel);
+                if (kernelLabel) kernelLabel.SetActive(cellMB.isKernel);
+                if (spawnLabel) spawnLabel.SetActive(cellMB.isSpawn);
+                if (manualLabel) manualLabel.SetActive(!cellMB.isAutoNextSearching);
+                RotateArrow(arrow1, cellMB.directionToNext, !cellMB.isKernel && cellMB.directionToNext != HexDirections.NONE);
+                RotateArrow(arrow2, cellMB.directionToAltNext, !cellMB.isKernel && cellMB.isSwitcher && cellMB.directionToAltNext != HexDirections.NONE);
             }
             else
             {

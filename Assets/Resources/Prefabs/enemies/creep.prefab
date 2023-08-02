@@ -76,7 +76,7 @@ SpriteRenderer:
   m_SortingLayerID: -188871507
   m_SortingLayer: 7
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 0f916dc7353c8b944a30dc805e269a09, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 26c007812a159af4687f6d3fedcd2ce4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -137,7 +137,7 @@ MonoBehaviour:
   m_CategoryHash: 1.0429618e-14
   m_labelHash: 1.2985474e-36
   m_SpriteKey: 0.0000049058085
-  m_SpriteHash: 344861273
+  m_SpriteHash: 916757651
 --- !u!1 &3640389777054674657
 GameObject:
   m_ObjectHideFlags: 0
@@ -281,6 +281,8 @@ MonoBehaviour:
   body: {fileID: 7069444071946615221}
   hp: {fileID: 6762853638830685852}
   hpLine: {fileID: 6762853638941337063}
+  animator: {fileID: 7704269661131094177}
+  baseAnimationSpeed: 1
 --- !u!1 &7069444071946615221
 GameObject:
   m_ObjectHideFlags: 0

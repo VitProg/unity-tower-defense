@@ -14,13 +14,19 @@
             "Queue"="Transparent"
             "IgnoreProjector"="True"
         }
-        Lighting Off
-        Fog {Mode Off}
-        ZWrite On
+//        Lighting Off
+//        Fog {Mode Off}
+//        ZWrite On
         //        Blend SrcAlpha OneMinusSrcAlpha
         Blend SrcAlpha OneMinusSrcAlpha
-        Cull Off
+//        Cull Off
         LOD 100
+        
+        Lighting Off
+        Cull off
+        ZTest Always
+        ZWrite On
+        Fog { Mode Off }
 
         Pass
         {

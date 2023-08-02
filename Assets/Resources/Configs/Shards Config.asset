@@ -35,7 +35,7 @@ MonoBehaviour:
   poisonDamageReducer: 2
   poisonMinInterval: 1
   poisonMinDuration: 2
-  fireRateBase: 0.5
+  fireRateBase: 1
   fireRatePinkReduser: 1.5
   radiusBase: 1.5
   radiusImpactOfYellow: 1.1
