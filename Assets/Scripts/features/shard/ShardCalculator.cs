@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using Leopotam.EcsLite;
+using td.features._common;
 using td.features.level;
 using td.features.shard.components;
 using UnityEngine;
@@ -110,7 +111,7 @@ namespace td.features.shard
             // duration = durationMin + (Mathf.Sqrt(amplifier) - 1f) / durationDevider;
         }
 
-        public void CalculateBaseDamageParams(ref Shard shard, out float damage)
+        public void CalculateBaseDamageParams(ref Shard shard, out float damage, out DamageType type)
         {
             var baseDamage = config.Value.baseDamage;
             var impactOfRed = config.Value.baseDamageImpactOfRed;
@@ -131,6 +132,22 @@ namespace td.features.shard
                 damage /= Mathf.Sqrt(redAmplifier * impactOfRed) + 1f;
             }
 
+            var pRed = shard.red / (float)quantity;
+            var pGreen = shard.green / (float)quantity;
+            var pBlue = shard.blue / (float)quantity;
+            var pYellow = shard.yellow / (float)quantity;
+            var pOrange = shard.orange / (float)quantity;
+            var pPink = shard.pink / (float)quantity;
+            var pViolet = shard.violet / (float)quantity;
+            var pAquamarine = shard.aquamarine / (float)quantity;
+
+            if (pGreen > 0.5f) type = DamageType.Poison;
+            else if (pBlue > 0.5f) type = DamageType.Cold;
+            else if (pRed > 0.5f) type = DamageType.Fire;
+            else if (pViolet > 0.5f) type = DamageType.Electro; //?
+            else if (pAquamarine > 0.5f) type = DamageType.Electro; //?
+            else type = DamageType.Casual;
+            
             damage *= baseDamage;
         }
 
@@ -144,7 +161,7 @@ namespace td.features.shard
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public int GetShardLevel(uint quantity) => config.Value.GetLevelCoefficient(quantity);
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public float GetShardLogSqrLevel(uint quantity) => LogSqrLevel[GetShardLevel(quantity)];
+        private float GetShardLogSqrLevel(uint quantity) => LogSqrLevel[GetShardLevel(quantity)];
 
         private static readonly float[] LogSqrLevel = new float[15] {
             0f,
@@ -185,18 +202,20 @@ namespace td.features.shard
             damageFading = 0.9f;//diameter / Mathf.Sqrt(shard.red * fadingReducer);
         }
 
-        public void CalculatePoisonParams(ref Shard shard, out float damage, out float interval,
+        public void CalculatePoisonParams(
+            ref Shard shard,
+            out float damage,
             out float duration)
         {
             var damageBase = config.Value.poisonDamageBase;
             var damageReducer = config.Value.poisonDamageReducer;
-            var minInterval = config.Value.poisonMinInterval;
+            // var minInterval = config.Value.poisonMinInterval;
             var minDuration = config.Value.poisonMinDuration;
             
             var amplifier = GetShardAmplifier(shard.green, ShardUtils.GetQuantity(ref shard));
 
             damage = amplifier / Mathf.Sqrt(shard.green * 2f) / damageReducer;
-            interval = Mathf.Sqrt((Mathf.Log(amplifier))) + minInterval;
+            // interval = Mathf.Sqrt((Mathf.Log(amplifier))) + minInterval;
             duration = Mathf.Sqrt(Mathf.Sqrt(amplifier)) + minDuration;
 
             duration *= damageBase;

@@ -4,6 +4,7 @@ using Leopotam.EcsLite.Di;
 using td.features._common;
 using td.features.level;
 using td.features.shard.mb;
+using td.features.state;
 using td.features.tower;
 using td.monoBehaviours;
 using td.utils;
@@ -18,6 +19,7 @@ namespace td.features.shard
         private readonly EcsInject<ShardsConfig> config;
         private readonly EcsInject<SharedData> shared;
         private readonly EcsInject<LevelMap> levelMap;
+        private readonly EcsInject<State> state;
         private readonly EcsInject<Tower_Service> towerService;
         private readonly EcsWorldInject world;
 
@@ -65,7 +67,7 @@ namespace td.features.shard
                 var cDivider = mb.numVertices / Constants.UI.Shard.ColorAnimNumVerticesDivider;
                 var cMax = mb.Colors.Length / cDivider;
                 
-                li.colorTime += deltaTime * Constants.UI.Shard.ColorAnimSpeed;
+                li.colorTime += deltaTime * state.Value.GameSpeed * Constants.UI.Shard.ColorAnimSpeed;
                 if (li.colorTime > cMax) li.colorTime -= cMax;
 
                 var colorFloat = li.colorTime; //((li.time) % (cm));
@@ -78,7 +80,7 @@ namespace td.features.shard
                 var color = colorMin != colorMax ? Color.Lerp(colorMin, colorMax, colorFloat - colorMinIndex) : colorMin;
                 
                 var rotationSpeed = Constants.UI.Shard.RotationSpeed + (level - 1) * Constants.UI.Shard.RotationSpeedLevelImpact;
-                var rotation = li.rotation + deltaTime * rotationSpeed;
+                var rotation = li.rotation + deltaTime * state.Value.GameSpeed * rotationSpeed;
                 if (rotation > 360f) rotation -= 360f;
                 // Debug.Log("___________________________________");
                 // Debug.Log("colorFloat = " + colorFloat);

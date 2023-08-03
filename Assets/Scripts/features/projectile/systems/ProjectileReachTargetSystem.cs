@@ -24,15 +24,16 @@ namespace td.features.projectile.systems
 
         private readonly
             EcsFilterInject<Inc<Projectile, IsTargetReached, ObjectTransform, MovementToTarget>, ExcludeNotAlive>
-            entities = default;
+            filter = default;
+        //Exc<IsDestroyed, IsDisabled>
 
         public void Run(IEcsSystems systems)
         {
-            foreach (var projectileEntity in entities.Value)
+            foreach (var projectileEntity in filter.Value)
             {
-                ref var projectile = ref entities.Pools.Inc1.Get(projectileEntity);
-                ref var transform = ref entities.Pools.Inc3.Get(projectileEntity);
-                ref var movement = ref entities.Pools.Inc4.Get(projectileEntity);
+                ref var projectile = ref filter.Pools.Inc1.Get(projectileEntity);
+                ref var transform = ref filter.Pools.Inc3.Get(projectileEntity);
+                ref var movement = ref filter.Pools.Inc4.Get(projectileEntity);
 
                 // Debug.Log("Projectile reach target: " + transform.position);
 
@@ -45,42 +46,62 @@ namespace td.features.projectile.systems
                 if (projectileService.Value.HasDamageAttribute(projectileEntity))
                 {
                     ref var damageProjectile = ref projectileService.Value.GetDamageAttribute(projectileEntity);
-                    impactEnemy.Value.TakeDamage(enemyEntity, damageProjectile.damage);
+                    impactEnemy.Value.TakeDamage(
+                        enemyEntity, 
+                        damageProjectile.damage,
+                        damageProjectile.type
+                    );
                 }
 
                 if (projectileService.Value.HasExplosiveAttribute(projectileEntity))
                 {
                     ref var explosiveProjectile = ref projectileService.Value.GetExplosiveAttribute(projectileEntity);
                     var targetPosition = common.Value.GetGOPosition(enemyEntity);
-                    explosionService.Value.SpawnExplosion(targetPosition, explosiveProjectile.damage,
-                        explosiveProjectile.diameter, explosiveProjectile.damageFading);
+                    explosionService.Value.SpawnExplosion(
+                        position: targetPosition,
+                        damage: explosiveProjectile.damage,
+                        diameter: explosiveProjectile.diameter,
+                        damageFading: explosiveProjectile.damageFading
+                    );
                 }
 
                 if (projectileService.Value.HasLightningAttribute(projectileEntity))
                 {
                     ref var lightningProjectile = ref projectileService.Value.GetLightningAttribute(projectileEntity);
-                    lightningLineService.Value.SpawnLightningLine(world.Value.PackEntity(enemyEntity), ref lightningProjectile);
+                    lightningLineService.Value.SpawnLightningLine(
+                        firstEntity: world.Value.PackEntity(enemyEntity),
+                        lightningSource: ref lightningProjectile
+                    );
                 }
 
                 if (projectileService.Value.HasSlowingAttribute(projectileEntity))
                 {
                     ref var slowingProjectile = ref projectileService.Value.GetSlowingAttribute(projectileEntity);
-                    impactEnemy.Value.SpeedDebuff(enemyEntity, slowingProjectile.duration,
-                        slowingProjectile.speedMultipler);
+                    impactEnemy.Value.SpeedDebuff(
+                        target: enemyEntity,
+                        duration: slowingProjectile.duration,
+                        speedMultipler: slowingProjectile.speedMultipler
+                    );
                 }
 
                 if (projectileService.Value.HasPoisonAttribute(projectileEntity))
                 {
                     ref var poisonProjectile = ref projectileService.Value.GetPoisonAttribute(projectileEntity);
-                    impactEnemy.Value.PoisonDebuff(enemyEntity, poisonProjectile.damageInterval,
-                        poisonProjectile.duration, poisonProjectile.damageInterval);
+                    impactEnemy.Value.PoisonDebuff(
+                        target: enemyEntity, 
+                        damage: poisonProjectile.damage,
+                        duration: poisonProjectile.duration
+                    );
                 }
 
                 if (projectileService.Value.HasShockingAttribute(projectileEntity))
                 {
                     ref var shockingProjectile = ref projectileService.Value.GetShockingAttribute(projectileEntity);
-                    impactEnemy.Value.ShockingDebuff(enemyEntity, shockingProjectile.probability,
-                        shockingProjectile.duration);
+                    impactEnemy.Value.ShockingDebuff(
+                        target: enemyEntity, 
+                        probability: shockingProjectile.probability,
+                        duration: shockingProjectile.duration
+                    );
                 }
             }
         }

@@ -10,7 +10,10 @@ using td.features.camera;
 using td.features.dragNDrop;
 using td.features.dragNDrop.events;
 using td.features.dragNDrop.evets;
+using td.features.enemy;
 using td.features.enemy.systems;
+using td.features.fx.effects;
+using td.features.fx.systems;
 using td.features.gameStatus.systems;
 using td.features.impactEnemy.components;
 using td.features.impactEnemy.systems;
@@ -18,6 +21,7 @@ using td.features.impactKernel;
 using td.features.infoPanel;
 using td.features.inputEvents;
 using td.features.level.systems;
+using td.features.projectile;
 using td.features.projectile.systems;
 using td.features.projectile.explosion;
 using td.features.projectile.lightning;
@@ -184,9 +188,13 @@ namespace td
             #endregion
 
             // systems.Add(new MovementToTargetJobsSystem());
-            systems.Add(new ApplyObjectTransformSystem(1 / 30f, 0f, GetDeltaTime));//, 200000, -1, 10));
-            systems.Add(new MovementToTargetSystem(1/30f, 0.016f, GetDeltaTime));
-            systems.Add(new SmoothRotateSystem(1/30f, 0.033f, GetDeltaTime));
+            
+            systems.Add(new BaseMovementToTargetSystem(1/20f, 0f, GetDeltaTime));
+            systems.Add(new EnemyBaseMovementToTargetSystem(1/30f, 0f, GetDeltaTime));
+            systems.Add(new ProjectileMovementToTargetSystem(1/60f, 0f, GetDeltaTime));
+            
+            systems.Add(new ApplyObjectTransformSystem(1 / 60f, 0f, GetDeltaTime));
+            systems.Add(new SmoothRotateSystem(1/30f, 0.3f, GetDeltaTime));
             
             systems.AddGroup(Constants.EcsSystemGroups.ShardSimulation, false, Constants.Worlds.EventBus,
             #region Shard
@@ -306,6 +314,22 @@ namespace td
                 );
             #endregion
 
+            var fxWorld = new EcsWorld();
+            systems.AddWorld(fxWorld, "FX");
+            systems
+                .AddGroup(Constants.EcsSystemGroups.FX, fade, Constants.Worlds.EventBus,
+                    new FX_EntityFallowSystem(1/30f, 0f, GetDeltaTime),
+                    new FX_WithDurationSystem(1/10f, 0f, GetDeltaTime),
+                    new FX_ApplyTransformSystem(1/45f, 0f, GetDeltaTime),
+                    // effects
+                    new BlinkFX_System(1/15f, 0f, GetDeltaTime),
+                    new PoisonFX_System(),
+                    new PoisonStatusFX_System(),
+                    // clean
+                    new FX_AutoRemoveSystem()
+                    //todo add other
+                );
+
             // обработка команды удаления GameObject со сцены
             systems
                 .AddGroup(Constants.EcsSystemGroups.RemoveGameObject, true, Constants.Worlds.EventBus,
@@ -325,9 +349,11 @@ namespace td
 
 #if UNITY_EDITOR
             systems
+                .Add(new EcsSystemsDebugSystem())
                 .Add(new EcsWorldDebugSystem())
                 // .Add(new EcsWorldDebugSystem(Constants.Worlds.Outer))
                 .Add(new EcsWorldDebugSystem(Constants.Worlds.EventBus))
+                .Add(new EcsWorldDebugSystem(Constants.Worlds.FX))
                 // .Add(new EcsWorldDebugSystem(Constants.Worlds.UI))
                 ;
 #endif

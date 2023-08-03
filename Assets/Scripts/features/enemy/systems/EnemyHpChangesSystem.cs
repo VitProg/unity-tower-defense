@@ -32,6 +32,11 @@ namespace td.features.enemy.systems
             mb.hp.maxValue = enemy.startingHealth;
             mb.hp.value = enemy.health;
 
+            if (enemy.health < enemy.startingHealth)
+            {
+                mb.hp.gameObject.SetActive(true);
+            }
+
             var p = Mathf.Clamp01(enemy.health / enemy.startingHealth);
             var n = Mathf.FloorToInt(p * (Constants.Enemy.HpBarColors.Length - 1));
             

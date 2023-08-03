@@ -16,6 +16,7 @@ namespace td
             public const string DragNDrop = "DragNDrop";
             public const string Camera = "Camera";
             public const string RemoveGameObject = "RemoveGameObject";
+            public const string FX = "FX";
         }
         
         public static class Enemy
@@ -71,6 +72,7 @@ namespace td
         public static class Worlds
         {
             public const string Default = default;
+            public const string FX = "FX";
             // [Obsolete("",true)]public const string Outer = "outer";
             public const string EventBus = "eventBus";
             // public const string UI = "ui";
@@ -174,6 +176,16 @@ namespace td
         {
             public const float ShockingShiftPositionTimeRemains = 0.05f;
             public const float ShockingShiftRange = 0.015f;
+        }
+
+        public static class FX
+        {
+            public static readonly Color CasualDamageColor = new Color(1.0f, 0.6f, 0.5f);
+            public static readonly Color FireDamageColor = new Color(1.0f, 0.4f, 0.4f);
+            public static readonly Color ExplosionDamageColor = new Color(1.0f, 0.2f, 0.1f);
+            public static readonly Color PoisonDamageColor = new Color(0.5f, 1.0f, 0.6f);
+            public static readonly Color ColdDamageColor = new Color(0.6f, 0.8f, 0.9f);
+            public static readonly Color ElectroDamageColor = new Color(0.2f, 0.6f, 0.9f);
         }
     }
 }

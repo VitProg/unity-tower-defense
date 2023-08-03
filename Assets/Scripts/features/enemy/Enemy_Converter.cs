@@ -1,5 +1,7 @@
 ﻿using Leopotam.EcsLite;
+using Leopotam.EcsLite.Di;
 using td.features._common;
+using td.features._common.flags;
 using td.features.ecsConverter;
 using td.features.enemy.mb;
 using td.features.impactEnemy;
@@ -21,6 +23,8 @@ namespace td.features.enemy
 
             enemyService.Value.GetEnemy(entity);
             enemyService.Value.GetEnemyMBRef(entity).reference = mb;
+            
+            common.Value.SetCustomMovement(entity, true);
             
             common.Value.GetRefTargetBody(entity).targetBody = mb.body;
             

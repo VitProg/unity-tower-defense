@@ -67,12 +67,14 @@ namespace td.features.gameSpeed
             var lastGameSpeed = state.Value.GameSpeed;
             
             state.Value.GameSpeed = gameSpeed;
+            // Time.timeScale = gameSpeed;
 
             if (FloatUtils.IsZero(gameSpeed))
             {
                 await windowsService.Value.Open(Windows_Service.Type.PauseMenu);
                 await windowsService.Value.WaitClose(Windows_Service.Type.PauseMenu);
                 state.Value.GameSpeed = lastGameSpeed;
+                // Time.timeScale = lastGameSpeed;
             }
         }
     }

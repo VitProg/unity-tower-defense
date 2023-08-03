@@ -1,4 +1,4 @@
-﻿namespace td.features.impactEnemy
+﻿namespace td.features._common
 {
     public enum DamageType
     {

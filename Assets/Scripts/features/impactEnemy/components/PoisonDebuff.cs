@@ -1,5 +1,6 @@
 ﻿using System;
 using Leopotam.EcsLite;
+using UnityEngine.Serialization;
 
 namespace td.features.impactEnemy.components
 {
@@ -7,11 +8,10 @@ namespace td.features.impactEnemy.components
     public struct PoisonDebuff
     {
         public float damage;
-        public float damageInterval;
         public float duration;
         
         public float timeRemains;
-        public float damageIntervalRemains;
+        public float intervalRemains;
         public bool started;
     }
 }

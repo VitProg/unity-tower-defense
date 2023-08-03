@@ -4,6 +4,8 @@ using Leopotam.EcsLite.Di;
 using td.features._common.flags;
 using td.features.enemy;
 using td.features.enemy.components;
+using td.features.fx;
+using td.features.fx.effects;
 using td.features.impactEnemy.components;
 using td.features.state;
 using td.utils.ecs;
@@ -16,6 +18,8 @@ namespace td.features.impactEnemy.systems
         private readonly EcsInject<IState> state;
         private readonly EcsInject<Enemy_Service> enemyService;
         private readonly EcsInject<ImpactEnemy_Service> impactEnemy;
+        private readonly EcsInject<FX_Service> fxService;
+        private readonly EcsWorldInject world;
         
         private readonly EcsFilterInject<Inc<SpeedDebuff, Enemy>, Exc<IsDestroyed>> speedDebuffEntities = default;
 
@@ -30,6 +34,10 @@ namespace td.features.impactEnemy.systems
                 {
                     debuff.timeRemains = debuff.duration;
                     debuff.started = true;
+                    fxService.Value.EntityFallow.GetOrAdd<ColdStatusFX>(
+                        world.Value.PackEntityWithWorld(enemyEntity),
+                        debuff.duration
+                    );
                 }
 
                 var debafedSpeed = enemy.startingSpeed / Mathf.Max(1f, debuff.speedMultipler);
@@ -88,6 +96,7 @@ namespace td.features.impactEnemy.systems
                 {
                     impactEnemy.Value.RemoveSpeedDebuff(enemyEntity);
                     enemyService.Value.ChangeSpeed(enemyEntity, enemy.startingSpeed);
+                    fxService.Value.EntityFallow.Remove<ColdStatusFX>(world.Value.PackEntityWithWorld(enemyEntity));
                 }
             }
         }

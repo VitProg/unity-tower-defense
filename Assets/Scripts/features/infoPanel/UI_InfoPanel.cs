@@ -122,8 +122,9 @@ namespace td.features.infoPanel
 
             if (calc.Value.HasBaseDamage(ref shard))
             {
-                calc.Value.CalculateBaseDamageParams(ref shard, out var damage);
+                calc.Value.CalculateBaseDamageParams(ref shard, out var damage, out var type);
                 sb.AppendLine($"Damage: {damage:0.00}");
+                sb.AppendLine($"Damage Type: {type}");
             }
             
             calc.Value.CalculateSpread(ref shard, out var spread, out var distanceFactor);
@@ -143,10 +144,9 @@ namespace td.features.infoPanel
             // green - отравляет мобов на время
             if (calc.Value.HasPoison(ref shard))
             {
-                calc.Value.CalculatePoisonParams(ref shard, out var damageInterval, out var interval, out var duration);
+                calc.Value.CalculatePoisonParams(ref shard, out var damage, out var duration);
                 sb.AppendLine($"Poison");
-                sb.AppendLine($" - damage interval: {damageInterval:0.00}");
-                sb.AppendLine($" - interval: {interval:0.00}");
+                sb.AppendLine($" - damage: {damage:0.00}");
                 sb.AppendLine($" - duration: {duration:0.00}");
                 sb.AppendLine($"");
             }

@@ -16,7 +16,7 @@ namespace td.features._common.components
         public bool scaleChanged;
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public static bool IsChanged(ObjectTransform t) => t.positionChanged || t.rotationChanged || t.scaleChanged;
+        public bool IsChanged() => positionChanged || rotationChanged || scaleChanged;
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void ClearChangedStatus()

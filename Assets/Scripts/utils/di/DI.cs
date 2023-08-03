@@ -16,6 +16,7 @@
 // using UnityEngine;
 //
 
+using System;
 using System.Linq;
 using System.Reflection;
 using Leopotam.EcsLite;
@@ -25,6 +26,11 @@ using Object = UnityEngine.Object;
 
 namespace td.utils.di
 {
+    [AttributeUsage(AttributeTargets.Field)]
+    public sealed class AutoResolveAttribute : Attribute
+    {
+    }
+    
     public class MonoInjectable : MonoBehaviour
     {
         protected void Awake()
@@ -39,6 +45,8 @@ namespace td.utils.di
     
     public static class DIExt
     {
+        private static readonly Type AutoResolveAttrType = typeof(AutoResolveAttribute);
+        
         public static void ResolveMonoBehaviours(this IEcsSystems systems, IServiceContainer container)
         {
             var monoInjectables = Object.FindObjectsOfType<MonoInjectable>(true);
@@ -87,10 +95,15 @@ namespace td.utils.di
                 // EcsWorldInject, EcsFilterInject, EcsPoolInject, EcsSharedInject.
                 if (InjectBuiltIns (f, service, systems)) { continue; }
                 // IEcsCustomDataInject derivatives (EcsCustomInject, etc).
-                if (InjectCustoms (f, service, injects)) { }
+                if (InjectCustoms (f, service, injects)) { continue; }
+
+                if (Attribute.IsDefined(f, AutoResolveAttrType))
+                {
+                    InjectToService(f.GetValue(service), systems, injects);
+                }
             }
 
-            if (type.BaseType == null || type.BaseType == typeof(System.Object) || type.BaseType == typeof(ScriptableObject) || type.BaseType == typeof(GameObject)) return; 
+            if (type.BaseType == null) return;  //|| type.BaseType == typeof(System.Object) || type.BaseType == typeof(ScriptableObject) || type.BaseType == typeof(GameObject)) return; 
             
             foreach (var f in type.BaseType.GetFields (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
                 // skip statics.
@@ -99,6 +112,11 @@ namespace td.utils.di
                 if (InjectBuiltIns (f, service, systems)) { continue; }
                 // IEcsCustomDataInject derivatives (EcsCustomInject, etc).
                 if (InjectCustoms (f, service, injects)) { }
+                
+                if (Attribute.IsDefined(f, AutoResolveAttrType))
+                {
+                    InjectToService(f.GetValue(service), systems, injects);
+                }
             }
         }
         

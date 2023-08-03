@@ -264,6 +264,6 @@ namespace td.utils.ecs
             deltaTime = 0;
         }
 
-        public abstract void IntervalRun(IEcsSystems systems, float deltaTime);
+        public abstract void IntervalRun(IEcsSystems systems, float dt);
     }
 }

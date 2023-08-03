@@ -207,6 +207,7 @@ namespace td.features.enemy
             enemyMb.hp.minValue = 0.0f;
             enemyMb.hp.maxValue = enemy.health;
             enemyMb.hp.value = enemy.health;
+            enemyMb.hp.gameObject.SetActive(false);
             enemyMb.hpLine.color = Constants.Enemy.HpBarColors[^1];
             
             if (enemyMb.animator != null)

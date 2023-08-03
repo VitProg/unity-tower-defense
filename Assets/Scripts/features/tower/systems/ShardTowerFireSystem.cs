@@ -125,28 +125,45 @@ namespace td.features.tower.systems
                 if (calc.Value.HasBaseDamage(ref shard))
                 {
                     ref var damageAtr = ref projectileService.Value.GetDamageAttribute(projectileEntity);
-                    calc.Value.CalculateBaseDamageParams(ref shard, out damageAtr.damage);
+                    calc.Value.CalculateBaseDamageParams(
+                        shard: ref shard,
+                        damage: out damageAtr.damage,
+                        type: out damageAtr.type
+                    );
                 }
 
                 // red - разрывной. удар по области
                 if (calc.Value.HasExplosive(ref shard))
                 {
                     ref var explosiveAtr = ref projectileService.Value.GetExplosiveAttribute(projectileEntity);
-                    calc.Value.CalculateExplosiveParams(ref shard, out explosiveAtr.damage, out explosiveAtr.diameter, out explosiveAtr.damageFading);
+                    calc.Value.CalculateExplosiveParams(
+                        shard: ref shard,
+                        damage: out explosiveAtr.damage,
+                        diameter: out explosiveAtr.diameter,
+                        damageFading: out explosiveAtr.damageFading
+                    );
                 }
 
                 // green - отравляет мобов на время
                 if (calc.Value.HasPoison(ref shard))
                 {
                     ref var poisonAtr = ref projectileService.Value.GetPoisonAttribute(projectileEntity);
-                    calc.Value.CalculatePoisonParams(ref shard, out poisonAtr.damageInterval, out poisonAtr.interval, out poisonAtr.duration);
+                    calc.Value.CalculatePoisonParams(
+                        shard: ref shard,
+                        damage: out poisonAtr.damage,
+                        duration: out poisonAtr.duration
+                    );
                 }
                 
                 // blue - замедляет мобов на время
                 if (calc.Value.HasSlowing(ref shard))
                 {
                     ref var slowingAtr = ref projectileService.Value.GetSlowingAttribute(projectileEntity);
-                    calc.Value.CalculateSlowingParams(ref shard, out slowingAtr.speedMultipler, out slowingAtr.duration);
+                    calc.Value.CalculateSlowingParams(
+                        shard: ref shard,
+                        power: out slowingAtr.speedMultipler,
+                        duration: out slowingAtr.duration
+                    );
                 }
 
                 // aquamarine - молния. цепная реакция от моба к мобу
@@ -168,7 +185,11 @@ namespace td.features.tower.systems
                 if (calc.Value.HasShocking(ref shard))
                 {
                     ref var shockingAtr = ref projectileService.Value.GetShockingAttribute(projectileEntity);
-                    calc.Value.CalculateShockingParams(ref shard, out shockingAtr.duration, out shockingAtr.probability);
+                    calc.Value.CalculateShockingParams(
+                        shard: ref shard,
+                        duration: out shockingAtr.duration,
+                        probability: out shockingAtr.probability
+                    );
                 }
                 
                 // ToDo orange - увеличивает приток энергии от убитых им мобов

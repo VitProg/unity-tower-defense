@@ -16,16 +16,16 @@ namespace td.features.impactEnemy
         private readonly EcsPoolInject<PoisonDebuff> poisonDebuffPool = default;
         private readonly EcsPoolInject<ShockingDebuff> shockingDebuffPool = default;
         private readonly EcsPoolInject<SpeedDebuff> speedDebuffPool = default;
-        // private readonly EcsPoolInject<TakeDamage> takeDamagePool = Constants.Worlds.EventBus;
         
         private readonly EcsInject<Common_Service> common;
         private readonly EcsInject<IEventBus> events;
 
         public ref TakeDamage TakeDamage(int entity, float damage, DamageType type = DamageType.Casual)
         {
+            Debug.Log($"TakeDamage: {entity}, {damage}, {type}");
             ref var takeDamage =ref events.Value.Entity.Add<TakeDamage>(world.Value.PackEntityWithWorld(entity));
             takeDamage.damage = damage;
-            takeDamage.type = DamageType.Casual;
+            takeDamage.type = type;
             return ref takeDamage;
         }
         
@@ -36,12 +36,11 @@ namespace td.features.impactEnemy
             debuf.speedMultipler = Mathf.Max(speedMultipler, debuf.speedMultipler);
         }
             
-        public void PoisonDebuff(int target, float damage, float damageInterval, float duration)
+        public void PoisonDebuff(int target, float damage, float duration)
         {
             ref var debuf = ref poisonDebuffPool.Value.GetOrAdd(target);
-            debuf.damage = Mathf.Max(debuf.damage, damageInterval);
+            debuf.damage = Mathf.Max(debuf.damage, damage);
             debuf.duration = Mathf.Max(debuf.duration, duration);
-            debuf.damageInterval = Mathf.Min(debuf.damageInterval, damageInterval);
         }
 
         public void ShockingDebuff(int target, float probability, float duration)

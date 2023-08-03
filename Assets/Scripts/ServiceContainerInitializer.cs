@@ -2,6 +2,7 @@
 using td.features._common;
 using td.features.dragNDrop;
 using td.features.enemy;
+using td.features.fx;
 using td.features.goPool;
 using td.features.impactEnemy;
 using td.features.impactKernel;
@@ -35,10 +36,10 @@ namespace td
                 .Finalize()
                 // .Add(sharedData)
                 .Add<IState>(state)
+                .Add(new Common_Pools())
                 .Add(new Common_Service())
                 // .Add(shardsConfig)
                 // .Add(new EcsWorldsStorage(world, outerWorld))
-                .Add(new Common_Pools())
                 .Add(new DragNDrop_Pools())
                 .Add(new DragNDrop_Service())
                 .Add(new Enemy_Converter())
@@ -75,6 +76,8 @@ namespace td
                 .Add(new MB_Tower_Service())
                 .Add(new InputEvents_Pools())
                 .Add(new InputEvents_Service())
+                .Add(new FX_Service())
+                .Add(new FX_Pools())
                 ;
         }
     }

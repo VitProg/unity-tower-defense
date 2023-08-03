@@ -24,6 +24,12 @@ namespace td.features._common
 
 
         public ref Ref<GameObject> GetRefGameObject(int entity) => ref pools.Value.refGoPool.Value.GetOrAdd(entity);
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public bool HasGameObject(EcsPackedEntity packedEntity, bool checkRef = false, bool checkRefActive = false) =>
+            packedEntity.Unpack(world.Value, out var entity) && HasGameObject(entity, checkRef, checkRefActive);
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public bool HasGameObject(EcsPackedEntityWithWorld packedEntity, bool checkRef = false, bool checkRefActive = false) =>
+            packedEntity.Unpack(out var w, out var entity) && w == world.Value && HasGameObject(entity, checkRef, checkRefActive);
         public bool HasGameObject(int entity, bool checkRef = false, bool checkRefActive = false)
         {
             if (!pools.Value.refGoPool.Value.Has(entity)) return false;
@@ -32,8 +38,20 @@ namespace td.features._common
             return checkRefActive ? go && go.activeSelf : go;
         }
 
-        [CanBeNull]
-        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        [CanBeNull][MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public GameObject GetGameObject(EcsPackedEntity packedEntity)
+        {
+            if (!packedEntity.Unpack(world.Value, out var entity)) throw new NullReferenceException($"Can't unpack entity {packedEntity}");
+            return GetGameObject(entity);
+        }
+        [CanBeNull][MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public GameObject GetGameObject(EcsPackedEntityWithWorld packedEntity)
+        {
+            if (!packedEntity.Unpack(out var w, out var entity)) throw new NullReferenceException($"Can't unpack entity {packedEntity}");
+            if (w != world.Value) throw new Exception($"Can't unpack entity {packedEntity}");
+            return GetGameObject(entity);
+        }
+        [CanBeNull][MethodImpl (MethodImplOptions.AggressiveInlining)]
         public GameObject GetGameObject(int entity)
         {
 #if DEBUG && !LEOECSLITE_NO_SANITIZE_CHECKS
@@ -145,6 +163,7 @@ namespace td.features._common
                     poolServise.Value.Release(poolableObject);
                     try
                     {
+                        SetIsDisabled(entity, true);
                         SetIsDestroyed(entity, true);
                     }
                     catch
@@ -192,5 +211,9 @@ namespace td.features._common
         public ref ObjectTransform GetTransform(EcsPackedEntity packedEntity) => ref pools.Value.objectTransformPool.Value.GetOrAdd(packedEntity);
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public ref ObjectTransform GetTransform(int entity) => ref pools.Value.objectTransformPool.Value.GetOrAdd(entity);
+        
+        public bool HasCustomMovement(int entity) => pools.Value.customMovementPool.Value.Has(entity);
+
+        public void SetCustomMovement(int entity, bool value) => pools.Value.customMovementPool.Value.SetExistence(entity, value);
     }
 }

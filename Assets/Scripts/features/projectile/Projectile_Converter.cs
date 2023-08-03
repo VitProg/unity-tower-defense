@@ -21,6 +21,8 @@ namespace td.features.projectile
             ref var movement = ref common.Value.GetMovement(entity);
             movement.gapSqr = Constants.DefaultGapSqr;
             movement.speedOfGameAffected = true;
+            
+            common.Value.SetCustomMovement(entity, true);
 
             common.Value.SetIsDisabled(entity, false);
             common.Value.SetIsDestroyed(entity, false);

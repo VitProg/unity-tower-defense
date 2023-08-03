@@ -1,8 +1,6 @@
 ﻿using System;
 using Leopotam.EcsLite;
 using Leopotam.EcsLite.Di;
-using td.features._common.components;
-using td.features._common.flags;
 using td.features.state;
 using td.utils;
 using td.utils.ecs;
@@ -10,25 +8,44 @@ using UnityEngine;
 
 namespace td.features._common.systems
 {
-    public class MovementToTargetSystem : EcsIntervalableRunSystem
+    public class BaseMovementToTargetSystem : EcsIntervalableRunSystem
     {
-        private readonly EcsWorldInject world;
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<Common_Pools> commonPools;
-        private readonly EcsInject<Common_Service> common;
+        protected readonly EcsWorldInject world;
+        protected readonly EcsInject<IState> state;
+        protected readonly EcsInject<Common_Pools> pools;
+        protected readonly EcsInject<Common_Service> common;
 
-        private readonly EcsFilterInject<
-            Inc<ObjectTransform, MovementToTarget>,
-            Exc<IsSmoothRotation, IsDisabled, IsDestroyed, IsFreezed>
-        > filter = default;
+        protected EcsFilter filter;
+        protected bool isFilterInitialized = false;
+
+        protected virtual void InitFilter()
+        {
+            filter = pools.Value.baseMovementFilter.Value;
+            isFilterInitialized = true;
+        }
+
+        // private readonly EcsFilterInject<
+        //     Inc<ObjectTransform, MovementToTarget>,
+        //     ExcludeImmoveable
+        // > filter = default;
 
         public override void IntervalRun(IEcsSystems systems, float dt)
         {
+            if (!isFilterInitialized) InitFilter();
+            
             // var count = 0u;
-            foreach (var entity in filter.Value)
+            foreach (var entity in filter)
             {
-                ref var t = ref filter.Pools.Inc1.Get(entity);
-                ref var m = ref filter.Pools.Inc2.Get(entity);
+                if (!common.Value.HasTransform(entity) || !common.Value.HasMovement(entity))
+                {
+#if DEBUG
+                    Debug.LogWarning($"MovementToTargetSystem: Entity {entity} has no transform or movement component! Check you filter!");
+#endif
+                    continue;
+                }
+                
+                ref var t = ref common.Value.GetTransform(entity);
+                ref var m = ref common.Value.GetMovement(entity);
 
                 var correctedDeltaTime = m.speedOfGameAffected
                     ? dt * state.Value.GameSpeed
@@ -54,7 +71,7 @@ namespace td.features._common.systems
                 
                 if(check)
                 {
-                    commonPools.Value.reachingTargetEventPool.Value.SafeAdd(entity);
+                    pools.Value.reachingTargetEventPool.Value.SafeAdd(entity);
 
                     if (!m.nextTarget.IsZero())
                     {
@@ -112,8 +129,8 @@ namespace td.features._common.systems
 
             return false;
         }
-        
-        public MovementToTargetSystem(float interval, float timeShift, Func<float> getDeltaTime) : base(interval, timeShift, getDeltaTime)
+
+        public BaseMovementToTargetSystem(float interval, float timeShift, Func<float> getDeltaTime) : base(interval, timeShift, getDeltaTime)
         {
         }
     }

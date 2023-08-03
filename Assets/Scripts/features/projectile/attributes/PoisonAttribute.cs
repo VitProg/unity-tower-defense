@@ -6,8 +6,7 @@ namespace td.features.projectile.attributes
     public struct PoisonAttribute
     {
         // green
-        public float damageInterval;
-        public float interval;
+        public float damage;
         public float duration;
     }
 }

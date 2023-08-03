@@ -35,14 +35,38 @@ namespace td.features._common
         public readonly EcsPoolInject<Ref<GameObject>> refGoPool = default;
         
         public readonly EcsPoolInject<EcsGroupSystemState> ecsGroupSystemStatePool = Constants.Worlds.EventBus;
+        
+        public readonly EcsPoolInject<CustomMovement> customMovementPool = default;
 
         public readonly EcsFilterInject<Inc<IsOnlyOnLevel>> onlyOnLevelFilter = default;
         public readonly EcsFilterInject<Inc<ObjectTransform, Ref<GameObject>>, ExcludeNotAlive> objectTransformFilter = default;
+        
+        public readonly EcsFilterInject<
+            Inc<ObjectTransform, MovementToTarget>,
+            ExcludeImmoveable<CustomMovement>
+        > baseMovementFilter = default;
     }
     
     public struct ExcludeNotAlive : IEcsExclude
     {
         public EcsWorld.Mask Fill(EcsWorld.Mask mask) =>
             mask.Exc<IsDestroyed>().Exc<IsDisabled>();
+    }
+
+    public struct ExcludeImmoveable : IEcsExclude
+    {
+        public EcsWorld.Mask Fill(EcsWorld.Mask mask) =>
+            mask.Exc<IsSmoothRotation>().Exc<IsDisabled>().Exc<IsDestroyed>().Exc<IsFreezed>().Exc<IsHidden>();
+    }
+    public struct ExcludeImmoveable<T1> : IEcsExclude where T1 : struct
+    {
+        public EcsWorld.Mask Fill(EcsWorld.Mask mask) =>
+            mask.Exc<IsSmoothRotation>().Exc<IsDisabled>().Exc<IsDestroyed>().Exc<IsFreezed>().Exc<IsHidden>().Exc<T1>();
+    }
+
+    public struct ExcludeImmoveable<T1, T2> : IEcsExclude where T1 : struct where T2 : struct 
+    {
+        public EcsWorld.Mask Fill(EcsWorld.Mask mask) =>
+            mask.Exc<IsSmoothRotation>().Exc<IsDisabled>().Exc<IsDestroyed>().Exc<IsFreezed>().Exc<IsHidden>().Exc<T1>().Exc<T2>();
     }
 }

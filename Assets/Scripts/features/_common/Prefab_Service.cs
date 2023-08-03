@@ -33,5 +33,6 @@ namespace td.features._common
         Buildings,
         Windows,
         UI,
+        FX,
     }
 }

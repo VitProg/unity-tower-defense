@@ -1,5 +1,6 @@
 ﻿using System;
 using Leopotam.EcsLite;
+using td.features._common;
 
 namespace td.features.impactEnemy.components
 {
