@@ -12,19 +12,18 @@ using UnityEngine;
 namespace td.features.fx.effects
 {
     [Serializable]
-    public struct BlinkFX : IEntityModifierFX, IEcsAutoReset<BlinkFX>
+    public struct BlinkFX : IEntityModifierFX, IEcsAutoReset<BlinkFX>, IWithColorFX
     {
         public byte count;
         public float interval;
         public float duration;
-        public Color color;
+        public Color Color { get; set; }
 
         internal bool isStarted;
         internal float remainingTime;
         internal int remaining;
         internal bool isOn;
 #if !UNITY_SERVER
-        // [CanBeNull] internal Color startedColor;
         [CanBeNull] internal SpriteRenderer sr;
 #endif
 
@@ -79,7 +78,7 @@ namespace td.features.fx.effects
             c.count = 1;
             c.interval = 0.1f;
             c.duration = 0.05f;
-            c.color = Color.grey;
+            c.Color = Color.grey;
 
             c.isStarted = false;
             c.remainingTime = 0f;
@@ -98,6 +97,7 @@ namespace td.features.fx.effects
         private readonly EcsWorldInject fxWorld = Constants.Worlds.FX;
         private readonly EcsInject<FX_Pools> pools;
         private readonly EcsInject<State> state;
+        
         private readonly EcsPoolInject<BlinkFX> pool = Constants.Worlds.FX;
         
         public override void IntervalRun(IEcsSystems systems, float dt)
@@ -107,10 +107,10 @@ namespace td.features.fx.effects
                 if (!pool.Value.Has(fxEntity)) continue;
 
                 ref var fx = ref pool.Value.Get(fxEntity);
-                ref var fxType = ref pools.Value.entityModifierFilter.Pools.Inc1.Get(fxEntity);
+                // ref var fxType = ref pools.Value.entityModifierFilter.Pools.Inc1.Get(fxEntity);
                 ref var target = ref pools.Value.entityModifierFilter.Pools.Inc2.Get(fxEntity);
 
-                if (!target.entity.Unpack(out var targetWorld, out var targetEntity))
+                if (!target.entity.Unpack(out _, out var targetEntity))
                 {
                     pools.Value.needRemovePool.Value.SafeAdd(fxEntity).now = true;
                     continue;
@@ -170,7 +170,7 @@ namespace td.features.fx.effects
                 {
                     fx.isOn = true;
                     fx.remainingTime = fx.duration;
-                    if (fx.sr != null) fx.sr.color = fx.color;
+                    if (fx.sr != null) fx.sr.color = fx.Color;
                 }
             }
         }

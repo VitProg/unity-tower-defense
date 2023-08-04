@@ -30,7 +30,7 @@ namespace td.features._common.systems
                 
                 pool.GetWorld().DelEntity(idleEntity);
                 
-                common.Value.RemoveImmediately(idle.Entity);
+                common.Value.Remove(idle.Entity);
             }
         }
     }

@@ -2,6 +2,8 @@
 using Leopotam.EcsLite.Di;
 using td.features._common;
 using td.features.fx.flags;
+using td.features.goPool;
+using td.monoBehaviours;
 using UnityEngine;
 
 namespace td.features.fx.systems
@@ -9,7 +11,11 @@ namespace td.features.fx.systems
     public class FX_AutoRemoveSystem : IEcsRunSystem
     {
         private readonly EcsInject<FX_Pools> pools;
+        private readonly EcsInject<Common_Service> common;
+        private readonly EcsInject<GameObjectPool_Service> goPoolService;
+        
         private readonly EcsWorldInject fxWorld = Constants.Worlds.FX;
+
         private readonly EcsFilterInject<Inc<NeedRemoveFX>, ExcludeNotAlive> filter = Constants.Worlds.FX;
 
         public void Run(IEcsSystems systems)
@@ -27,10 +33,17 @@ namespace td.features.fx.systems
                 // remove fx
                 if (pools.Value.refGOPoolFX.Value.Has(fxEntity))
                 {
-                    // ToDo: add rotation GO with GO Pool
-                    Object.Destroy(pools.Value.refGOPoolFX.Value.Get(fxEntity).reference);
+                    var go = pools.Value.refGOPoolFX.Value.Get(fxEntity).reference;
+                    var poolableObject = go.GetComponent<PoolableObject>();
+                    if (poolableObject != null)
+                    {
+                        goPoolService.Value.Release(poolableObject);
+                    }
+                    else
+                    {
+                        Object.Destroy(go);
+                    }
                 }
-                
                 fxWorld.Value.DelEntity(fxEntity);
             }
         }

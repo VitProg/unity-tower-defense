@@ -38,7 +38,7 @@ namespace td.features.fx.subServices
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public ref T GetOrAdd<T>(
             EcsPackedEntityWithWorld packedEntity,
-            float? duration = null 
+            float? duration = null
         ) where T : struct, IEntityModifierFX
         {
             if (Has<T>(packedEntity, out var fxEntity))

@@ -13,6 +13,7 @@ using td.features.dragNDrop.evets;
 using td.features.enemy;
 using td.features.enemy.systems;
 using td.features.fx.effects;
+using td.features.fx.effects.@base;
 using td.features.fx.systems;
 using td.features.gameStatus.systems;
 using td.features.impactEnemy.components;
@@ -323,8 +324,11 @@ namespace td
                     new FX_ApplyTransformSystem(1/45f, 0f, GetDeltaTime),
                     // effects
                     new BlinkFX_System(1/15f, 0f, GetDeltaTime),
-                    new PoisonFX_System(),
-                    new PoisonStatusFX_System(),
+                    new HitFX_System(),
+                    new WithSpriteAnimatorFX_System<ColdStatusFX>(),
+                    new WithSpriteAnimatorFX_System<PoisonStatusFX>(),
+                    new WithSpriteAnimatorFX_System<ElectroStatusFX>(),
+                    new WithSpriteAnimatorFX_System<FireStatusFX>(),
                     // clean
                     new FX_AutoRemoveSystem()
                     //todo add other

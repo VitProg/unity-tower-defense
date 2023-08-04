@@ -112,7 +112,7 @@ namespace td.features.wave.systems
             var selectMethod = spawnData.config.selectMethod;
 
             var spawnedEnemy = selectMethod == LevelConfig.MethodOfSelectNextEnemy.Random
-                ? RandomUtils.RandomArrayItem(spawnData.config.enemies)
+                ? RandomUtils.RandomArrayItem(ref spawnData.config.enemies)
                 : spawnData.config.enemies[spawnData.enemyCounter % spawnData.config.enemies.Length]; // todo
 
             var enemy = shared.Value.GetEnemyConfig(spawnedEnemy.name);

@@ -92,7 +92,7 @@ namespace td.features.level
             // удаляем все ентити которые живут только на уровне
             foreach (var entity in commonPools.Value.onlyOnLevelFilter.Value)
             {
-                common.Value.RemoveImmediately(entity);
+                common.Value.Remove(entity);
             }
         }
 

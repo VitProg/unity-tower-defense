@@ -27,7 +27,7 @@ namespace td.features._common.systems
         
         private void OnRemoveCommand(EcsPackedEntityWithWorld packedEntity, ref Command_Remove _)
         {
-            common.Value.RemoveImmediately(packedEntity);
+            common.Value.Remove(packedEntity);
         }
     }
 }

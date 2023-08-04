@@ -123,7 +123,15 @@ namespace td.features.enemy
                 Constants.Pools.EnemyMaxCopacity,
                 null,
                 null,
-                null,
+                delegate(PoolableObject go)
+                {
+                    go.gameObject.SetActive(false);
+                    if (!go.transform.TryGetComponent(out SpriteRenderer sr))
+                    {
+                        sr = go.transform.GetComponentInChildren<SpriteRenderer>();
+                    }
+                    if (sr != null) sr.color = Color.white; 
+                },
                 ActionOnDestroy
             );
             var enemyEntity = converter.Value.GetEntity(enemyPoolableObject.gameObject) ?? world.Value.NewEntity();

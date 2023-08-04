@@ -151,7 +151,21 @@ namespace td.features._common
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void SetIsOnlyOnLevel(int entity, bool value) => pools.Value.onlyOnLevelPool.Value.SetExistence(entity, value);
 
-        public void RemoveImmediately(int entity)
+        public void Remove(GameObject go)
+        {
+            var poolableObject = go.GetComponent<PoolableObject>();
+
+            if (poolableObject != null)
+            {
+                poolServise.Value.Release(poolableObject);
+            }
+            else
+            {
+                Object.Destroy(go);
+            }
+
+        }
+        public void Remove(int entity)
         {
             if (HasGameObject(entity, true))
             {
@@ -189,13 +203,13 @@ namespace td.features._common
                 world.Value.DelEntity(entity);
             }
         }
-        public void RemoveImmediately(EcsPackedEntity packedEntity)
+        public void Remove(EcsPackedEntity packedEntity)
         {
-            if (packedEntity.Unpack(world.Value, out var entity)) RemoveImmediately(entity);
+            if (packedEntity.Unpack(world.Value, out var entity)) Remove(entity);
         }
-        public void RemoveImmediately(EcsPackedEntityWithWorld packedEntity)
+        public void Remove(EcsPackedEntityWithWorld packedEntity)
         {
-            if (packedEntity.Unpack(out _, out var entity)) RemoveImmediately(entity);
+            if (packedEntity.Unpack(out _, out var entity)) Remove(entity);
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]

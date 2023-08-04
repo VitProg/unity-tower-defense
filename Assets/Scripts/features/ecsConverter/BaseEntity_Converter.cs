@@ -66,7 +66,7 @@ namespace td.features.ecsConverter
             transform.SetScale(gameObject.transform.localScale);
             transform.ClearChangedStatus();
             
-#if UNITY_EDITOR
+#if UNITY_EDITOR && DEBUG
             // if (!gameObject.GetComponent<EcsComponentsInfo>()) gameObject.AddComponent<EcsComponentsInfo>();
             if (!gameObject.GetComponent<EcsEntityDebugView>())
             {

@@ -36,76 +36,52 @@ namespace td.features.impactEnemy.systems
             
             Debug.Log("takeDamage: " + takeDamage.type + "; " + takeDamage.damage);
             
+            var transform = common.Value.GetTransform(enemyEntity);
+            ref var blinkFx = ref fxService.Value.EntityModifier.GetOrAdd<BlinkFX>(enemyPackedEntity, 0.3f);
+            blinkFx.SetCount(1);
+            blinkFx.SetInterval(0.3f);
+            blinkFx.SetDuration(0.15f);
+            ref var hitFx = ref fxService.Value.EntityFallow.Add<HitFX>(enemyPackedEntity, 0.3f, transform.scale * 1.5f);
+
             switch (takeDamage.type)
             {
                 case DamageType.Casual:
                 {
-                    ref var fx = ref fxService.Value.EntityModifier.GetOrAdd<BlinkFX>(enemyPackedEntity, 0.3f);
-                    fx.SetCount(1);
-                    fx.color = Constants.FX.CasualDamageColor;
-                    if (fx is { isStarted: true, remaining: > 0 }) fx.remaining = Math.Min(2, fx.remaining + 2);
+                    blinkFx.Color = Constants.FX.CasualDamageColor;
+                    hitFx.Color = Constants.FX.CasualDamageColor;
                     break;
                 }
                 case DamageType.Fire:
                 {
-                    ref var fx = ref fxService.Value.EntityModifier.GetOrAdd<BlinkFX>(enemyPackedEntity, 0.6f);
-                    fx.SetCount(2);
-                    fx.color = Constants.FX.FireDamageColor;
-
-                    var transform = common.Value.GetTransform(enemyEntity);
-                    ref var fx2 = ref fxService.Value.Position.Add<FireFX>(transform.position, 0.3f, transform.scale);
-                    fx2.color = Constants.FX.FireDamageColor;
+                    blinkFx.Color = Constants.FX.FireDamageColor;
+                    hitFx.Color = Constants.FX.FireDamageColor;
                     break;
                 }
                 case DamageType.Explosion:
                 {
-                    ref var fx = ref fxService.Value.EntityModifier.GetOrAdd<BlinkFX>(enemyPackedEntity, 0.6f);
-                    fx.SetCount(2);
-                    fx.color = Constants.FX.ExplosionDamageColor;
-
-                    var transform = common.Value.GetTransform(enemyEntity);
-                    ref var fx2 = ref fxService.Value.Position.Add<FireFX>(transform.position, 0.3f, transform.scale);
-                    fx2.color = Constants.FX.ExplosionDamageColor;
+                    blinkFx.Color = Constants.FX.ExplosionDamageColor;
+                    hitFx.Color = Constants.FX.ExplosionDamageColor;
                     break;
                 }
                 case DamageType.Poison:
                 {
-                    ref var fx = ref fxService.Value.EntityModifier.GetOrAdd<BlinkFX>(enemyPackedEntity, 0.5f);
-                    fx.SetCount(1);
-                    fx.SetInterval(0.3f);
-                    fx.SetDuration(0.3f);
-                    fx.color = Constants.FX.PoisonDamageColor;
-                    
-                    var transform = common.Value.GetTransform(enemyEntity);
-                    // ref var fx2 = ref fxService.Value.Position.Add<PoisonFX>(transform.position, 0.3f, transform.scale);
-                    ref var fx2 = ref fxService.Value.EntityFallow.Add<PoisonFX>(enemyPackedEntity, 0.3f, transform.scale);
-                    fx2.color = Constants.FX.PoisonDamageColor;
+                    blinkFx.SetDuration(0.3f);
+                    blinkFx.Color = Constants.FX.PoisonDamageColor;
+                    hitFx.Color = Constants.FX.PoisonDamageColor;
                     break;
                 }
                 case DamageType.Cold:
                 {
-                    ref var fx = ref fxService.Value.EntityModifier.GetOrAdd<BlinkFX>(enemyPackedEntity, 0.5f);
-                    fx.SetCount(1);
-                    fx.SetInterval(0.3f);
-                    fx.SetDuration(0.3f);
-                    fx.color = Constants.FX.ColdDamageColor;
-
-                    var transform = common.Value.GetTransform(enemyEntity);
-                    ref var fx2 = ref fxService.Value.Position.Add<ColdFX>(transform.position, 0.3f, transform.scale);
-                    fx2.color = Constants.FX.ColdDamageColor;
+                    blinkFx.Color = Constants.FX.ColdDamageColor;
+                    hitFx.Color = Constants.FX.ColdDamageColor;
                     break;
                 }
                 case DamageType.Electro:
                 {
-                    ref var fx = ref fxService.Value.EntityModifier.GetOrAdd<BlinkFX>(enemyPackedEntity, 0.55f);
-                    fx.SetCount(2, 3);
-                    fx.SetInterval(0.2f);
-                    fx.SetDuration(0.25f);
-                    fx.color = Constants.FX.ElectroDamageColor;
-
-                    var transform = common.Value.GetTransform(enemyEntity);
-                    ref var fx2 = ref fxService.Value.Position.Add<ElectroFX>(transform.position, 0.5f, transform.scale);
-                    fx2.color = Constants.FX.ElectroDamageColor;
+                    blinkFx.SetCount(2, 3);
+                    blinkFx.SetInterval(0.15f);
+                    blinkFx.Color = Constants.FX.ElectroDamageColor;
+                    hitFx.Color = Constants.FX.ElectroDamageColor;
                     break;
                 }
                 default:

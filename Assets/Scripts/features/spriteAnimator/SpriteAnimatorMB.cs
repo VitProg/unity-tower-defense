@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Leopotam.EcsLite;
 using NaughtyAttributes;
 using td.features.state;
@@ -43,6 +44,7 @@ namespace td.features.spriteAnimator
         }
 
         [Button]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Play()
         {
             if (FramesCount == 0) return; 
@@ -50,6 +52,7 @@ namespace td.features.spriteAnimator
         }
         
         [Button]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Stop()
         {
             if (FramesCount == 0) return;
@@ -58,6 +61,7 @@ namespace td.features.spriteAnimator
         }        
         
         [Button]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Pause()
         {
             if (FramesCount == 0) return;
@@ -65,6 +69,7 @@ namespace td.features.spriteAnimator
         }        
         
         [Button]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void FirstFrame()
         {
             if (FramesCount == 0) return;
@@ -72,6 +77,7 @@ namespace td.features.spriteAnimator
         }
 
         [Button]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void LastFrame()
         {
             if (FramesCount == 0) return;
@@ -79,6 +85,7 @@ namespace td.features.spriteAnimator
         }
         
         [Button]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void NextFrame()
         {
             if (FramesCount == 0) return;
@@ -87,6 +94,7 @@ namespace td.features.spriteAnimator
         }
 
         [Button]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void PrevFrame()
         {
             if (FramesCount == 0) return;
@@ -94,12 +102,14 @@ namespace td.features.spriteAnimator
             else SetFrameIndex((ushort)(frameIndex - 1));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ushort GetPrevFrameIndex()
         {
             if (frameIndex == 0) return (ushort)(FramesCount - 1);
             return (ushort)(frameIndex - 1);
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ushort GetNextFrameIndex()
         {
             if (frameIndex == (ushort)(FramesCount - 1)) return 0;
@@ -157,12 +167,12 @@ namespace td.features.spriteAnimator
             SetFrameIndex(fIndex);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetFrameIndex(ushort fIndex)
         {
             fIndex = (ushort)Math.Min(fIndex, frames.Count - 1);
             if (fIndex == frameIndex) return;
             frameIndex = fIndex;
-            
             spriteRenderer.sprite = frames[frameIndex].sprite;
         }
     }

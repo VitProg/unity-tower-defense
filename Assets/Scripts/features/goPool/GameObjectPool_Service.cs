@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using td.monoBehaviours;
+using td.utils;
 using UnityEngine;
 using UnityEngine.Pool;
 using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace td.features.goPool
 {
@@ -45,9 +48,7 @@ namespace td.features.goPool
             Action<PoolableObject> actionOnDestroy = null
         )
         {
-            var poolableObject = GetPoolableObject(prefab);
             var pool = GetPool(
-                poolableObject,
                 prefab,
                 parent,
                 defaultCapacity,
@@ -58,13 +59,12 @@ namespace td.features.goPool
                 actionOnDestroy
             );
             var gameObject = pool.Get();
-            Log(poolableObject, pool);
             return gameObject;
         }
 
 
         public void Release(GameObject gameObject) =>
-            Release(GetPoolableObject(gameObject));
+            Release(GetPoolKey(gameObject));
 
         public void Release(PoolableObject poolableObject)
         {
@@ -73,12 +73,14 @@ namespace td.features.goPool
             Log(poolableObject, pool);
         }
 
-        private PoolableObject GetPoolableObject(GameObject prefab)
+        public PoolableObject GetPoolKey(GameObject prefab)
         {
             var poolableObject = prefab.GetComponent<PoolableObject>();
             if (poolableObject == null)
             {
-                throw new NullReferenceException("Prefab dasn't contain component of type PoolableObject");
+                poolableObject = prefab.AddComponent<PoolableObject>();
+                poolableObject.uniqID = $"_{prefab.name}_{prefab.GetInstanceID()}_{RandomUtils.IntRange(0, 99999)}";
+                // throw new NullReferenceException("Prefab dasn't contain component of type PoolableObject");
             }
 
             return poolableObject;
@@ -86,7 +88,7 @@ namespace td.features.goPool
 
         private string GetUniqID(PoolableObject poolableObject)
         {
-            if (string.IsNullOrEmpty(poolableObject.uniqID))
+            if (poolableObject == null || string.IsNullOrEmpty(poolableObject.uniqID))
             {
                 throw new Exception("uniqId is empty");
             }
@@ -94,15 +96,14 @@ namespace td.features.goPool
             return poolableObject.uniqID;
         }
 
-        private ObjectPool<PoolableObject> GetPool(PoolableObject poolableObject)
+        public ObjectPool<PoolableObject> GetPool(PoolableObject poolableObject)
         {
             var id = GetUniqID(poolableObject);
             poolDictionary.TryGetValue(id, out var pool);
             return pool;
         }
-
-        private ObjectPool<PoolableObject> GetPool(
-            PoolableObject poolableObject,
+        
+        public ObjectPool<PoolableObject> GetPool(
             GameObject prefab,
             Transform parent = null,
             int defaultCapacity = 10,
@@ -113,6 +114,7 @@ namespace td.features.goPool
             Action<PoolableObject> actionOnDestroy = null
         )
         {
+            var poolableObject = GetPoolKey(prefab);
             var id = GetUniqID(poolableObject);
 
             if (!poolDictionary.TryGetValue(id, out var pool))
@@ -156,11 +158,11 @@ namespace td.features.goPool
             Object.Destroy(o.gameObject);
         }
 
-        private void Log(PoolableObject poolableObject, ObjectPool<PoolableObject> pool)
+        private void Log([CanBeNull] PoolableObject poolableObject, ObjectPool<PoolableObject> pool)
         {
-// #if UNITY_EDITOR
-            // Debug.Log($"POOL(${GetUniqID(poolableObject)}: active:{pool.CountActive}; inactive:{pool.CountInactive}; all:{pool.CountAll}");
-// #endif
+#if GOPOOL_DEBUG
+            Debug.Log($"POOL(${GetUniqID(poolableObject)}: active:{pool.CountActive}; inactive:{pool.CountInactive}; all:{pool.CountAll}");
+#endif
         }
     }
 }
