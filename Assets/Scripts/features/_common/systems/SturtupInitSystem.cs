@@ -1,10 +1,5 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using td.features.enemy.data;
-using td.features.state;
+﻿using td.features.prefab;
 using td.features.window;
-using td.utils;
-using UnityEngine;
 
 namespace td.features._common.systems
 {
@@ -14,7 +9,7 @@ namespace td.features._common.systems
         private readonly EcsInject<SharedData> sharedData;
         private readonly EcsInject<IState> state;
         private readonly EcsInject<Prefab_Service> prefabService;
-        private readonly EcsInject<Windows_Service> windowsService;
+        private readonly EcsInject<Window_Service> windowsService;
 
         public void PreInit(IEcsSystems systems)
         {
@@ -32,22 +27,22 @@ namespace td.features._common.systems
             // var mainMenu = prefabService.GetPrefab(PrefabCategory.UI, "MainMenu");
             // var mainMenuGO = Object.Instantiate(mainMenu, sharedData.canvas.transform);
             // mainMenuGO.SetActive(true);
-            var show = windowsService.Value.Open(Windows_Service.Type.MainMenu, true);
+            var show = windowsService.Value.Open(Window_Service.Type.MainMenu, true);
         }
         
         private void LoadEnemiesData()
         {
-            var col = ResourcesUtils.LoadJson<EnemyConfigCollection>("Configs/enemies");
-            sharedData.Value.enemyConfigs = col.enemies;
-
-            for (var index = 0; index < sharedData.Value.enemyConfigs.Length; index++)
-            {
-                sharedData.Value.enemyConfigs[index].prefab = 
-                    (GameObject)Resources.Load(
-                        $"Prefabs/enemies/{sharedData.Value.enemyConfigs[index].prefabPath}",
-                        typeof(GameObject)
-                    );
-            }
+            // var col = ResourcesUtils.LoadJson<EnemyConfigCollection>("Configs/enemies");
+            // sharedData.Value.enemyConfigs = col.enemies;
+            //
+            // for (var index = 0; index < sharedData.Value.enemyConfigs.Length; index++)
+            // {
+            //     sharedData.Value.enemyConfigs[index].prefab = 
+            //         (GameObject)Resources.Load(
+            //             $"Prefabs/enemies/{sharedData.Value.enemyConfigs[index].prefabPath}",
+            //             typeof(GameObject)
+            //         );
+            // }
         }
     }
 }

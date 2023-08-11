@@ -1,46 +1,92 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
-using Leopotam.EcsLite;
-using td.features._common.costPopup;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.costPopup;
+using td.features.eventBus;
 using td.features.infoPanel;
-using td.features.shardCollection;
-using td.features.shardStore;
+using td.features.shard.shardCollection;
+using td.features.shard.shardStore;
 using td.utils;
+using UnityEngine.UIElements;
 
 namespace td.features.state
 {
-    public interface IState
-    {
-        float MaxLives { get; set; }
-        float Lives { get; set; }
-        ushort LevelNumber { get; set; }
-        uint Energy { get; set; }
-        float NextWaveCountdown { get; set; }
-        int WaveNumber { get; set; }
-        int WaveCount { get; set; }
-        int ActiveSpawnCount { get; set; }
-        int EnemiesCount { get; set; }
-        float GameSpeed { get; set; }
-        float LastLives { get; }
-        uint LastEnergy { get; }
+    // public interface IState
+    // {
+    //     float MaxLives { get; set; }
+    //     float Lives { get; set; }
+    //     ushort LevelNumber { get; set; }
+    //     uint Energy { get; set; }
+    //     float NextWaveCountdown { get; set; }
+    //     int WaveNumber { get; set; }
+    //     int WaveCount { get; set; }
+    //     int ActiveSpawnCount { get; set; }
+    //     int EnemiesCount { get; set; }
+    //     float GameSpeed { get; set; }
+    //     float LastLives { get; }
+    //     uint LastEnergy { get; }
+    //
+    //     InfoPanel_State InfoPanel { get; }
+    //     CostPopup_State CostPopup { get; }
+    //     ShardStore_State ShardStore { get; }
+    //     ShardCollection_State ShardCollection { get; }
+    //     
+    //     ref Event_StateChanged GetEvent();
+    //     void SuspendEvents();
+    //     void ResumeEvents();
+    //     void Refresh();
+    //     void UnSuspend();
+    //     void Clear();
+    // }
 
-        InfoPanel_State InfoPanel { get; }
-        CostPopup_State CostPopup { get; }
-        ShardStore_State ShardStore { get; }
-        ShardCollection_State ShardCollection { get; }
-        
-        ref Event_StateChanged GetEvent();
-        void SuspendEvents();
-        void ResumeEvents();
-        void Refresh();
-        void UnSuspend();
-        void Clear();
+    public interface IStateExtension
+    {
+#if UNITY_EDITOR
+        void DrawStateProperties();
+#endif
     }
-
-    public class State : IState
+    
+    public class State
     {
-        private readonly EcsInject<IEventBus> events = default;
+        // private readonly EcsInject<IEventBus> events = default;
+        [DI] private readonly EventBus events;
+        
+        private Slice<IStateExtension> extensions = new();
+        private Dictionary<Type, int> extensionsHash = new (10);
+
+        public T Ex<T>() where T : IStateExtension
+        {
+           var type = typeof(T);
+           if (!extensionsHash.TryGetValue(type, out var idx))
+           {
+               throw new Exception($"State extension {type.Name} not registered");
+           }
+
+           return (T)extensions.Get(idx);
+        }
+
+        public void AddEx<T>(T ex) where T : IStateExtension
+        {
+            var type = typeof(T);
+            if (extensionsHash.TryGetValue(type, out _))
+            {
+                throw new Exception($"State extension {type.Name} already registered");
+            }
+
+            extensions.Add(ex);
+            var idx = extensions.Len() - 1;
+            extensionsHash[type] = idx;
+        }
+        
+#if UNITY_EDITOR
+        void DrawStateProperties(VisualElement root)
+        {
+            //todo 
+        }
+#endif
         
         // -----
         
@@ -81,7 +127,7 @@ namespace td.features.state
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public ref Event_StateChanged GetEvent()
         {
-            if (!eventsSuspended && events.Value.GetEventsWorld().IsAlive()) return ref events.Value.Unique.Add<Event_StateChanged>();
+            if (!eventsSuspended) return ref events.unique.GetOrAdd<Event_StateChanged>();
             return ref suspendEvent;
         }
         
@@ -208,7 +254,7 @@ namespace td.features.state
             eventsSuspended = false;
             if (hasSuspendEvent)
             {
-                events.Value.Unique.Add<Event_StateChanged>() = suspendEvent;
+                events.unique.GetOrAdd<Event_StateChanged>() = suspendEvent;
                 UnSuspend();
             }
         }
@@ -216,7 +262,7 @@ namespace td.features.state
         public void Refresh() {
             eventsSuspended = false;
             UnSuspend();
-            events.Value.Unique.Add<Event_StateChanged>().All();
+            events.unique.GetOrAdd<Event_StateChanged>().All();
         }
 
         public void UnSuspend()
