@@ -10,7 +10,7 @@ using Random = UnityEngine.Random;
 
 namespace td.features.goPool
 {
-    public class GameObjectPool_Service
+    public class GOPool_Service
     {
         private readonly Dictionary<string, ObjectPool<PoolableObject>> poolDictionary = new();
 

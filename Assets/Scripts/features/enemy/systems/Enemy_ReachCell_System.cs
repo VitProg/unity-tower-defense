@@ -1,10 +1,10 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using td.common;
-using td.features._common;
 using td.features.enemy.bus;
 using td.features.eventBus;
 using td.features.level;
+using td.features.movement;
 using td.utils;
 using UnityEngine;
 
@@ -14,9 +14,9 @@ namespace td.features.enemy.systems
     {
         [DI] private Enemy_Aspect aspect;
         [DI] private LevelMap levelMap;
-        [DI] private Common_Service common;
         [DI] private Enemy_Service enemyService;
         [DI] private Enemy_Path_Service enemyPathService;
+        [DI] private Movement_Service movementService;
         [DI] private EventBus events;
 
         public void Run()
@@ -24,9 +24,9 @@ namespace td.features.enemy.systems
             foreach (var enemyEntity in aspect.itEnemiesReachingCell)
             {
                 ref var enemy = ref aspect.enemyPool.Get(enemyEntity);
-                ref var movement = ref common.GetMovement(enemyEntity);
-                ref var transform = ref common.GetTransform(enemyEntity);
                 ref var enemyPath = ref aspect.enemyPathPool.Get(enemyEntity);
+                ref var movement = ref movementService.GetMovement(enemyEntity);
+                ref var transform = ref movementService.GetTransform(enemyEntity);
 
                 if (!levelMap.HasCell(movement.target)) continue;
 
@@ -88,16 +88,16 @@ namespace td.features.enemy.systems
                 {
                     var nextCellCoords = nextCell.coords;
 
-                    var rotation = EnemyUtils.LookToNextCell(ref currentCell, ref nextCell);
+                    var rotation = Enemy_Utils.LookToNextCell(ref currentCell, ref nextCell);
 
                     if (!FloatUtils.IsEquals(transform.rotation.z, rotation.z) ||
                         !FloatUtils.IsEquals(transform.rotation.w, rotation.w))
                     {
-                        var angularSpeed = EnemyUtils.GetAngularSpeed(ref enemy);
+                        var angularSpeed = Enemy_Utils.GetAngularSpeed(ref enemy);
 
                         if (angularSpeed < Constants.Enemy.SmoothRotationThreshold)
                         {
-                            ref var smoothRotation = ref common.GetSmoothRotation(enemyEntity);
+                            ref var smoothRotation = ref movementService.GetSmoothRotation(enemyEntity);
                             smoothRotation.from = transform.rotation;
                             smoothRotation.to = rotation;
                             smoothRotation.angularSpeed = angularSpeed;
@@ -111,12 +111,12 @@ namespace td.features.enemy.systems
 
                     // movement.from = movement.target;
                     movement.from = transform.position;
-                    movement.target = EnemyUtils.CalcPosition(ref nextCellCoords, rotation, enemy.offset);
+                    movement.target = Enemy_Utils.CalcPosition(ref nextCellCoords, rotation, enemy.offset);
                     if (!nextNextCell.IsEmpty)
                     {
-                        var rotationNextNext = EnemyUtils.LookToNextCell(ref nextCell, ref nextNextCell);
+                        var rotationNextNext = Enemy_Utils.LookToNextCell(ref nextCell, ref nextNextCell);
                         movement.nextTarget =
-                            EnemyUtils.CalcPosition(ref nextNextCell.coords, rotationNextNext, enemy.offset);
+                            Enemy_Utils.CalcPosition(ref nextNextCell.coords, rotationNextNext, enemy.offset);
                     }
                     else
                     {

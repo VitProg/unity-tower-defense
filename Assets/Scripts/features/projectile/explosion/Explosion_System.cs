@@ -1,40 +1,44 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
-using td.features._common.components;
+using td.features.destroy;
 using td.features.enemy;
-using td.features.enemy.components;
+using td.features.eventBus;
 using td.features.impactEnemy;
-using td.features.projectile.attributes;
+using td.features.movement;
 using td.features.state;
 using td.utils;
-using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.projectile.explosion
 {
-    public class ExplosionSystem : IEcsRunSystem
+    public class Explosion_System : IProtoRunSystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<Enemy_Service> enemyService;
-        private readonly EcsInject<Enemy_Aspect> enemyPools;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsWorldInject world;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<ImpactEnemy_Service> impactEnemy;
+        [DI] private Projectile_Aspect projectileAspect;
+        [DI] private Explosion_Aspect explosionAspect;
+        [DI] private State state;
+        [DI] private Enemy_Service enemyService;
+        [DI] private Enemy_Aspect enemyAspect;
+        [DI] private EventBus events;
+        [DI] private ImpactEnemy_Service impactEnemy;
+        [DI] private Movement_Service movementService;
+        [DI] private Destroy_Service destroyService;
         
-        private readonly EcsFilterInject<Inc<Explosion, ExplosiveAttribute, Ref<GameObject>>, ExcludeNotAlive> entities = default;
-        
-        public void Run(IEcsSystems systems)
+        public void Run()
         {
-            foreach (var entity in entities.Value)
+            foreach (var entity in explosionAspect.it)
             {
-                ref var explosion = ref entities.Pools.Inc1.Get(entity);
-                ref var explosiveAttribute = ref entities.Pools.Inc2.Get(entity);
-                var explosionGO = entities.Pools.Inc3.Get(entity).reference;
-                var explosionMb = explosionGO!.GetComponent<ExplosionMonoBehaviour>();
+                ref var explosion = ref explosionAspect.explosionPool.Get(entity);
+                ref var explosiveAttribute = ref projectileAspect.explosiveAttributePool.Get(entity);
+                var explosionMb = explosionAspect.refExplosionMBPool.Get(entity).reference;
 
-                explosion.progress += explosion.diameterIncreaseSpeed * Time.deltaTime * state.Value.GameSpeed;
+                if (explosionMb == null)
+                {
+                    destroyService.MarkAsRemoved(projectileAspect.World().PackEntityWithWorld(entity));
+                    continue;
+                }
+
+                explosion.progress += explosion.diameterIncreaseSpeed * Time.deltaTime * state.GetGameSpeed();
 
                 explosion.currentDiameter = Mathf.Lerp(
                     0f,
@@ -49,7 +53,7 @@ namespace td.features.projectile.explosion
                 if (explosion.currentDiameter >= explosiveAttribute.diameter || explosion.progress > 1f)
                 {
                     calcDamage = true;
-                    common.Value.SafeDelete(entity);
+                    destroyService.MarkAsRemoved(projectileAspect.World().PackEntityWithWorld(entity));
                 }
 
                 if (calcDamage)
@@ -57,10 +61,13 @@ namespace td.features.projectile.explosion
                     var sqrRadiusMax = Mathf.Pow(explosiveAttribute.diameter / 2f, 2f);
                     var sqrRadiusFrom = Mathf.Pow(explosion.lastCalcDiameter / 2f, 2f);
                     var sqrRadiusTo = Mathf.Pow(explosion.currentDiameter / 2f, 2f);
+
+                    var enemiesInRadius = enemyService.FindNearestEnemies(explosion.position, sqrRadiusTo, sqrRadiusFrom);
                     
-                    foreach (var enemyEntity in enemyPools.Value.livingEnemiesFilter.Value)
+                    for (var idx = 0; idx < enemiesInRadius.Len(); idx++)
                     {
-                        var enemyPosition = enemyPools.Value.livingEnemiesFilter.Pools.Inc2.Get(enemyEntity).position;
+                        var enemyEntity = enemiesInRadius.Get(idx);
+                        var enemyPosition = movementService.GetTransform(enemyEntity).position;
 
                         var sqrDistanse = (explosion.position - enemyPosition).sqrMagnitude;
 
@@ -69,7 +76,7 @@ namespace td.features.projectile.explosion
                             var fade = 1 - sqrDistanse / sqrRadiusMax;
                             var damage = explosiveAttribute.damage * (fade * explosiveAttribute.damageFading); // todo
                             // todo explosiveAttribute.damageFading
-                            impactEnemy.Value.TakeDamage(enemyEntity, damage, DamageType.Explosion);
+                            impactEnemy.TakeDamage(enemyEntity, damage, DamageType.Explosion);
                         }
                     }
                 }

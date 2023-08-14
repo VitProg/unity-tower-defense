@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using NaughtyAttributes;
+﻿using NaughtyAttributes;
 using td.features._common;
+using td.features.eventBus;
 using td.features.gameStatus.bus;
+using td.features.infoPanel;
 using td.features.level.bus;
 using td.features.shard.mb;
+using td.features.shard.shardCollection;
 using td.features.state;
+using td.utils;
 using td.utils.di;
 using TMPro;
 using UnityEngine;
@@ -13,7 +15,7 @@ using UnityEngine.UI;
 
 namespace td.features.shard.shardStore
 {
-    public class UI_ShardStore : MonoInjectable
+    public class UI_ShardStore : MonoBehaviour
     {
         public Button closeButton;
         public GridLayoutGroup grid;
@@ -26,13 +28,11 @@ namespace td.features.shard.shardStore
 
         [SerializeField] private GameObject buttonPrefab;
 
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<ShardCalculator> calc;
-        private readonly EcsInject<Shard_Service> shardService;
+        private EventBus Events =>  ServiceContainer.Get<EventBus>();
+        private State State =>  ServiceContainer.Get<State>();
+        private Shard_Calculator Calc =>  ServiceContainer.Get<Shard_Calculator>();
+        private Shard_Service ShardService =>  ServiceContainer.Get<Shard_Service>();
         
-        private readonly List<IDisposable> eventDisposers = new(3);
-
         private void Start()
         {
             grid ??= GetComponent<GridLayoutGroup>();
@@ -40,9 +40,9 @@ namespace td.features.shard.shardStore
             levelDown.onClick.AddListener(delegate { ChangeLevel(-1); });
             levelUp.onClick.AddListener(delegate { ChangeLevel(1); });
             
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Event_StateChanged>(OnStateChanged));
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Event_LevelFinished>(delegate { Hide(); }));
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Event_YouDied>(delegate { Hide(); }));
+            Events.unique.ListenTo<Event_ShardStore_StateChanged>(OnStateChanged);
+            Events.unique.ListenTo<Event_LevelFinished>(OnLevelFinished);
+            Events.unique.ListenTo<Event_YouDied>(OnYouDied);
             
             for (var index = 0; index < grid.transform.childCount; index++)
             {
@@ -55,26 +55,38 @@ namespace td.features.shard.shardStore
             }
         }
 
-        private void OnStateChanged(ref Event_StateChanged e)
+        private void OnYouDied(ref Event_YouDied obj)
         {
-            if (e.shardStore.IsEmpty) return;
+            Hide();
+        }
 
-            if (e.shardStore.items.HasValue)
+        private void OnLevelFinished(ref Event_LevelFinished obj)
+        {
+            Hide();
+        }
+
+        private void OnStateChanged(ref Event_ShardStore_StateChanged e)
+        {
+            if (e.IsEmpty()) return;
+
+            if (e.items)
             {
                 Refresh();
             }
 
-            if (e.shardStore.x.HasValue)
+            var s = State.Ex<ShardStore_StateEx>();
+
+            var pos = transform.position;
+            if (!FloatUtils.IsEquals(s.GetX(), pos.x))
             {
-                var pos = transform.position;
-                pos.x = state.Value.ShardStore.X;
+                pos.x = s.GetX();
                 transform.position = pos;
             }
 
-            if (e.shardStore.visible.HasValue && gameObject.activeSelf != state.Value.ShardStore.Visible)
+            if (e.visible && gameObject.activeSelf != s.GetVisible())
             {
-                gameObject.SetActive(state.Value.ShardStore.Visible);
-                if (state.Value.ShardStore.Visible)
+                gameObject.SetActive(s.GetVisible());
+                if (s.GetVisible())
                 {
                     for (var index = 0; index < grid.transform.childCount; index++)
                     {
@@ -86,13 +98,15 @@ namespace td.features.shard.shardStore
 
         private void Hide()
         {
-            state.Value.ShardStore.Visible = false;
+            State.Ex<ShardStore_StateEx>().SetVisible(false);
             gameObject.SetActive(false);
         }
 
         private void Refresh()
         {
-            var length = state.Value.ShardStore.Items.Count;
+            var s = State.Ex<ShardStore_StateEx>();
+            
+            var length = s.GetItems().Count;
 
             var tr = transform;
             var gridWidth = (grid.cellSize.x + grid.spacing.x * 2) * (length + 1);
@@ -100,7 +114,7 @@ namespace td.features.shard.shardStore
 
             var fisicCount = grid.transform.childCount;
             var index = 0;
-            foreach (var item in state.Value.ShardStore.Items)
+            foreach (var item in s.GetItems())
             {
                 var isNew = index >= fisicCount;
 
@@ -119,8 +133,8 @@ namespace td.features.shard.shardStore
 
                 ref var shard = ref ui.GetShard();
                 ShardUtils.Clear(ref shard);
-                ShardUtils.Set(ref shard, item.shardType, (byte)calc.Value.GetQuantityForLevel(level));
-                shardService.Value.PrecalcAllCosts(ref shard);
+                ShardUtils.Set(ref shard, item.shardType, (byte)Calc.GetQuantityForLevel(level));
+                ShardService.PrecalcAllCosts(ref shard);
 
                 ui.showPlus = false;
                 ui.cost = shard.cost;
@@ -144,47 +158,61 @@ namespace td.features.shard.shardStore
 
         private void OnShardPointerEntered(ShardUIButton shardUIButton)
         {
+            var infoPanel = State.Ex<InfoPanel_StateExtension>();
+            var coll = State.Ex<ShardCollection_StateExtension>();
+            
             ref var shard = ref shardUIButton.GetShard();
-            state.Value.ShardCollection.HoveredItem = shardUIButton;
+            coll.SetHoveredItem(shardUIButton);
 
-            state.Value.InfoPanel.Clear();
-            state.Value.InfoPanel.Shard = shard;
-            state.Value.InfoPanel.Title = "Buying shard";
-            state.Value.InfoPanel.Cost = shard.cost;
+            infoPanel.Clear();
+            infoPanel.SetShard(ref shard);
+            infoPanel.SetTitle("Buying shard");
+            infoPanel.SetCost(shard.cost);
+            infoPanel.SetVisible(true);
         }
 
         private void OnShardPointerExited(ShardUIButton shardButton)
         {
-            if (state.Value.ShardCollection.HoveredItem == shardButton)
+            var si = State.Ex<InfoPanel_StateExtension>();
+            var sc = State.Ex<ShardCollection_StateExtension>();
+
+            if (sc.GetHoveredItem() == shardButton)
             {
-                state.Value.ShardCollection.HoveredItem = null;
-                if (state.Value.InfoPanel.Shard.HasValue && CommonUtils.IdsIsEquals(state.Value.InfoPanel.Shard.Value._id_, shardButton.GetShard()._id_))
+                sc.SetHoveredItem(null);
+                if (
+                    si.HasShard() && 
+                    CommonUtils.IdsIsEquals(si.GetShard()._id_, shardButton.GetShard()._id_)
+                )
                 {
-                    state.Value.InfoPanel.Clear();
+                    si.Clear();
                 }
             }
         }
 
         private void OnShardPointerClicked(ShardUIButton shardButton)
         {
+            var si = State.Ex<InfoPanel_StateExtension>();
+            var sc = State.Ex<ShardCollection_StateExtension>();
+            var s = State.Ex<ShardStore_StateEx>();
+
             if (
                 !shardButton.hasShard ||
                 shardButton.cost <= 0 ||
-                state.Value.Energy < shardButton.cost ||
-                state.Value.ShardCollection.Items.Count + 1 > state.Value.ShardCollection.MaxItems
+                State.GetEnergy() < shardButton.cost ||
+                sc.GetItems().Count + 1 > sc.GetMaxItems()
             ) return;
 
             var newShard = shardButton.GetShard().MakeCopy();
 
-            state.Value.Energy -= shardButton.cost;
+            State.SetEnergy(State.GetEnergy() - shardButton.cost);
 
-            // state.Value.ShardStore.Remove(state.Value.ShardStore[index]);
-            state.Value.ShardCollection.AddItem(ref newShard);
+            // state.ShardStore.Remove(state.ShardStore[index]);
+            sc.AddItem(ref newShard);
 
-            // state.Value.RefreshShardStore();
-            state.Value.ShardCollection.UpdateItems();
-            ;
-            state.Value.ShardStore.Visible = false;
+            // state.RefreshShardStore();
+            sc.UpdateItems();
+            
+            s.SetVisible(false);
         }
 
         private void RefreshLevel()
@@ -204,16 +232,14 @@ namespace td.features.shard.shardStore
 
         private void OnClose()
         {
-            state.Value.ShardStore.Visible = false;
+            State.Ex<ShardStore_StateEx>().SetVisible(false);
         }
 
         private void OnDestroy()
         {
-            foreach (var disposer in eventDisposers)
-            {
-                disposer?.Dispose();
-            }
-            eventDisposers.Clear();
+            Events.unique.RemoveListener<Event_ShardStore_StateChanged>(OnStateChanged);
+            Events.unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
+            Events.unique.RemoveListener<Event_YouDied>(OnYouDied);
             
             for (var index = 0; index < grid.transform.childCount; index++)
             {
@@ -228,7 +254,7 @@ namespace td.features.shard.shardStore
             closeButton.onClick.RemoveAllListeners();
             levelUp.onClick.RemoveAllListeners();
             levelDown.onClick.RemoveAllListeners();
-            state.Value.ShardStore.ClearItems();
+            State.Ex<ShardCollection_StateExtension>().Clear();
         }
     }
 }

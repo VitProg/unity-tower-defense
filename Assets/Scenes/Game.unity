@@ -575,7 +575,7 @@ PrefabInstance:
       objectReference: {fileID: 1175714946}
     - target: {fileID: 7543827075727966679, guid: bb17e4ae3d0b93a45a3b02b759cdc1e0, type: 3}
       propertyPath: m_Name
-      value: GridRenderer
+      value: GridRenderer1
       objectReference: {fileID: 0}
     - target: {fileID: 7543827075727966679, guid: bb17e4ae3d0b93a45a3b02b759cdc1e0, type: 3}
       propertyPath: m_Layer
@@ -760,17 +760,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &153696255 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 1581357812053786501, guid: 7cd78f11ef364a14e9205b9dd2f70d38, type: 3}
-  m_PrefabInstance: {fileID: 1581357811938887802}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ab7f79d9d47d544f9d395738a333d75, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &155712211
 GameObject:
   m_ObjectHideFlags: 0
@@ -1338,17 +1327,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7578767736603936984, guid: 1da9c07e40ac3334d8c5458a0a1efea7, type: 3}
   m_PrefabInstance: {fileID: 2603982476284113055}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &271981577 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5755297846213673234, guid: 1da9c07e40ac3334d8c5458a0a1efea7, type: 3}
-  m_PrefabInstance: {fileID: 2603982476284113055}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc0c42e94243443f8e5be6227c5320c6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &280193464 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2099355235560027003, guid: 5a9963273bdc8414eba9581d2f8a0cd2, type: 3}
@@ -1988,7 +1966,7 @@ GameObject:
   - component: {fileID: 459091603}
   m_Layer: 0
   m_Name: Canvas Camera
-  m_TagString: Untagged
+  m_TagString: Camera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -2236,8 +2214,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1683503361}
-  - {fileID: 1895250876}
   - {fileID: 459091602}
+  - {fileID: 1895250876}
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -2704,17 +2682,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5433606108145327774, guid: f26ad33584626f747986e7b71083ef14, type: 3}
   m_PrefabInstance: {fileID: 5982221723440658820}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &566997056 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5760145145393589085, guid: f26ad33584626f747986e7b71083ef14, type: 3}
-  m_PrefabInstance: {fileID: 5982221723440658820}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3ea1b8b0ecc24f6c8b822a90ddff6bcd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &617332570
 GameObject:
   m_ObjectHideFlags: 0
@@ -4678,19 +4645,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b1bf299a828f1ad4f8a50eb775868a45, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainCamera: {fileID: 1683503367}
-  virtualCamera: {fileID: 1895250878}
-  canvasCamera: {fileID: 459091605}
-  hightlightGridByCursor: {fileID: 153696255}
   shardsConfig: {fileID: 11400000, guid: 539cb70cee1d722469513f0e93eb841b, type: 2}
-  uiShardCollection: {fileID: 566997056}
-  uiShardStore: {fileID: 2815703099977576961}
-  uiInfoPanel: {fileID: 7359755157854004385}
-  costPopup: {fileID: 271981577}
-  draggableShard: {fileID: 1436914863}
-  canvas: {fileID: 1307000818}
-  fade: {fileID: 1604885477}
-  levelNumber: 4
+  levelNumber: 1
 --- !u!1 &969957263
 GameObject:
   m_ObjectHideFlags: 0
@@ -7084,7 +7040,7 @@ GameObject:
   - component: {fileID: 1307000816}
   m_Layer: 5
   m_Name: Canvas
-  m_TagString: Untagged
+  m_TagString: MainCanvas
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -7727,6 +7683,10 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7489055611542636073, guid: 904ba3440284b3f41ba8ff225527ec9a, type: 3}
+      propertyPath: m_TagString
+      value: DraggableShard
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -7737,17 +7697,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7489055611542636072, guid: 904ba3440284b3f41ba8ff225527ec9a, type: 3}
   m_PrefabInstance: {fileID: 1436914861}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1436914863 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3362447069714622771, guid: 904ba3440284b3f41ba8ff225527ec9a, type: 3}
-  m_PrefabInstance: {fileID: 1436914861}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a53dacec6f9b4c398cce0368c9076a0d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1470653775
 GameObject:
   m_ObjectHideFlags: 0
@@ -8868,7 +8817,7 @@ GameObject:
   - component: {fileID: 1683503366}
   m_Layer: 0
   m_Name: Main Camera
-  m_TagString: MainCamera
+  m_TagString: Camera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -10794,7 +10743,7 @@ GameObject:
   - component: {fileID: 1895250879}
   m_Layer: 0
   m_Name: CM vcam1
-  m_TagString: Untagged
+  m_TagString: Camera
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -11806,17 +11755,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2914103302051132764, guid: 04f5b09a91fd99444b5e10e646b14f5f, type: 3}
   m_PrefabInstance: {fileID: 4250805721719202079}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2815703099977576961 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3818905624141426482, guid: 04f5b09a91fd99444b5e10e646b14f5f, type: 3}
-  m_PrefabInstance: {fileID: 4250805721719202079}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b4c59181815341a0a412405dd37df1af, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &3475826017678490657
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12425,7 +12363,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 729422226875316466, guid: 44fcb2e7d45d6b84fa148078b4ff1eec, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0.000045226905
+      value: 0.000011717621
       objectReference: {fileID: 0}
     - target: {fileID: 1481825303550919677, guid: 44fcb2e7d45d6b84fa148078b4ff1eec, type: 3}
       propertyPath: m_Name
@@ -12891,17 +12829,6 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 1735864711081869752, guid: 44fcb2e7d45d6b84fa148078b4ff1eec, type: 3}
   m_PrefabInstance: {fileID: 5720482781595424278}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7359755157854004385 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 2814756632146936856, guid: 44fcb2e7d45d6b84fa148078b4ff1eec, type: 3}
-  m_PrefabInstance: {fileID: 5720482781595424278}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4ef7cb1d4cbb4431965e9b97b0ce31a4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &8667413028232374690
 PrefabInstance:
   m_ObjectHideFlags: 0

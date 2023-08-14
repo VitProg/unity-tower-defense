@@ -7,33 +7,29 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
-    "com.leopotam.ecslite": {
-      "version": "https://github.com/Leopotam/ecslite.git",
+    "com.leopotam.ecsproto": {
+      "version": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.EcsProto",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "957b3bb310ec49ab87d3e964f737a7c7e969f282"
+      "source": "local",
+      "dependencies": {}
     },
-    "com.leopotam.ecslite.di": {
-      "version": "https://github.com/Leopotam/ecslite-di.git",
+    "com.leopotam.ecsproto-qol": {
+      "version": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.EcsProto.QoL",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "0709e936b4ee68ad834276d5a75a3931ed7dcbbe"
+      "source": "local",
+      "dependencies": {}
     },
-    "com.leopotam.ecslite.extendedsystems": {
-      "version": "https://github.com/Leopotam/ecslite-extendedsystems.git",
+    "com.leopotam.ecsproto.unity": {
+      "version": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.EcsProto.Unity",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "007a5af4aaa1c4993523232f306a5f02e1de7c0f"
+      "source": "local",
+      "dependencies": {}
     },
-    "com.leopotam.ecslite.unityeditor": {
-      "version": "https://github.com/Leopotam/ecslite-unityeditor.git",
+    "com.leopotam.types": {
+      "version": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.Types",
       "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "133a7d2881afc87de3097451fa70aa192ff4afcd"
+      "source": "local",
+      "dependencies": {}
     },
     "com.unity.2d.animation": {
       "version": "9.0.3",
@@ -199,7 +195,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.visualstudio": {
-      "version": "2.0.18",
+      "version": "2.0.20",
       "depth": 0,
       "source": "registry",
       "dependencies": {

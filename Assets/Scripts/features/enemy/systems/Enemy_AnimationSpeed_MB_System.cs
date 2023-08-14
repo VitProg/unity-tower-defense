@@ -5,7 +5,7 @@ using td.features.state;
 
 namespace td.features.enemy.systems
 {
-    public class Enemy_AnimationSpeed_System : IProtoInitSystem, IProtoDestroySystem
+    public class Enemy_AnimationSpeed_MB_System : IProtoInitSystem, IProtoDestroySystem
     {
         [DI] private Enemy_Aspect aspect;
         [DI] private Enemy_Service enemyService;
@@ -26,9 +26,9 @@ namespace td.features.enemy.systems
 
         private void OnStateChanged(ref Event_StateChanged item)
         {
-            if (!item.gameSpeed.HasValue) return;
+            if (!item.gameSpeed) return;
             
-            var gameSpeed = state.GameSpeed;
+            var gameSpeed = state.GetGameSpeed();
 
             foreach (var entity in aspect.itLivingEnemies)
             {

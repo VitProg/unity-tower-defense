@@ -1,33 +1,40 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
+using td.features.destroy;
+using td.features.movement;
+using td.features.state;
 using td.utils.ecs;
 
 namespace td.features.fx.systems
 {
-    public class FX_EntityFallowSystem : EcsIntervalableRunSystem
+    public class FX_EntityFallowSystem : ProtoIntervalableRunSystem
     {
-        private readonly EcsInject<FX_Service> fxService;
-        private readonly EcsInject<FX_Pools> pools;
-        private readonly EcsInject<Common_Service> common;
+        [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
+        [DI] private State state;
+        [DI] private FX_Service fxService;
+        [DI] private Movement_Service movementService;
+        [DI] private Destroy_Service destroyService;
 
-        public override void IntervalRun(IEcsSystems systems, float dt)
+        public override void IntervalRun(float deltaTime)
         {
-            foreach (var fxEntity in pools.Value.entityFallowFilter.Value)
+            if (!state.GetGameSimulationEnabled()) return;
+            
+            foreach (var fxEntity in aspect.itEentityFallow)
             {
-                ref var target = ref pools.Value.entityFallowFilter.Pools.Inc2.Get(fxEntity);
-                ref var transform = ref pools.Value.entityFallowFilter.Pools.Inc4.Get(fxEntity);
+                ref var target = ref aspect.withTargetEntityPool.Get(fxEntity);
+                ref var transform = ref aspect.withTransformPool.Get(fxEntity);
                 
                 if (
-                    !target.entity.Unpack(out var targetEntityWorldm, out var targetEntity) ||
-                    common.Value.IsDestroyed(targetEntity)
+                    !target.entity.Unpack(out var targetEntityWorld, out var targetEntity) ||
+                    destroyService.IsDestroyed(targetEntity)
                 )
                 {
-                    pools.Value.needRemovePool.Value.SafeAdd(fxEntity);
+                    aspect.needRemovePool.GetOrAdd(fxEntity);
                     continue;
                 }
                 
-                ref var targetTransform = ref common.Value.GetTransform(targetEntity);
+                ref var targetTransform = ref movementService.GetTransform(targetEntity);
 
                 transform.SetPosition(targetTransform.position);
             }

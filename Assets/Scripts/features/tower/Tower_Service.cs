@@ -1,8 +1,6 @@
 ﻿using System;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+using Leopotam.EcsProto.QoL;
 using td.features._common.components;
-using td.features.shard;
 using td.features.tower.components;
 using td.features.tower.mb;
 using td.utils.ecs;
@@ -11,38 +9,38 @@ namespace td.features.tower
 {
     public class Tower_Service
     {
-        private readonly EcsInject<Tower_Pools> pools;
-        
-        private readonly EcsWorldInject world;
+        [DI] private Tower_Aspect aspect;
 
-        public bool HasTower(EcsPackedEntity packedEntity) => packedEntity.Unpack(world.Value, out var entity) && HasTower(entity);
-        public bool HasTower(EcsPackedEntity packedEntity, out int towerEntity) => packedEntity.Unpack(world.Value, out towerEntity) && HasTower(towerEntity);
-        public bool HasTower(int entity) => pools.Value.towerPool.Value.Has(entity);
-        public ref Tower GetTower(EcsPackedEntity packedEntity, out int towerEntity)
+        public bool HasTower(ProtoPackedEntity packedEntity) => packedEntity.Unpack(aspect.World(), out var entity) && HasTower(entity);
+        public bool HasTower(ProtoPackedEntity packedEntity, out int towerEntity) => packedEntity.Unpack(aspect.World(), out towerEntity) && HasTower(towerEntity);
+        public bool HasTower(ProtoPackedEntityWithWorld packedEntity, out int towerEntity) => packedEntity.Unpack(out var w, out towerEntity) && aspect.World().Equals(w) && HasTower(towerEntity);
+        public bool HasTower(int entity) => aspect.towerPool.Has(entity);
+        public ref Tower GetTower(ProtoPackedEntity packedEntity, out int towerEntity)
         {
-            if (!packedEntity.Unpack(world.Value, out towerEntity)) throw new Exception("Can't unpack Tower entity");
+            if (!packedEntity.Unpack(aspect.World(), out towerEntity)) throw new Exception("Can't unpack Tower entity");
             return ref GetTower(towerEntity);
         }
-        public ref Tower GetTower(int entity) => ref pools.Value.towerPool.Value.GetOrAdd(entity);
+        public ref Tower GetTower(int entity) => ref aspect.towerPool.GetOrAdd(entity);
 
-        public bool HasShardTower(EcsPackedEntity packedEntity) => packedEntity.Unpack(world.Value, out var towerEntity) && HasShardTower(towerEntity);
-        public bool HasShardTower(int entity) => pools.Value.shardTowerPool.Value.Has(entity);
-        public ref ShardTower GetShardTower(EcsPackedEntity packedEntity)
+        public bool HasShardTower(ProtoPackedEntityWithWorld packedEntity) => packedEntity.Unpack(out var w, out var towerEntity) && aspect.World().Equals(w) && HasShardTower(towerEntity);
+        public bool HasShardTower(ProtoPackedEntity packedEntity) => packedEntity.Unpack(aspect.World(), out var towerEntity) && HasShardTower(towerEntity);
+        public bool HasShardTower(int entity) => aspect.shardTowerPool.Has(entity);
+        public ref ShardTower GetShardTower(ProtoPackedEntity packedEntity)
         {
-            if (!packedEntity.Unpack(world.Value, out var entity)) throw new NullReferenceException();
+            if (!packedEntity.Unpack(aspect.World(), out var entity)) throw new NullReferenceException();
             return ref GetShardTower(entity);
         }
 
-        public ref ShardTower GetShardTower(int entity) => ref pools.Value.shardTowerPool.Value.GetOrAdd(entity);
+        public ref ShardTower GetShardTower(int entity) => ref aspect.shardTowerPool.GetOrAdd(entity);
         
-        public ref TowerTarget GetTowerTarget(int entity) => ref pools.Value.towerTargetPool.Value.GetOrAdd(entity);
-        public void RemoveTowerTarget(int entity) => pools.Value.towerTargetPool.Value.SafeDel(entity);
-        public bool HasTowerTarget(int entity) => pools.Value.towerTargetPool.Value.Has(entity);
+        public ref TowerTarget GetTowerTarget(int entity) => ref aspect.towerTargetPool.GetOrAdd(entity);
+        public void RemoveTowerTarget(int entity) => aspect.towerTargetPool.Del(entity);
+        public bool HasTowerTarget(int entity) => aspect.towerTargetPool.Has(entity);
         
-        public ref Ref<ShardTowerMonoBehaviour> GetShardTowerMBRef(int enemyEntity) => ref pools.Value.refShardTowerMB.Value.GetOrAdd(enemyEntity);
+        public ref Ref<ShardTowerMonoBehaviour> GetShardTowerMBRef(int enemyEntity) => ref aspect.refShardTowerMB.GetOrAdd(enemyEntity);
         public ShardTowerMonoBehaviour GetShardTowerMB(int enemyEntity) => GetShardTowerMBRef(enemyEntity).reference!;
 
-        public ref Ref<TowerMonoBehaviour> GetTowerMBRef(int enemyEntity) => ref pools.Value.refTowerMB.Value.GetOrAdd(enemyEntity);
+        public ref Ref<TowerMonoBehaviour> GetTowerMBRef(int enemyEntity) => ref aspect.refTowerMB.GetOrAdd(enemyEntity);
         public TowerMonoBehaviour GetTowerMB(int enemyEntity) => GetTowerMBRef(enemyEntity).reference!;
     }
 }

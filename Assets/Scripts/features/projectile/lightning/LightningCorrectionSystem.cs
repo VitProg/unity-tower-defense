@@ -1,9 +1,8 @@
 ﻿using System;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using td.features._common;
-using td.features._common.components;
+using Leopotam.EcsProto.QoL;
+using td.features.destroy;
 using td.features.enemy;
+using td.features.movement;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -14,31 +13,37 @@ namespace td.features.projectile.lightning
      */
     public class LightningCorrectionSystem : ProtoIntervalableRunSystem
     {
-        private readonly EcsWorldInject world;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsInject<Enemy_Service> enemyService;
+        [DI] private Lightning_Aspect lightningAspect;
+        [DI] private Projectile_Aspect projectileAspect;
+        [DI] private Enemy_Service enemyService; 
+        [DI] private Movement_Service movementService;
+        [DI] private Destroy_Service destroyService; 
         
-        private readonly EcsFilterInject<Inc<Lightning, Ref<GameObject>>, ExcludeNotAlive> entities = default; 
-
-        public override void IntervalRun(IEcsSystems systems, float deltaTime)
+        public override void IntervalRun(float deltaTime)
         {
-            foreach (var entity in entities.Value)
+            foreach (var entity in lightningAspect.it)
             {
-                ref var lightningLine = ref entities.Pools.Inc1.Get(entity);
-                var lightningLineGO = entities.Pools.Inc2.Get(entity).reference!;
+                ref var lightning = ref lightningAspect.lightningPool.Get(entity);
+                var lightningLineGO = lightningAspect.refLineRendererPool.Get(entity).reference;
 
+                if (lightningLineGO == null)
+                {
+                    destroyService.MarkAsRemoved(entity, projectileAspect.World());
+                    continue;
+                }
+                
                 var lineRenderer = lightningLineGO.GetComponent<LineRenderer>();
 
-                lineRenderer.positionCount = lightningLine.length;
+                lineRenderer.positionCount = lightning.length;
 
                 var count = 0;
-                for (var index = 0; index < lightningLine.chainEntities.Length && index < lightningLine.length; index++)
+                for (var index = 0; index < lightning.chainEntities.Length && index < lightning.length; index++)
                 {
-                    var chainPackedEntity = lightningLine.chainEntities[index];
+                    var chainPackedEntity = lightning.chainEntities[index];
 
-                    if (!chainPackedEntity.Unpack(world.Value, out var chainEntity) || !enemyService.Value.IsAlive(chainEntity)) continue;
+                    if (!enemyService.IsAlive(chainPackedEntity, out _)) continue;
 
-                    var position = common.Value.GetGOPosition(chainEntity);
+                    var position = movementService.GetTransform(chainPackedEntity).position;
                     
                     lineRenderer.SetPosition(index, position);
                     count++;

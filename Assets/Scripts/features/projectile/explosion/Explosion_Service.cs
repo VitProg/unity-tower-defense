@@ -1,25 +1,25 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using td.features._common;
+﻿using Leopotam.EcsProto.QoL;
 using td.features.goPool;
+using td.features.prefab;
 using td.monoBehaviours;
 using td.utils;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.projectile.explosion
 {
     public class Explosion_Service
     {
-        private readonly EcsInject<Prefab_Service> prefabService;
-        private readonly EcsInject<GameObjectPool_Service> poolService;
-        private readonly EcsInject<Explosion_Converter> converter;
-        private readonly EcsInject<Projectile_Service> projectileService;
-        private readonly EcsWorldInject world;
+        [DI] private Explosion_Aspect explosionAspect;
+        [DI] private Projectile_Aspect projectileAspect;
+        [DI] private Prefab_Service prefabService;
+        [DI] private GOPool_Service poolService;
+        [DI] private Explosion_Converter converter;
 
         private PoolableObject CreateObject(Vector2 position)
         {
-            var prefab = prefabService.Value.GetPrefab(PrefabCategory.Projectiles, "explosion");
-            var projectilePoolableObject = poolService.Value.Get(
+            var prefab = prefabService.GetPrefab(PrefabCategory.Projectiles, "explosion");
+            var projectilePoolableObject = poolService.Get(
                 prefab,
                 // todo add parent
                 Constants.Pools.ProjectileEffectsDefaultCopacity,
@@ -43,15 +43,15 @@ namespace td.features.projectile.explosion
         {
             var explosivePo = CreateObject(position);
 
-            var explosionEntity = converter.Value.GetEntity(explosivePo.gameObject) ?? world.Value.NewEntity();
-            converter.Value.Convert(explosivePo.gameObject, explosionEntity);
+            var explosionEntity = converter.GetEntity(explosivePo.gameObject) ?? projectileAspect.World().NewEntity();
+            converter.Convert(explosivePo.gameObject, explosionEntity);
             
-            ref var explosiveAttribute = ref projectileService.Value.GetExplosiveAttribute(explosionEntity);
+            ref var explosiveAttribute = ref projectileAspect.explosiveAttributePool.GetOrAdd(explosionEntity);
             explosiveAttribute.damage = damage;
             explosiveAttribute.diameter = diameter;
             explosiveAttribute.damageFading = damageFading;
             
-            ref var explosion = ref projectileService.Value.GetExplosion(explosionEntity);
+            ref var explosion = ref explosionAspect.explosionPool.GetOrAdd(explosionEntity);
             explosion.position = position;
             explosion.currentDiameter = 0f;
             explosion.diameterIncreaseSpeed = 3f;

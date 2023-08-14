@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
 using td.features.fx.types;
+using td.features.movement;
 using td.features.state;
 using td.utils.ecs;
 using UnityEngine;
@@ -12,7 +13,7 @@ using UnityEngine;
 namespace td.features.fx.effects
 {
     [Serializable]
-    public struct BlinkFX : IEntityModifierFX, IEcsAutoReset<BlinkFX>, IWithColorFX
+    public struct BlinkFX : IEntityModifierFX, IProtoAutoReset<BlinkFX>, IWithColorFX
     {
         public byte count;
         public float interval;
@@ -90,39 +91,35 @@ namespace td.features.fx.effects
         }
     }
 
-    public class BlinkFX_System : EcsIntervalableRunSystem
+    public class BlinkFX_System : ProtoIntervalableRunSystem
     {
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsInject<FX_Service> fxService;
-        private readonly EcsWorldInject fxWorld = Constants.Worlds.FX;
-        private readonly EcsInject<FX_Pools> pools;
-        private readonly EcsInject<State> state;
-        
-        private readonly EcsPoolInject<BlinkFX> pool = Constants.Worlds.FX;
-        
-        public override void IntervalRun(IEcsSystems systems, float dt)
-        {
-            foreach (var fxEntity in pools.Value.entityModifierFilter.Value)
-            {
-                if (!pool.Value.Has(fxEntity)) continue;
+        [DI] private Movement_Service movementService;
+        [DI] private FX_Service fxService;
+        [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
+        [DI] private State state;
 
-                ref var fx = ref pool.Value.Get(fxEntity);
-                // ref var fxType = ref pools.Value.entityModifierFilter.Pools.Inc1.Get(fxEntity);
-                ref var target = ref pools.Value.entityModifierFilter.Pools.Inc2.Get(fxEntity);
+        public override void IntervalRun(float deltaTime)
+        {
+            foreach (var fxEntity in aspect.itEntityModifier)
+            {
+                if (!aspect.blinkFXPool.Has(fxEntity)) continue;
+
+                ref var fx = ref aspect.blinkFXPool.Get(fxEntity);
+                ref var target = ref aspect.withTargetEntityPool.Get(fxEntity);
 
                 if (!target.entity.Unpack(out _, out var targetEntity))
                 {
-                    pools.Value.needRemovePool.Value.SafeAdd(fxEntity).now = true;
+                    aspect.needRemovePool.GetOrAdd(fxEntity).now = true;
                     continue;
                 }
 
-                var targetGO = common.Value.HasTargetBody(targetEntity)
-                    ? common.Value.GetTargetBodyGO(targetEntity)
-                    : common.Value.GetGameObject(targetEntity);
+                var targetGO = movementService.HasTargetBody(targetEntity)
+                    ? movementService.GetTargetBodyGO(targetEntity)
+                    : movementService.GetGameObject(targetEntity);
 
                 if (!targetGO || !targetGO.activeSelf)
                 {
-                    pools.Value.needRemovePool.Value.SafeAdd(fxEntity).now = true;
+                    aspect.needRemovePool.GetOrAdd(fxEntity).now = true;
                     continue;
                 }
 
@@ -141,14 +138,14 @@ namespace td.features.fx.effects
 #endif
                 }
 
-                if (pools.Value.needRemovePool.Value.Has(fxEntity))
+                if (aspect.needRemovePool.Has(fxEntity))
                 {
-                    fxWorld.Value.DelEntity(fxEntity);
+                    aspect.World().DelEntity(fxEntity);
                     if (fx.sr != null) fx.sr.color = Color.white;
                     continue;
                 }
 
-                fx.remainingTime -= dt * state.Value.GameSpeed;
+                fx.remainingTime -= deltaTime * state.GetGameSpeed();
 
                 if (fx.remainingTime > 0f) continue;
                 
@@ -163,7 +160,7 @@ namespace td.features.fx.effects
                     if (fx.remaining <= 0)
                     {
                         if (fx.sr != null) fx.sr.color = Color.white;
-                        pools.Value.needRemovePool.Value.SafeAdd(fxEntity).now = true;
+                        aspect.needRemovePool.GetOrAdd(fxEntity).now = true;
                     }
                 }
                 else
@@ -174,7 +171,7 @@ namespace td.features.fx.effects
                 }
             }
         }
-        
+
         public BlinkFX_System(float interval, float timeShift, Func<float> getDeltaTime) : base(interval, timeShift, getDeltaTime)
         {
         }

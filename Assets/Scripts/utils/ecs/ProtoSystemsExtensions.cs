@@ -1,0 +1,35 @@
+﻿using System;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.utils.di;
+using UnityEngine;
+
+namespace td.utils.ecs
+{
+    public static class ProtoSystemsExtensions
+    {
+        // private static readonly Type ServiceGenericType = typeof(Service<>);
+        
+        public static IProtoSystems AddService(this IProtoSystems self, object injectInstance, bool registrateInServiceLocator = false) =>
+            AddService(self, injectInstance, default, registrateInServiceLocator);
+        
+        public static IProtoSystems AddService(this IProtoSystems self, object injectInstance, Type asType = default, bool registrateInServiceLocator = false)
+        {
+            if (registrateInServiceLocator)
+            {
+                var type = asType ?? injectInstance.GetType ();
+                ServiceContainer.Set(type, injectInstance);
+                // var serviceType = ServiceGenericType.MakeGenericType(type);
+                // var serviceSetMethod = serviceType.GetMethod("Set");
+                // if (serviceSetMethod == null)
+                // {
+                    // throw new Exception($"Service {type.Name} does not have Set method");
+                // }
+                // serviceSetMethod.Invoke(null, new [] { injectInstance });
+                // Debug.Log("REGISTER " + type.Name);
+            }
+            self.AddService(injectInstance, asType);
+            return self;
+        }
+    }
+}

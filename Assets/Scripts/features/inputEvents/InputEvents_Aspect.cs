@@ -1,15 +1,21 @@
-﻿using Leopotam.EcsLite.Di;
-using td.features._common;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common.components;
+using td.features.destroy.flags;
 using td.features.inputEvents.components;
+using td.features.movement;
+using td.features.movement.components;
 
 namespace td.features.inputEvents
 {
-    public class InputEvents_Pools
+    public class InputEvents_Aspect : ProtoAspectInject
     {
-        public readonly EcsPoolInject<ObjectCicleCollider> cicleColliderPool = default;
-        public readonly EcsPoolInject<RefMany<IInputEventsHandler>> refPointerHandlers = default;
-        
-        public readonly EcsFilterInject<Inc<ObjectTransform, ObjectCicleCollider, RefMany<IInputEventsHandler>>, ExcludeNotAlive> filter = default;
+        public ProtoPool<ObjectCicleCollider> cicleColliderPool;
+        public ProtoPool<RefMany<IInputEventsHandler>> refPointerHandlersPool;
+
+        public ProtoItExc it = new ProtoItExc(
+            It.Inc<ObjectTransform, ObjectCicleCollider, RefMany<IInputEventsHandler>>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
     }
 }

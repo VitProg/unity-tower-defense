@@ -1,7 +1,7 @@
 ﻿using Leopotam.EcsProto.QoL;
 using td.features.eventBus.types;
 
-namespace td.features.towerRadius.bus
+namespace td.features.tower.towerRadius.bus
 {
     public struct Command_Tower_HideRadius : IGlobalEvent
     {

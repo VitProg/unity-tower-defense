@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto;
 using td.features._common;
 using UnityEngine;
 
@@ -16,7 +16,7 @@ namespace td.features.shard.components
      * Форма меняется от общего кол-ва осколков внутри
      */
     [Serializable]
-    public struct Shard : IEcsAutoReset<Shard>
+    public struct Shard : IProtoAutoReset<Shard>
     {
         public const string Type = "shard";
         
@@ -128,6 +128,7 @@ namespace td.features.shard.components
             violet = (byte)Math.Min(100, violet + b.violet);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Shard MakeCopy() => new()
         {
             red = red,
@@ -138,7 +139,32 @@ namespace td.features.shard.components
             orange = orange,
             pink = pink,
             violet = violet,
+            
+            cost = cost,
+            costRemove = costRemove,
+            costDrop = costDrop,
+            costInsert = costInsert,
+            costCombine = costCombine,
         };
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetFrom(ref Shard shard)
+        {
+            red = shard.red;
+            green = shard.green;
+            blue = shard.blue;
+            aquamarine = shard.aquamarine;
+            yellow = shard.yellow;
+            orange = shard.orange;
+            pink = shard.pink;
+            violet = shard.violet;
+            
+            cost = shard.cost;
+            costRemove = shard.costRemove;
+            costDrop = shard.costDrop;
+            costInsert = shard.costInsert;
+            costCombine = shard.costCombine;
+        }
     }
 
     public enum ShardTypes

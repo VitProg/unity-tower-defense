@@ -11,7 +11,5 @@ namespace td.features.tower.components
         // public uint cost;
         public Vector2 barrel;
         public Int2 coords;
-
-        // public GameObject radiusGameObject;
     }
 }

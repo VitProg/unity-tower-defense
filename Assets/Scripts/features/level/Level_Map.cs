@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
-using Leopotam.EcsLite;
 using td.common;
+using td.features.level.cells;
 using td.features.level.data;
-using td.features.state;
 using td.monoBehaviours;
 using td.utils;
 using UnityEngine;
@@ -29,8 +27,6 @@ namespace td.features.level
         private int maxY = -999;
         private readonly List<Cell> prebuildedCells = new();
 
-        private readonly EcsInject<IState> state;
-
         public LevelConfig? LevelConfig
         {
             get => levelConfig;
@@ -38,16 +34,6 @@ namespace td.features.level
             {
                 //todo
                 levelConfig = value;
-                // state.Value.SuspendEvents();
-                // state.Value.MaxLives = levelConfig?.lives ?? 0;
-                // state.Value.Lives = state.Value.MaxLives;
-                // state.Value.LevelNumber = levelConfig?.levelNumber ?? 0;
-                // state.Value.Money = levelConfig?.energy ?? 10;
-                // state.Value.NextWaveCountdown = 0;
-                // state.Value.ActiveSpawnCount = 0;
-                // state.Value.WaveNumber = 0;
-                // state.Value.WaveCount = levelConfig?.waves.Length ?? 0;
-                // state.Value.ResumeEvents();
             }
         }
 
@@ -56,11 +42,6 @@ namespace td.features.level
 
         private Int2 mapOffset = new(0, 0);
         
-        // public Int2[] Spawns => _spawns;//ArrayUtils.NotNullable(spawns);
-        // public int[] SpawnsIndexes => ArrayUtils.GetIndexes(spawns, ArrayUtils.IsNotNull);
-        // public Int2[] Kernels => ArrayUtils.NotNullable(kernels);
-        // public int[] KernelsIndexse => ArrayUtils.GetIndexes(kernels, ArrayUtils.IsNotNull);
-
         public Rect Rect { get; private set; }
 
         public void Clear()
@@ -109,7 +90,6 @@ namespace td.features.level
                     c1.x, c1.y,
                     c2.x - c1.x, c2.y - c1.y
                 );
-                // Debug.Log($"> Rect: {Rect} [{c1}; {c2}] [{Width}x{Height}] [{minX}-{maxX};{minY}-{maxY}]");
             }
         }
 

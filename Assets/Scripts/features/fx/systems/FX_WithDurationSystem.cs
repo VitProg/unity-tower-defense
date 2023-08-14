@@ -1,26 +1,28 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 using td.features.state;
 using td.utils.ecs;
 
 namespace td.features.fx.systems
 {
-    public class FX_WithDurationSystem : EcsIntervalableRunSystem
+    public class FX_WithDurationSystem : ProtoIntervalableRunSystem
     {
-        private readonly EcsInject<FX_Pools> pools;
-        private readonly EcsInject<FX_Service> fxService;
-        private readonly EcsInject<State> state;
+        [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
+        [DI] private FX_Service fxService;
+        [DI] private State state;
 
-        public override void IntervalRun(IEcsSystems systems, float dt)
+        public override void IntervalRun(float deltaTime)
         {
-            foreach (var fxEntity in pools.Value.withDurationFilter.Value)
+            if (!state.GetGameSimulationEnabled()) return;
+            
+            foreach (var fxEntity in aspect.itWithDuration)
             {
-                ref var d = ref pools.Value.withDurationFilter.Pools.Inc1.Get(fxEntity);
-                if (!d.withDuration || pools.Value.needRemovePool.Value.Has(fxEntity)) continue;
-                d.remainingTime -= dt * state.Value.GameSpeed;
+                ref var d = ref aspect.withDurationPool.Get(fxEntity);
+                if (!d.withDuration || aspect.needRemovePool.Has(fxEntity)) continue;
+                d.remainingTime -= deltaTime * state.GetGameSpeed();
                 if (d.remainingTime <= 0f)
                 {
-                    pools.Value.needRemovePool.Value.SafeAdd(fxEntity);
+                    aspect.needRemovePool.GetOrAdd(fxEntity);
                 }
             }
         }

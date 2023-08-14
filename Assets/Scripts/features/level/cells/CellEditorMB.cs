@@ -8,7 +8,7 @@ namespace td.features.level.cells
 #if UNITY_EDITOR
     [SelectionBase] // Если вы кликнете на внутреннюю запчасть префаба, то выделится именно этот объект
 #endif
-    public class CellEditorMB : MonoInjectable
+    public class CellEditorMB : MonoBehaviour
     {
         #region properties
 

@@ -1,5 +1,6 @@
 ﻿using System;
-using td.features._common;
+using Leopotam.EcsProto.QoL;
+using td.features.state;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -8,17 +9,16 @@ namespace td.features.movement.systems
     // todo try to rewrite for usync async - full rotate with one event call
     public class SmoothRotateSystem : ProtoIntervalableRunSystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsFilterInject<Inc<ObjectTransform, IsSmoothRotation>, ExcludeNotAlive> entities = default;
+        [DI] private Movement_Aspect aspect;
+        [DI] private Movement_Service movementService;
+        [DI] private State state;
         
-        public override void IntervalRun(IEcsSystems systems, float deltaTime)
+        public override void IntervalRun(float deltaTime)
         {
-            foreach (var entity in entities.Value)
+            foreach (var entity in aspect.itSmoothRotation)
             {
-                ref var transform = ref entities.Pools.Inc1.Get(entity);
-                ref var smoothRotate = ref entities.Pools.Inc2.Get(entity);
-                // var transform = smoothRotate.targetBody.transform;
+                ref var transform = ref movementService.GetTransform(entity);
+                ref var smoothRotate = ref aspect.isSmoothRotationPool.Get(entity);
 
                 var isStarted = smoothRotate.time <= Constants.ZeroFloat;
 
@@ -32,11 +32,11 @@ namespace td.features.movement.systems
                     ))
                 {
                     transform.SetRotation(smoothRotate.to);
-                    common.Value.RemoveSmoothRotation(entity);
+                    aspect.isSmoothRotationPool.Del(entity);
                 }
                 else
                 {
-                    smoothRotate.time += smoothRotate.angularSpeed * deltaTime * state.Value.GameSpeed;
+                    smoothRotate.time += smoothRotate.angularSpeed * deltaTime * state.GetGameSpeed();
 
                     var newRotate = Quaternion.Lerp(
                         smoothRotate.from,

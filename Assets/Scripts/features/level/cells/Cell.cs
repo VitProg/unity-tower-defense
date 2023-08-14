@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 using td.common;
 using td.monoBehaviours;
 using td.utils;
@@ -14,8 +14,8 @@ namespace td.features.level.cells
         public Int2 coords;
         public GameObject go;
         public CellTypes type;
-        public EcsPackedEntity? packedBuildingEntity;
-        public EcsPackedEntity? packedShardEntity;
+        public ProtoPackedEntityWithWorld? packedBuildingEntity;
+        public ProtoPackedEntityWithWorld? packedShardEntity;
 
         public bool IsEmpty => coords.IsZero;
 

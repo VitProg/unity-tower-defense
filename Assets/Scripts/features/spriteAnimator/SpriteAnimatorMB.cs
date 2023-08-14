@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Leopotam.EcsLite;
+using JetBrains.Annotations;
+using Leopotam.EcsProto.QoL;
 using NaughtyAttributes;
 using td.features.state;
 using td.utils.di;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.Serialization;
 
 namespace td.features.spriteAnimator
 {
     [ExecuteAlways]
-    public class SpriteAnimatorMB : MonoInjectable
+    public class SpriteAnimatorMB : MonoBehaviour
     {
-        private readonly EcsInject<State> state;
+        // [DI] private State state;
+        [CanBeNull] private State State => ServiceContainer.Get<State>();
 
         [Required] public SpriteRenderer spriteRenderer;
         [FormerlySerializedAs("Frames")] public List<SpriteAnimatorFrame> frames;
@@ -120,7 +121,7 @@ namespace td.features.spriteAnimator
         {
             if (!isPlayed || FramesCount == 0) return;
             
-            timeFromPrevFrame += speed * Time.deltaTime * (state.Value?.GameSpeed ?? 1f);
+            timeFromPrevFrame += speed * Time.deltaTime * (State?.GetGameSpeed() ?? 1f);
 
             var fIndex = frameIndex;
 

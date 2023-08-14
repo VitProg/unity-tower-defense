@@ -1,147 +1,146 @@
-﻿// // -----------------------------------------------------------------------------------------
-// // The MIT License
-// // Dependency injection for LeoECS Lite https://github.com/Leopotam/ecslite-di
-// // Copyright (c) 2021-2022 Leopotam <leopotam@gmail.com>
-// // Copyright (c) 2022 7Bpencil <Edward.Ekb@yandex.ru>
-// // -----------------------------------------------------------------------------------------
-//
-// using System;
-// using System.Collections.Generic;
-// using System.Reflection;
-// using System.Threading.Tasks;
-// using JetBrains.Annotations;
-// using Leopotam.EcsLite;
-// using Leopotam.EcsLite.Di;
-// using Leopotam.EcsLite.ExtendedSystems;
-// using UnityEngine;
-//
-
-using System;
-using System.Linq;
+﻿using System;
 using System.Reflection;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+using Leopotam.EcsProto.QoL;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace td.utils.di
 {
-    [AttributeUsage(AttributeTargets.Field)]
-    public sealed class AutoResolveAttribute : Attribute
-    {
-    }
-    
     public class MonoInjectable : MonoBehaviour
     {
-        protected void Awake()
+        private readonly Type _diAttrType = typeof(DIAttribute);
+        private readonly Type _serviceStaticGenericType = typeof(Service<>);
+
+        protected void Start()
         {
-            var container = ServiceContainer.GetCurrentContainer();
-            if (container != null && container.TryGet<IEcsSystems>(out var systems))
+            var type = GetType();
+            foreach (var fi in type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance))
             {
-                systems.ResolveMonoBehaviour(this, container);
+                if (fi.IsStatic || !Attribute.IsDefined(fi, _diAttrType)) continue;
+
+                var value = ServiceContainer.Get(fi.FieldType);
+
+                if (value != null)
+                {
+                    fi.SetValue(this, value);
+                }/*
+                var serviceType = _serviceStaticGenericType.MakeGenericType(fi.FieldType);
+                var serviceGetMethod = serviceType.GetMethod("Get");
+                var result = serviceGetMethod?.Invoke(null, null) ?? default;
+                if (result != null)
+                {
+                    fi.SetValue(this, result);
+                }*/
+                else
+                {
+#if DEBUG
+                    throw new Exception(
+                        $"ошибка инъекции пользовательских данных в MonoBehaviour\"{type.Name}\", тип \"{fi.FieldType.Name}\" для поля \"{fi.Name}\" отсутствует в списке сервисов");
+#endif
+                }
+            }
+        }
+    }
+}
+
+/*public static class DIExt
+{
+    private static readonly Type AutoResolveAttrType = typeof(AutoResolveAttribute);
+    
+    public static void ResolveMonoBehaviours(this IEcsSystems systems, IServiceContainer container)
+    {
+        var monoInjectables = Object.FindObjectsOfType<MonoInjectable>(true);
+        var services = container.Services.Values.ToArray();
+        
+        foreach (var injectable in monoInjectables)
+        {
+            systems.ResolveMonoBehaviour(injectable, container, services);
+            // foreach (var service in services)
+            // {
+                // InjectToService(injectable, systems, services);
+            // }
+        }
+    }
+
+    public static void ResolveMonoBehaviour(this IEcsSystems systems, MonoBehaviour injectable, IServiceContainer container, object[] _services = null)
+    {
+        // var monoInjectables = Object.FindObjectsOfType<MonoInjectable>(true);
+        var services = _services ?? container.Services.Values.ToArray();
+        
+        // foreach (var injectable in monoInjectables)
+        // {
+            foreach (var service in container.Services)
+            {
+                InjectToService(injectable, systems, services);
+            }
+        // }
+    }
+    
+    public static void InjectEx(this IEcsSystems systems, IServiceContainer container, params object[] injects)
+    {
+        systems.Inject(injects);
+        var services = container.Services.Values.ToArray();
+        foreach (var service in services)
+        {
+            InjectToService(service, systems, services);
+        }
+    }
+    
+    static void InjectToService (object service, IEcsSystems systems, object[] injects)
+    {
+        var type = service.GetType();
+        foreach (var f in type.GetFields (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
+            // skip statics.
+            if (f.IsStatic) { continue; }
+            // EcsWorldInject, EcsFilterInject, EcsPoolInject, EcsSharedInject.
+            if (InjectBuiltIns (f, service, systems)) { continue; }
+            // IEcsCustomDataInject derivatives (EcsCustomInject, etc).
+            if (InjectCustoms (f, service, injects)) { continue; }
+
+            if (Attribute.IsDefined(f, AutoResolveAttrType))
+            {
+                InjectToService(f.GetValue(service), systems, injects);
+            }
+        }
+
+        if (type.BaseType == null) return;  //|| type.BaseType == typeof(System.Object) || type.BaseType == typeof(ScriptableObject) || type.BaseType == typeof(GameObject)) return; 
+        
+        foreach (var f in type.BaseType.GetFields (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
+            // skip statics.
+            if (f.IsStatic) { continue; }
+            // EcsWorldInject, EcsFilterInject, EcsPoolInject, EcsSharedInject.
+            if (InjectBuiltIns (f, service, systems)) { continue; }
+            // IEcsCustomDataInject derivatives (EcsCustomInject, etc).
+            if (InjectCustoms (f, service, injects)) { }
+            
+            if (Attribute.IsDefined(f, AutoResolveAttrType))
+            {
+                InjectToService(f.GetValue(service), systems, injects);
             }
         }
     }
     
-    public static class DIExt
-    {
-        private static readonly Type AutoResolveAttrType = typeof(AutoResolveAttribute);
-        
-        public static void ResolveMonoBehaviours(this IEcsSystems systems, IServiceContainer container)
-        {
-            var monoInjectables = Object.FindObjectsOfType<MonoInjectable>(true);
-            var services = container.Services.Values.ToArray();
-            
-            foreach (var injectable in monoInjectables)
-            {
-                systems.ResolveMonoBehaviour(injectable, container, services);
-                // foreach (var service in services)
-                // {
-                    // InjectToService(injectable, systems, services);
-                // }
-            }
+    static bool InjectBuiltIns (FieldInfo fieldInfo, object service, IEcsSystems systems) {
+        if (typeof (IEcsDataInject).IsAssignableFrom (fieldInfo.FieldType)) {
+            var instance = (IEcsDataInject) fieldInfo.GetValue (service);
+            instance.Fill (systems);
+            fieldInfo.SetValue (service, instance);
+            return true;
         }
-
-        public static void ResolveMonoBehaviour(this IEcsSystems systems, MonoBehaviour injectable, IServiceContainer container, object[] _services = null)
-        {
-            // var monoInjectables = Object.FindObjectsOfType<MonoInjectable>(true);
-            var services = _services ?? container.Services.Values.ToArray();
-            
-            // foreach (var injectable in monoInjectables)
-            // {
-                foreach (var service in container.Services)
-                {
-                    InjectToService(injectable, systems, services);
-                }
-            // }
-        }
-        
-        public static void InjectEx(this IEcsSystems systems, IServiceContainer container, params object[] injects)
-        {
-            systems.Inject(injects);
-            var services = container.Services.Values.ToArray();
-            foreach (var service in services)
-            {
-                InjectToService(service, systems, services);
-            }
-        }
-        
-        static void InjectToService (object service, IEcsSystems systems, object[] injects)
-        {
-            var type = service.GetType();
-            foreach (var f in type.GetFields (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
-                // skip statics.
-                if (f.IsStatic) { continue; }
-                // EcsWorldInject, EcsFilterInject, EcsPoolInject, EcsSharedInject.
-                if (InjectBuiltIns (f, service, systems)) { continue; }
-                // IEcsCustomDataInject derivatives (EcsCustomInject, etc).
-                if (InjectCustoms (f, service, injects)) { continue; }
-
-                if (Attribute.IsDefined(f, AutoResolveAttrType))
-                {
-                    InjectToService(f.GetValue(service), systems, injects);
-                }
-            }
-
-            if (type.BaseType == null) return;  //|| type.BaseType == typeof(System.Object) || type.BaseType == typeof(ScriptableObject) || type.BaseType == typeof(GameObject)) return; 
-            
-            foreach (var f in type.BaseType.GetFields (BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)) {
-                // skip statics.
-                if (f.IsStatic) { continue; }
-                // EcsWorldInject, EcsFilterInject, EcsPoolInject, EcsSharedInject.
-                if (InjectBuiltIns (f, service, systems)) { continue; }
-                // IEcsCustomDataInject derivatives (EcsCustomInject, etc).
-                if (InjectCustoms (f, service, injects)) { }
-                
-                if (Attribute.IsDefined(f, AutoResolveAttrType))
-                {
-                    InjectToService(f.GetValue(service), systems, injects);
-                }
-            }
-        }
-        
-        static bool InjectBuiltIns (FieldInfo fieldInfo, object service, IEcsSystems systems) {
-            if (typeof (IEcsDataInject).IsAssignableFrom (fieldInfo.FieldType)) {
-                var instance = (IEcsDataInject) fieldInfo.GetValue (service);
-                instance.Fill (systems);
-                fieldInfo.SetValue (service, instance);
-                return true;
-            }
-            return false;
-        }
-
-        static bool InjectCustoms (FieldInfo fieldInfo, object service, object[] injects) {
-            if (typeof (IEcsCustomDataInject).IsAssignableFrom (fieldInfo.FieldType)) {
-                var instance = (IEcsCustomDataInject) fieldInfo.GetValue (service);
-                instance.Fill (injects);
-                fieldInfo.SetValue (service, instance);
-                return true;
-            }
-            return false;
-        }
-        
-
+        return false;
     }
+
+    static bool InjectCustoms (FieldInfo fieldInfo, object service, object[] injects) {
+        if (typeof (IEcsCustomDataInject).IsAssignableFrom (fieldInfo.FieldType)) {
+            var instance = (IEcsCustomDataInject) fieldInfo.GetValue (service);
+            instance.Fill (injects);
+            fieldInfo.SetValue (service, instance);
+            return true;
+        }
+        return false;
+    }
+    
+
+}
 }
 //     [AttributeUsage(AttributeTargets.Class)]
 //     public sealed class AutoInjectAttribute : Attribute
@@ -575,3 +574,4 @@ namespace td.utils.di
 //         }
 //     }
 // }
+*/

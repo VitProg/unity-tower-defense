@@ -1,10 +1,10 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using td.features.eventBus.types;
 
 namespace td.features.level.bus
 {
     [Serializable]
-    public struct Event_LevelLoaded : IEventUnique
+    public struct Event_LevelLoaded : IUniqueEvent
     {
         
     }

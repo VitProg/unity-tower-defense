@@ -1,58 +1,49 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using td.features._common;
-using td.features._common.components;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features.enemy;
 using td.features.level;
+using td.features.movement;
 using td.features.projectile;
 using td.features.shard;
-using td.features.shard.flags;
 using td.features.state;
-using td.features.tower.components;
 using td.utils;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 namespace td.features.tower.systems
 {
-    public class ShardTowerFireSystem : IEcsRunSystem, IEcsInitSystem
+    public class ShardTowerFireSystem : IProtoRunSystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<Projectile_Service> projectileService;
-        private readonly EcsInject<ShardCalculator> calc;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsInject<Shard_Service> shardService;
-        private readonly EcsInject<Enemy_Service> enemyService;
-        private readonly EcsInject<ShardsConfig> shardsConfig; // todo
-        private readonly EcsInject<LevelMap> levelMap;
+        [DI] private Tower_Aspect aspect;
+        [DI] private State state;
+        [DI] private Projectile_Service projectileService;
+        [DI] private Shard_Calculator calc;
+        [DI] private Movement_Service movementService;
+        [DI] private Shard_Service shardService;
+        [DI] private Enemy_Service enemyService;
+        [DI] private ShardsConfig shardsConfig; // todo
+        [DI] private LevelMap levelMap;
         
-        private readonly EcsWorldInject world;
-
-        private readonly EcsFilterInject<
-            Inc<Tower, ShardTower, Ref<GameObject>, TowerTarget, ShardTowerWithShard/*??*/>,
-            ExcludeNotAlive
-        > towerEntities = default;
-
-        public void Run(IEcsSystems systems)
+        public void Run()
         {
-            foreach (var towerEntity in towerEntities.Value)
+            foreach (var towerEntity in aspect.itShardTower)
             {
-                ref var tower = ref towerEntities.Pools.Inc1.Get(towerEntity);
-                ref var shardTower = ref towerEntities.Pools.Inc2.Get(towerEntity);
-                ref var targetPackedEntity = ref towerEntities.Pools.Inc4.Get(towerEntity).targetEntity;
-                var shardPackedEntity = towerEntities.Pools.Inc5.Get(towerEntity).shardEntity;
+                ref var tower = ref aspect.towerPool.Get(towerEntity);
+                ref var shardTower = ref aspect.shardTowerPool.Get(towerEntity);
+                ref var targetPackedEntity = ref aspect.towerTargetPool.Get(towerEntity).targetEntity;
+                var shardPackedEntity = aspect.shardTowerWithShardPool.Get(towerEntity).shardEntity;
                 
                 if (!shardPackedEntity.Unpack(out _, out var shardEntity) ||
-                    !targetPackedEntity.Unpack(world.Value, out var targetEnemyEntity)) continue;
+                    !targetPackedEntity.Unpack(out _, out var targetEnemyEntity)) continue;
                     
-                ref var shard = ref shardService.Value.GetShard(shardEntity);
+                ref var shard = ref shardService.GetShard(shardEntity);
                 
-                var towerTransform = common.Value.GetGOTransform(towerEntity);
+                var towerTransform = movementService.GetGOTransform(towerEntity);
                 
-                if (shardTower.fireCountdown > 0) shardTower.fireCountdown -= Time.deltaTime * state.Value.GameSpeed;
+                if (shardTower.fireCountdown > 0) shardTower.fireCountdown -= Time.deltaTime * state.GetGameSpeed();
                 if (shardTower.fireCountdown > Constants.ZeroFloat) continue;
 
-                var targetEnemyTransform = common.Value.GetTransform(targetEnemyEntity)!;
+                var targetEnemyTransform = movementService.GetTransform(targetEnemyEntity);
 
                 var projectilePosition = (Vector2)towerTransform.position + tower.barrel;
                 var projectileTarget = (Vector2)targetEnemyTransform.position;
@@ -63,20 +54,20 @@ namespace td.features.tower.systems
                 var sqrDistance = (toTarget).sqrMagnitude;
 
                 // yellow - увеличивает радиус стрельбы
-                var radius = calc.Value.GetTowerRadius(ref shard);
+                var radius = calc.GetTowerRadius(ref shard);
 
                 if (sqrDistance > radius * radius) continue;
                 
                 // --------------------------------
 
-                var speed = calc.Value.GetProjectileSpeed(ref shard);
+                var speed = calc.GetProjectileSpeed(ref shard);
                 
-                var enemyScale = common.Value.GetTransform(targetEnemyEntity).scale;
+                var enemyScale = movementService.GetTransform(targetEnemyEntity).scale;
                 var scale = Mathf.Max(enemyScale.x, enemyScale.y);
                 
-                if (common.Value.HasMovement(targetEnemyEntity) && !common.Value.IsFreezed(targetEnemyEntity))
+                if (movementService.HasMovement(targetEnemyEntity) && !movementService.IsFreezed(targetEnemyEntity))
                 {
-                    ref var targetMovement = ref common.Value.GetMovement(targetEnemyEntity);
+                    ref var targetMovement = ref movementService.GetMovement(targetEnemyEntity);
                     
                     // Рассчитываем привентивную стрельбу с учетом вектора скорости врага, скорости снаряда и расстояния до цели
                     if (!targetMovement.speedV.IsZero())
@@ -95,7 +86,7 @@ namespace td.features.tower.systems
                     } 
                 }
                 
-                calc.Value.CalculateSpread(ref shard, out var maxSpread, out var distanceFactor);
+                calc.CalculateSpread(ref shard, out var maxSpread, out var distanceFactor);
                 var spread = Random.Range(0f, maxSpread);
                 var spreadFactor = spread * (sqrDistance * distanceFactor);
                 if (spreadFactor > 0.001f)
@@ -109,9 +100,9 @@ namespace td.features.tower.systems
                 sqrGap *= sqrGap;
 
                 // pink - увеличивает скорострельность
-                var fireRate = calc.Value.GetFireRate(ref shard);
+                var fireRate = calc.GetFireRate(ref shard);
 
-                var projectileEntity = projectileService.Value.SpawnProjectile(
+                var projectileEntity = projectileService.SpawnProjectile(
                     "bullet",
                     projectilePosition,
                     projectileTarget,
@@ -122,10 +113,10 @@ namespace td.features.tower.systems
                 );
 
                 // all
-                if (calc.Value.HasBaseDamage(ref shard))
+                if (calc.HasBaseDamage(ref shard))
                 {
-                    ref var damageAtr = ref projectileService.Value.GetDamageAttribute(projectileEntity);
-                    calc.Value.CalculateBaseDamageParams(
+                    ref var damageAtr = ref projectileService.GetDamageAttribute(projectileEntity);
+                    calc.CalculateBaseDamageParams(
                         shard: ref shard,
                         damage: out damageAtr.damage,
                         type: out damageAtr.type
@@ -133,10 +124,10 @@ namespace td.features.tower.systems
                 }
 
                 // red - разрывной. удар по области
-                if (calc.Value.HasExplosive(ref shard))
+                if (calc.HasExplosive(ref shard))
                 {
-                    ref var explosiveAtr = ref projectileService.Value.GetExplosiveAttribute(projectileEntity);
-                    calc.Value.CalculateExplosiveParams(
+                    ref var explosiveAtr = ref projectileService.GetExplosiveAttribute(projectileEntity);
+                    calc.CalculateExplosiveParams(
                         shard: ref shard,
                         damage: out explosiveAtr.damage,
                         diameter: out explosiveAtr.diameter,
@@ -145,10 +136,10 @@ namespace td.features.tower.systems
                 }
 
                 // green - отравляет мобов на время
-                if (calc.Value.HasPoison(ref shard))
+                if (calc.HasPoison(ref shard))
                 {
-                    ref var poisonAtr = ref projectileService.Value.GetPoisonAttribute(projectileEntity);
-                    calc.Value.CalculatePoisonParams(
+                    ref var poisonAtr = ref projectileService.GetPoisonAttribute(projectileEntity);
+                    calc.CalculatePoisonParams(
                         shard: ref shard,
                         damage: out poisonAtr.damage,
                         duration: out poisonAtr.duration
@@ -156,10 +147,10 @@ namespace td.features.tower.systems
                 }
                 
                 // blue - замедляет мобов на время
-                if (calc.Value.HasSlowing(ref shard))
+                if (calc.HasSlowing(ref shard))
                 {
-                    ref var slowingAtr = ref projectileService.Value.GetSlowingAttribute(projectileEntity);
-                    calc.Value.CalculateSlowingParams(
+                    ref var slowingAtr = ref projectileService.GetSlowingAttribute(projectileEntity);
+                    calc.CalculateSlowingParams(
                         shard: ref shard,
                         power: out slowingAtr.speedMultipler,
                         duration: out slowingAtr.duration
@@ -167,10 +158,10 @@ namespace td.features.tower.systems
                 }
 
                 // aquamarine - молния. цепная реакция от моба к мобу
-                if (calc.Value.HasLightning(ref shard))
+                if (calc.HasLightning(ref shard))
                 {
-                    ref var lightningAtr = ref projectileService.Value.GetLightningAttribute(projectileEntity);
-                    calc.Value.CalculateLightningParams(
+                    ref var lightningAtr = ref projectileService.GetLightningAttribute(projectileEntity);
+                    calc.CalculateLightningParams(
                         ref shard, 
                         out lightningAtr.duration,
                         out lightningAtr.damage,
@@ -182,10 +173,10 @@ namespace td.features.tower.systems
                 }
 
                 // violet - шок, кантузия… останавливает цель на короткое время. срабатывает с % вероятности
-                if (calc.Value.HasShocking(ref shard))
+                if (calc.HasShocking(ref shard))
                 {
-                    ref var shockingAtr = ref projectileService.Value.GetShockingAttribute(projectileEntity);
-                    calc.Value.CalculateShockingParams(
+                    ref var shockingAtr = ref projectileService.GetShockingAttribute(projectileEntity);
+                    calc.CalculateShockingParams(
                         shard: ref shard,
                         duration: out shockingAtr.duration,
                         probability: out shockingAtr.probability
@@ -254,11 +245,6 @@ namespace td.features.tower.systems
             
             // Если не смогли рассчитать то просто стреляем до текущего положения врага
             return (enemyPosition, (enemyPosition - towerPosition).magnitude);
-        }
-
-        public void Init(IEcsSystems systems)
-        {
-            
         }
     }
 }

@@ -1,24 +1,25 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.utils.ecs;
 
 namespace td.features.shard.systems
 {
-    public class MB_ShardUpdateAndInit_System : ProtoIntervalableRunSystem, IEcsInitSystem
+    public class ShardUpdateAndInit_MB_System : ProtoIntervalableRunSystem, IProtoInitSystem
     {
-        private readonly EcsInject<Shard_MB_Service> service;
+        [DI] private Shard_MB_Service service;
 
-        public override void IntervalRun(IEcsSystems systems, float dt)
+        public override void IntervalRun(float deltaTime)
         {
-            service.Value.Update(dt);
+            service.Update(deltaTime);
         }
 
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            service.Value.Init();
+            service.Init();
         }
 
-        public MB_ShardUpdateAndInit_System(float interval, float timeShift, Func<float> getDeltaTime) : base(interval, timeShift, getDeltaTime)
+        public ShardUpdateAndInit_MB_System(float interval, float timeShift, Func<float> getDeltaTime) : base(interval, timeShift, getDeltaTime)
         {
         }
     }

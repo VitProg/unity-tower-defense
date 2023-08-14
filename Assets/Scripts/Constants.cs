@@ -19,6 +19,11 @@ namespace td
             public const string FX = "FX";
         }
         
+        public static class EcsPoints
+        {
+            public const string FX = "FX";
+        }
+        
         public static class Enemy
         {
             public const uint DeltaRespawnRect = 10; 
@@ -59,6 +64,10 @@ namespace td
             public const string CanBuild = "CanBuild";
             public const string GridRenderer = "GridRenderer";
             public const string CanvasDragLayer = "CanvasDragLayer";
+            public const string Camera = "Camera";
+            public const string DraggableShard = "DraggableShard";
+            public const string HightlightGrid = "HightlightGrid";
+            public const string MainCanvas = "MainCanvas";
         }
         
         public static class Level
@@ -168,7 +177,7 @@ namespace td
         public static class WeaponEffects
         {
             public const int MaxLightningChainReaction = 20;
-            public const float LightningFindNeighborsTimeRemains = 0.5f;
+            // public const float LightningFindNeighborsTimeRemains = 0.5f;
             public const float ExplosionDiameterTresholdToToakeDamage = 0.1f;
         }
         

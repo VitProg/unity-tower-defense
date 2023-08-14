@@ -1,7 +1,6 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using Leopotam.EcsLite;
+﻿using System.Text.RegularExpressions;
 using NaughtyAttributes;
+using td.features.eventBus;
 using td.features.state;
 using td.utils.di;
 using TMPro;
@@ -9,7 +8,7 @@ using UnityEngine;
 
 namespace td.features.ui
 {
-    public class UI_UpdateService : MonoInjectable
+    public class UI_UpdateService : MonoBehaviour
     {
         [Required] [SerializeField] private TMP_Text livesLabelText;
         [Required] [SerializeField] private TMP_Text moneyLabelText;
@@ -23,37 +22,40 @@ namespace td.features.ui
         private readonly Regex oneNumberRegex = new(@"[\d#.-]+");
         private readonly Regex waveRegex = new(@"(\d+|#+)/(\d+|#+)");
 
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<IEventBus> events;
-        
-        private IDisposable eventDispose;
+        private State State =>  ServiceContainer.Get<State>();
+        private EventBus Events =>  ServiceContainer.Get<EventBus>();
 
         private void Start()
         {
-            eventDispose = events.Value.Unique.SubscribeTo<Event_StateChanged>(OnStateChanged);
+            Events.unique.ListenTo<Event_StateChanged>(OnStateChanged);
         }
-        
-        public void OnStateChanged(ref Event_StateChanged @event)
+
+        private void OnDestroy()
         {
-            if (livesLabelText != null && @event.lives.HasValue)
+            Events.unique.RemoveListener<Event_StateChanged>(OnStateChanged);
+        }
+
+        public void OnStateChanged(ref Event_StateChanged ev)
+        {
+            if (livesLabelText != null && ev.lives)
             {
-                livesLabelText.text = oneNumberRegex.Replace(livesLabelText.text, IntegerFormat(state.Value.Lives));
+                livesLabelText.text = oneNumberRegex.Replace(livesLabelText.text, IntegerFormat(State.GetLives()));
             }
 
             //
-            if (moneyLabelText != null && @event.energy.HasValue)
+            if (moneyLabelText != null && ev.energy)
             {
-                moneyLabelText.text = Constants.UI.CurrencySign + IntegerFormat(state.Value.Energy);
+                moneyLabelText.text = Constants.UI.CurrencySign + IntegerFormat(State.GetEnergy());
             }
 
             //
-            if (waveLabelText != null && (@event.waveNumber.HasValue || @event.waveCount.HasValue))
+            if (waveLabelText != null && (ev.waveNumber || ev.waveCount))
             {
-                if (state.Value.WaveNumber != 0 && state.Value.WaveCount != 0)
+                if (State.GetWaveNumber() != 0 && State.GetWaveCount() != 0)
                 {
                     waveLabel.SetActive(true);
                     waveLabelText.text =
-                        waveRegex.Replace(waveLabelText.text, $@"{state.Value.WaveNumber}/{state.Value.WaveCount}");
+                        waveRegex.Replace(waveLabelText.text, $@"{State.GetWaveNumber()}/{State.GetWaveCount()}");
                 }
                 else
                 {
@@ -61,12 +63,12 @@ namespace td.features.ui
                 }
             }
 
-            if (newWaveTimer != null && @event.nextWaveCountdown.HasValue)
+            if (newWaveTimer != null && ev.nextWaveCountdown)
             {
-                if (state.Value.NextWaveCountdown > 0)
+                if (State.GetNextWaveCountdown() > 0)
                 {
                     newWaveTimerContainer.SetActive(true);
-                    var text = $"{state.Value.NextWaveCountdown:0.00}";
+                    var text = $"{State.GetNextWaveCountdown():0.00}";
                     var l = text.Contains('.')
                         ? text.Split('.')
                         : text.Split(',');
@@ -78,10 +80,10 @@ namespace td.features.ui
                 }
             }
 
-            if (enemiesLabelText != null && @event.enemiesCount.HasValue)
+            if (enemiesLabelText != null && ev.enemiesCount)
             {
                 enemiesLabelText.text =
-                    oneNumberRegex.Replace(enemiesLabelText.text, IntegerFormat(state.Value.EnemiesCount));
+                    oneNumberRegex.Replace(enemiesLabelText.text, IntegerFormat(State.GetEnemiesCount()));
             }
         }
         

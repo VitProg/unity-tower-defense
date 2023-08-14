@@ -1,32 +1,30 @@
-﻿using td.features._common;
-using td.features._common.bus;
-using td.features.goPool;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.destroy.bus;
+using td.features.eventBus;
 
 namespace td.features.destroy.systems
 {
-    public class RemoveSystem : IEcsInitSystem, IEcsDestroySystem
+    public class RemoveSystem : IProtoInitSystem, IProtoDestroySystem
     {
-        private readonly EcsInject<GOPool_Service> poolServise;
-        private readonly EcsInject<Common_Pools> commonPools;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsWorldInject world;
-        private readonly EcsInject<IEventBus> events;
+        [DI] private Destroy_Service destroyService;
+        [DI] private EventBus events;
 
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Entity.ListenTo<Command_Remove>(OnRemoveCommand);
+            events.global.ListenTo<Command_Remove>(OnRemoveCommand);
         }
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Entity.RemoveListener<Command_Remove>(OnRemoveCommand);
+            events.global.RemoveListener<Command_Remove>(OnRemoveCommand);
         }
 
         // --------------------------------------------------------- //
         
-        private void OnRemoveCommand(EcsPackedEntityWithWorld packedEntity, ref Command_Remove _)
+        private void OnRemoveCommand(ref Command_Remove ev)
         {
-            common.Value.Remove(packedEntity);
+            destroyService.SafeRemove(ev.Entity);
         }
     }
 }

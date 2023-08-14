@@ -1,22 +1,28 @@
-﻿using Leopotam.EcsLite;
-using td.features._common;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.destroy;
 using td.features.ecsConverter;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.projectile.explosion
 {
     public class Explosion_Converter : BaseEntity_Converter
     {
-        private readonly EcsInject<Projectile_Service> projectileService;
-        private readonly EcsInject<Common_Service> common;
-        
+        [DI] private Projectile_Aspect projectileAspect;
+        [DI] private Explosion_Aspect explosionAspect;
+        [DI] private Destroy_Service destroyService;
+
+        public override ProtoWorld World() => projectileAspect.World();
+
         public new void Convert(GameObject gameObject, int entity)
         {
             base.Convert(gameObject, entity);
-            
-            projectileService.Value.GetExplosion(entity);
-            projectileService.Value.GetExplosiveAttribute(entity);
-            common.Value.SetIsOnlyOnLevel(entity, true);
+
+            projectileAspect.explosiveAttributePool.GetOrAdd(entity);
+            explosionAspect.explosionPool.GetOrAdd(entity);
+            explosionAspect.refExplosionMBPool.GetOrAdd(entity).reference = gameObject.GetComponent<ExplosionMonoBehaviour>();
+            destroyService.SetIsOnlyOnLevel(entity, true);
         }
     }
 }

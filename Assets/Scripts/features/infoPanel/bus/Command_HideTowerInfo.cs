@@ -1,9 +1,10 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto.QoL;
+using td.features.eventBus.types;
 
 namespace td.features.infoPanel.bus
 {
-    public struct Command_HideTowerInfo : IEventGlobal
+    public struct Command_HideTowerInfo : IGlobalEvent
     {
-        public EcsPackedEntityWithWorld towerEntity;
+        public ProtoPackedEntityWithWorld towerEntity;
     }
 }

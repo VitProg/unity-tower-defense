@@ -19,6 +19,10 @@ TagManager:
   - GridRenderer
   - Debug
   - CanvasDragLayer
+  - Camera
+  - DraggableShard
+  - HightlightGrid
+  - MainCanvas
   layers:
   - Default
   - TransparentFX

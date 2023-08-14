@@ -1,5 +1,4 @@
 ﻿using System;
-using Leopotam.EcsLite;
 
 namespace td.features.tower.components
 {
@@ -7,6 +6,5 @@ namespace td.features.tower.components
     public struct ShardTower
     {
         public float fireCountdown;
-        // public EcsPackedEntity shardPackedEntity;
     }
 }

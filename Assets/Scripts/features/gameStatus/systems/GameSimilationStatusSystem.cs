@@ -1,47 +1,51 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
+using td.features.eventBus;
 using td.features.gameStatus.bus;
 using td.features.state;
 
 namespace td.features.gameStatus.systems
 {
-    public class GameSimilationStatusSystem : IEcsRunSystem, IEcsDestroySystem
+    public class GameSimilationStatusSystem : IProtoInitSystem, IProtoDestroySystem
     {
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsInject<IState> state;
+        [DI] private EventBus events;
+        // [DI] private Common_Service common;
+        [DI] private State state;
         
-        public void Run(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Unique.ListenTo<Command_StartGame>(OnGameStarted);
-            events.Value.Unique.ListenTo<Command_StopGameSimulation>(StopGameSimulation);
-            events.Value.Unique.ListenTo<Command_ResumeGameSimulation>(ResumeGameSimulation);
+            events.unique.ListenTo<Command_StartGame>(OnGameStarted);
+            events.unique.ListenTo<Command_StopGameSimulation>(StopGameSimulation);
+            events.unique.ListenTo<Command_ResumeGameSimulation>(ResumeGameSimulation);
         }
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Unique.RemoveListener<Command_StartGame>(OnGameStarted);
-            events.Value.Unique.RemoveListener<Command_StopGameSimulation>(StopGameSimulation);
-            events.Value.Unique.RemoveListener<Command_ResumeGameSimulation>(ResumeGameSimulation);
+            events.unique.RemoveListener<Command_StartGame>(OnGameStarted);
+            events.unique.RemoveListener<Command_StopGameSimulation>(StopGameSimulation);
+            events.unique.RemoveListener<Command_ResumeGameSimulation>(ResumeGameSimulation);
         }
         
         // ---------------------------------------------------------------- //
         
-
         private void ResumeGameSimulation(ref Command_ResumeGameSimulation _)
         {
-            common.Value.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, true);
+            state.SetGameSimulationEnabled(true);
+            // common.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, true);
         }
 
         private void StopGameSimulation(ref Command_StopGameSimulation _)
         {
-            common.Value.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, false);
+            state.SetGameSimulationEnabled(false);
+            // common.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, false);
         }
 
         private void OnGameStarted(ref Command_StartGame item)
         {
-            common.Value.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, true);
-            state.Value.GameSpeed = 1f;
+            state.SetGameSimulationEnabled(true);
+            // common.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, true);
+            state.SetGameSpeed(1f);
         }
     }
 }

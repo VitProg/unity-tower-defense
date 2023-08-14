@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using Leopotam.EcsLite;
-using td.features._common;
+using Leopotam.EcsProto.QoL;
+using td.features.camera;
+using td.features.prefab;
 using td.features.window.common;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -11,14 +12,14 @@ using Object = UnityEngine.Object;
 namespace td.features.window
 {
     // ReSharper disable once ClassNeverInstantiated.Global
-    public class Windows_Service
+    public class Window_Service
     {
-        private readonly EcsInject<Prefab_Service> prefabService;
-        private readonly EcsInject<SharedData> sharedData;
+        [DI] private Prefab_Service prefabService;
+        [DI] private Camera_Service cameraService;
         
-        private Dictionary<Type, GameObject> cache = new();
+        private readonly Dictionary<Type, GameObject> cache = new();
 
-        private Stack<Type> stack = new();
+        private readonly Stack<Type> stack = new();
 
         public GameObject Get(Type type) => GetWindow(type);
         
@@ -152,14 +153,14 @@ namespace td.features.window
         {
             return type switch
             {
-                Type.MainMenu => prefabService.Value.GetPrefab(PrefabCategory.Windows, "MainMenu"),
-                Type.PauseMenu => prefabService.Value.GetPrefab(PrefabCategory.Windows, "PauseMenu"),
-                Type.VictoryPopup => prefabService.Value.GetPrefab(PrefabCategory.Windows, "VictoryPopup"),
-                Type.FailPopup => prefabService.Value.GetPrefab(PrefabCategory.Windows, "FailPopup"),
-                Type.ChoiseLevelMenu => prefabService.Value.GetPrefab(PrefabCategory.Windows, "ChoiseLevelMenu"),
-                Type.SettingsMenu => prefabService.Value.GetPrefab(PrefabCategory.Windows, "SettingsMenu"),
-                Type.ProfilePopup => prefabService.Value.GetPrefab(PrefabCategory.Windows, "ProfilePopup"),
-                Type.GameExitConfirm => prefabService.Value.GetPrefab(PrefabCategory.Windows, "GameExitConfirm"),
+                Type.MainMenu => prefabService.GetPrefab(PrefabCategory.Windows, "MainMenu"),
+                Type.PauseMenu => prefabService.GetPrefab(PrefabCategory.Windows, "PauseMenu"),
+                Type.VictoryPopup => prefabService.GetPrefab(PrefabCategory.Windows, "VictoryPopup"),
+                Type.FailPopup => prefabService.GetPrefab(PrefabCategory.Windows, "FailPopup"),
+                Type.ChoiseLevelMenu => prefabService.GetPrefab(PrefabCategory.Windows, "ChoiseLevelMenu"),
+                Type.SettingsMenu => prefabService.GetPrefab(PrefabCategory.Windows, "SettingsMenu"),
+                Type.ProfilePopup => prefabService.GetPrefab(PrefabCategory.Windows, "ProfilePopup"),
+                Type.GameExitConfirm => prefabService.GetPrefab(PrefabCategory.Windows, "GameExitConfirm"),
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
             };
         }
@@ -178,7 +179,7 @@ namespace td.features.window
 
             if (menuPrefab == null) return null;
             
-            var menuGO = Object.Instantiate(menuPrefab, sharedData.Value.canvas.transform);
+            var menuGO = Object.Instantiate(menuPrefab, cameraService.GetCanvas().transform);
             menuGO.SetActive(false);
             
             cache.Add(type, menuGO);

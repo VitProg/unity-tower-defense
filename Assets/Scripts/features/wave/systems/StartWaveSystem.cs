@@ -1,32 +1,34 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.eventBus;
 using td.features.level;
 using td.features.state;
 using td.features.wave.bus;
 
 namespace td.features.wave.systems
 {
-    public class StartWaveSystem : IEcsInitSystem, IEcsDestroySystem
+    public class StartWaveSystem : IProtoInitSystem, IProtoDestroySystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<LevelMap> levelMap;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<Wave_Service> waveService;
+        [DI] private State state;
+        [DI] private LevelMap levelMap;
+        [DI] private EventBus events;
+        [DI] private Wave_Service waveService;
 
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Unique.ListenTo<Command_Wave_Start>(StartWave);
+            events.unique.ListenTo<Command_Wave_Start>(StartWave);
         }
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Unique.RemoveListener<Command_Wave_Start>(StartWave);
+            events.unique.RemoveListener<Command_Wave_Start>(StartWave);
         }
         
         //------------------------------------------//
 
         private void StartWave(ref Command_Wave_Start command)
         {
-            waveService.Value.StartWave(command.waveNumber);
+            waveService.StartWave(command.waveNumber);
         }
     }
 }

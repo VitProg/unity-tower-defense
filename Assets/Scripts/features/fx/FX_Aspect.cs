@@ -1,35 +1,66 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using td.features._common;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common.components;
+using td.features.destroy.flags;
+using td.features.fx.effects;
 using td.features.fx.flags;
 using td.features.fx.types;
 using UnityEngine;
 
 namespace td.features.fx
 {
-    public class FX_Pools
+    public class FX_Aspect : ProtoAspectInject
     {
-        public readonly EcsPoolInject<IsPositionFX> isPositionPool = Constants.Worlds.FX;
-        public readonly EcsPoolInject<IsScreenFX> isScreenPool = Constants.Worlds.FX;
-        public readonly EcsPoolInject<IsEntityFallowFX> isEntityFallowPool = Constants.Worlds.FX;
-        public readonly EcsPoolInject<IsEntityModifierFX> isEntityModifierPool = Constants.Worlds.FX;
+        public ProtoPool<IsPositionFX> isPositionPool;
+        public ProtoPool<IsScreenFX> isScreenPool;
+        public ProtoPool<IsEntityFallowFX> isEntityFallowPool;
+        public ProtoPool<IsEntityModifierFX> isEntityModifierPool;
         
-        public readonly EcsPoolInject<WithDurationFX> withDurationPool = Constants.Worlds.FX;
-        public readonly EcsPoolInject<WithTargetEntityFX> withTargetEntityPool = Constants.Worlds.FX;
-        public readonly EcsPoolInject<WithTransformFX> withTransformPool = Constants.Worlds.FX;
-        
-        public readonly EcsPoolInject<NeedRemoveFX> needRemovePool = Constants.Worlds.FX; 
-        
-        public readonly EcsPoolInject<Ref<GameObject>> refGOPoolFX = Constants.Worlds.FX;
+        public ProtoPool<WithDurationFX> withDurationPool;
+        public ProtoPool<WithTargetEntityFX> withTargetEntityPool;
+        public ProtoPool<WithTransformFX> withTransformPool;
 
-        internal readonly EcsFilterInject<Inc<IsEntityModifierFX, WithTargetEntityFX, WithDurationFX>, ExcludeNotAlive> entityModifierFilter = Constants.Worlds.FX;
-        internal readonly EcsFilterInject<Inc<IsEntityFallowFX, WithTargetEntityFX, WithDurationFX, WithTransformFX>, ExcludeNotAlive> entityFallowFilter = Constants.Worlds.FX;
-        internal readonly EcsFilterInject<Inc<IsPositionFX, WithTransformFX, WithDurationFX>, ExcludeNotAlive> positionFilter = Constants.Worlds.FX;
-        internal readonly EcsFilterInject<Inc<IsScreenFX, WithTransformFX, WithDurationFX>, ExcludeNotAlive> screenFilter = Constants.Worlds.FX;
+        public ProtoPool<BlinkFX> blinkFXPool;
+        public ProtoPool<ColdStatusFX> coldStatusFXPool;
+        public ProtoPool<ElectroStatusFX> electroStatusFXPool;
+        public ProtoPool<FireStatusFX> fireStatusFXPool;
+        public ProtoPool<PoisonStatusFX> poisonStatusFXPool;
+        public ProtoPool<HitFX> hitFXPool;
         
-        internal readonly EcsFilterInject<Inc<WithTransformFX>, ExcludeNotAlive> withTransformFilter = Constants.Worlds.FX;
-        internal readonly EcsFilterInject<Inc<WithTargetEntityFX>, ExcludeNotAlive> withTargetEntityFilter = Constants.Worlds.FX;
-        internal readonly EcsFilterInject<Inc<WithDurationFX>, ExcludeNotAlive> withDurationFilter = Constants.Worlds.FX;
+        public ProtoPool<IsDestroyed> isDestroyedPool;
+        public ProtoPool<IsDisabled> isDisabledPool;
+        
+        public ProtoPool<NeedRemoveFX> needRemovePool;
+        public ProtoPool<Ref<GameObject>> refGOPool;
+
+        public ProtoItExc itEntityModifier = new(
+            It.Inc<IsEntityModifierFX, WithTargetEntityFX, WithDurationFX>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
+
+        public ProtoItExc itEentityFallow = new(
+            It.Inc<IsEntityFallowFX, WithTargetEntityFX, WithDurationFX, WithTransformFX>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
+
+        public ProtoItExc itPosition = new(
+            It.Inc<IsPositionFX, WithTransformFX, WithDurationFX>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
+
+        public ProtoItExc itScreen = new(
+            It.Inc<IsScreenFX, WithTransformFX, WithDurationFX>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
+
+        public ProtoItExc itWithDuration = new(
+            It.Inc<WithDurationFX>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
+        
+        public ProtoItExc itNeedRemove = new(
+            It.Inc<NeedRemoveFX>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
     }
 }

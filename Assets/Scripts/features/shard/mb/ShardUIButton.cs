@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using Leopotam.EcsLite;
-// using NaughtyAttributes;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
 using td.features.shard.components;
 using td.features.state;
-using td.utils.di;
 using TMPro;
 using UnityEditor;
 using UnityEditor.UI;
@@ -33,8 +31,6 @@ namespace td.features.shard.mb
         public UnityEvent<Vector2> onDragMove { get => m_onDragMove; set => m_onDragMove = value; }
         public UnityEvent<Vector2> onDragFinish { get => m_onDragFinish; set => m_onDragFinish = value; }
 
-        private readonly EcsInject<IState> state;
-
         public Image plus;
         public TMP_Text costText;
 
@@ -46,16 +42,6 @@ namespace td.features.shard.mb
         public ShardConrol shardConrol;
         
         public bool canDrag;
-        
-        protected override void Awake()
-        {
-            base.Awake();
-            var container = ServiceContainer.GetCurrentContainer();
-            if (container != null && container.TryGet<IEcsSystems>(out var systems))
-            {
-                systems.ResolveMonoBehaviour(this, container);
-            }
-        }
 
         protected override void OnDestroy()
         {

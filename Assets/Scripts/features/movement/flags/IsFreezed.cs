@@ -1,6 +1,6 @@
 ﻿namespace td.features.movement.flags
 {
-    public struct IsFreezed : IFlagComponent
+    public struct IsFreezed
     {
         
     }

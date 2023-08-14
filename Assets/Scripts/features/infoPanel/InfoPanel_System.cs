@@ -1,4 +1,6 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.eventBus;
 using td.features.infoPanel.bus;
 using td.features.shard;
 using td.features.state;
@@ -6,48 +8,48 @@ using td.features.tower;
 
 namespace td.features.infoPanel
 {
-    public class InfoPanel_System : IEcsInitSystem, IEcsDestroySystem
+    public class InfoPanel_System : IProtoInitSystem, IProtoDestroySystem
     {
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<Tower_Service> towerService;
-        private readonly EcsInject<Shard_Service> shardService;
-        private readonly EcsWorld world;
+        [DI] private EventBus events;
+        [DI] private State state;
+        [DI] private Tower_Service towerService;
+        [DI] private Shard_Service shardService;
         
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Global.ListenTo<Command_ShowTowerInfo>(ShowTowerInfo);
-            events.Value.Global.ListenTo<Command_HideTowerInfo>(HideTowerInfo);
+            events.global.ListenTo<Command_ShowTowerInfo>(ShowTowerInfo);
+            events.global.ListenTo<Command_HideTowerInfo>(HideTowerInfo);
         }
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Global.RemoveListener<Command_ShowTowerInfo>(ShowTowerInfo);
-            events.Value.Global.RemoveListener<Command_HideTowerInfo>(HideTowerInfo);
+            events.global.RemoveListener<Command_ShowTowerInfo>(ShowTowerInfo);
+            events.global.RemoveListener<Command_HideTowerInfo>(HideTowerInfo);
         }
         
         // ----------------------------------------------------------------
 
         private void ShowTowerInfo(ref Command_ShowTowerInfo item)
         {
-            if (!shardService.Value.HasShardInTower(item.towerEntity, out var shardEntity)) return;
+            if (!shardService.HasShardInTower(item.towerEntity, out var shardEntity)) return;
 
-            ref var shard = ref shardService.Value.GetShard(shardEntity);
-            
-            state.Value.InfoPanel.Clear();
-            state.Value.InfoPanel.Shard = shard;
-            state.Value.InfoPanel.Title = "Tower";
+            var infoPanel = state.Ex<InfoPanel_StateExtension>();
+            infoPanel.Clear();
+            infoPanel.SetShard(ref shardService.GetShard(shardEntity));
+            infoPanel.SetTitle("Tower");
+            infoPanel.SetVisible(true);
         }
 
         private void HideTowerInfo(ref Command_HideTowerInfo item)
         {
-            if (!shardService.Value.HasShardInTower(item.towerEntity, out var shardEntity)) return;
+            if (!shardService.HasShardInTower(item.towerEntity, out var shardEntity)) return;
             
-            ref var shard = ref shardService.Value.GetShard(shardEntity);
+            ref var shard = ref shardService.GetShard(shardEntity);
 
-            if (state.Value.InfoPanel.Shard.HasValue && state.Value.InfoPanel.Shard.Value._id_ == shard._id_)
+            var infoPanel = state.Ex<InfoPanel_StateExtension>();
+            if (infoPanel.HasShard() && infoPanel.GetShard()._id_ == shard._id_)
             {
-                state.Value.InfoPanel.Clear();
+                infoPanel.Clear();
             }
         }
          

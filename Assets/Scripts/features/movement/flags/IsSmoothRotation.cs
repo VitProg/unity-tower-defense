@@ -1,10 +1,11 @@
 ﻿using System;
+using Leopotam.EcsProto;
 using UnityEngine;
 
 namespace td.features.movement.flags
 {
     [Serializable]
-    public struct IsSmoothRotation: IFlagComponent, IEcsAutoReset<IsSmoothRotation>
+    public struct IsSmoothRotation: IProtoAutoReset<IsSmoothRotation>
     {
         public Quaternion from;
         public Quaternion to;

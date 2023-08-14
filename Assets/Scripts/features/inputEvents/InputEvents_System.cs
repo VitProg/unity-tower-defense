@@ -1,20 +1,22 @@
-﻿using Leopotam.EcsLite;
-using td.features._common;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.camera;
+using td.features.movement;
 using td.utils;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace td.features.inputEvents
 {
-    public class InputEvents_System : IEcsRunSystem
+    public class InputEvents_System : IProtoRunSystem
     {
-        private readonly EcsInject<InputEvents_Pools> pools;
-        private readonly EcsInject<InputEvents_Service> peService;
-        private readonly EcsInject<SharedData> shared;
+        [DI] private InputEvents_Aspect aspect;
+        [DI] private InputEvents_Service peService;
+        [DI] private Movement_Service movementService;
+        [DI] private Camera_Service cameraService;
 
-        public void Run(IEcsSystems systems)
+        public void Run()
         {
-            var pointerPosition = (Vector2)CameraUtils.ToWorldPoint(shared.Value.mainCamera, Input.mousePosition);
+            var pointerPosition = (Vector2)CameraUtils.ToWorldPoint(cameraService.GetMainCamera(), Input.mousePosition);
             
             var mouseButtonLeft = Input.GetMouseButton(0);
             var mouseButtonLeftDown = Input.GetMouseButtonDown(0);
@@ -27,13 +29,13 @@ namespace td.features.inputEvents
             var hasTouch = touch.HasValue;
             var touchDown = touch is { phase: TouchPhase.Began };
             var touchUp = touch is { phase: TouchPhase.Ended };
-            Vector2? touchPosition = touch.HasValue ? (Vector2)CameraUtils.ToWorldPoint(shared.Value.mainCamera, touch.Value.position) : null;
+            Vector2? touchPosition = touch.HasValue ? (Vector2)CameraUtils.ToWorldPoint(cameraService.GetMainCamera(), touch.Value.position) : null;
 
-            foreach (var entity in pools.Value.filter.Value)
+            foreach (var entity in aspect.it)
             {
-                var position = pools.Value.filter.Pools.Inc1.Get(entity).position;
-                var size = pools.Value.filter.Pools.Inc2.Get(entity);
-                var handlers = pools.Value.filter.Pools.Inc3.Get(entity).references;
+                var position = movementService.GetTransform(entity).position;
+                var size = aspect.cicleColliderPool.Get(entity);
+                var handlers = aspect.refPointerHandlersPool.Get(entity).references;
 
                 foreach (var handler in handlers)
                 {

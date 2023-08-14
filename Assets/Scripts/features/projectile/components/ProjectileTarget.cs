@@ -1,5 +1,5 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 
 namespace td.features.projectile.components
 {
@@ -7,6 +7,6 @@ namespace td.features.projectile.components
     [Serializable]
     public struct ProjectileTarget
     {
-        public EcsPackedEntity targetEntity;
+        public ProtoPackedEntityWithWorld targetEntity;
     }
 }

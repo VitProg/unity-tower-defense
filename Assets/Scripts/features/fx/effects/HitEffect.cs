@@ -1,20 +1,19 @@
 ﻿using System;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using NaughtyAttributes;
 using td.features._common;
+using td.features.eventBus;
 using td.features.fx.events;
 using td.features.fx.types;
 using td.features.goPool;
+using td.features.prefab;
 using td.features.spriteAnimator;
 using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
 using UnityEngine.Pool;
-using UnityEngine.Serialization;
-using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 namespace td.features.fx.effects
 {
@@ -52,28 +51,25 @@ namespace td.features.fx.effects
         }
     }
 
-    public class HitFX_System : IEcsInitSystem, IEcsDestroySystem
+    public class HitFX_System : IProtoInitSystem, IProtoDestroySystem
     {
-        private readonly EcsInject<FX_Pools> pools;
-        private readonly EcsInject<FX_Service> fxService;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<Prefab_Service> prefabService;
-        private readonly EcsInject<GameObjectPool_Service> goPoolService;
-        
-        private readonly EcsPoolInject<HitFX> pool = Constants.Worlds.FX;
-        
-        private readonly EcsWorldInject fxWorld = Constants.Worlds.FX;
+        [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
+        [DI] private FX_Service fxService;
+        [DI] private EventBus events;
+        [DI] private Prefab_Service prefabService;
+        [DI] private GOPool_Service goPoolService;
         
         private GameObject prefab;
         private ObjectPool<PoolableObject> goPool;
         
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Entity.ListenTo<FX_Event_EnemyFallow_Spawned<HitFX>>(OnSpawned);
-            prefab = prefabService.Value.GetPrefab(PrefabCategory.FX, "HitFX");
-            goPool = goPoolService.Value.GetPool(
+            events.global.ListenTo<FX_Event_EnemyFallow_Spawned<HitFX>>(OnSpawned);
+            
+            prefab = prefabService.GetPrefab(PrefabCategory.FX, "HitFX");
+            goPool = goPoolService.GetPool(
                 prefab,
-                fxService.Value.fxContainer.transform,
+                fxService.fxContainer.transform,
                 10,
                 100,
                 null,
@@ -89,32 +85,34 @@ namespace td.features.fx.effects
         }
         
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Entity.RemoveListener<FX_Event_EnemyFallow_Spawned<HitFX>>(OnSpawned);
+            events.global.RemoveListener<FX_Event_EnemyFallow_Spawned<HitFX>>(OnSpawned);
         }
 
         // -----------------------------------------------------
 
-        private void OnSpawned(EcsPackedEntityWithWorld fxPackedEntity, ref FX_Event_EnemyFallow_Spawned<HitFX> @event)
+        private void OnSpawned(ref FX_Event_EnemyFallow_Spawned<HitFX> data)
         {
-            Debug.Log("HitFX OnSpawned");
+            if (!data.Entity.Unpack(out var w, out var fxEntity) || w != aspect.World()) return;
             
-            if (!fxPackedEntity.Unpack(out var w, out var fxEntity) || w != fxWorld.Value) return;
+            var pool = (ProtoPool<HitFX>)aspect.World().Pool(typeof(HitFX));
             
-            // todo
-
-            ref var fx = ref pool.Value.Get(fxEntity);
-            ref var transform = ref pools.Value.withTransformPool.Value.Get(fxEntity);
+            ref var fx = ref pool.Get(fxEntity);
+            ref var transform = ref aspect.withTransformPool.Get(fxEntity);
             
             var go = goPool.Get().gameObject;
-            fxService.Value.PrepareGO(go, fxEntity);
+            fxService.PrepareGO(go, fxEntity);
             
             var fxmb = go.transform.GetComponent<HitEffect>();
             if (!fxmb || !fxmb.animator || !fxmb.spriteRenderer) throw new Exception("FX dasn't valid!");
 
             fxmb.Color = fx.Color;
-            fxmb.animator.OnFinish.AddListener(delegate { fxService.Value.EntityFallow.Remove<HitFX>(fxEntity); });
+            fxmb.animator.OnFinish.AddListener(delegate
+            {
+                fxService.entityFallow.Remove<HitFX>(fxEntity);
+                fxmb.animator.OnFinish.RemoveAllListeners();
+            });
 
             transform.rotation = RandomUtils.Rotation();
             transform.scale *= RandomUtils.Range(0.5f, 1.0f);
@@ -124,7 +122,7 @@ namespace td.features.fx.effects
             fxmb.animator.speed *= RandomUtils.Range(0.85f, 1.5f);
             fxmb.animator.Play();
             
-            pools.Value.refGOPoolFX.Value.SafeAdd(fxEntity).reference = go;
+            aspect.refGOPool.GetOrAdd(fxEntity).reference = go;
         }
     }
 }

@@ -1,7 +1,8 @@
 using System.Threading.Tasks;
-using Leopotam.EcsLite;
+using JetBrains.Annotations;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
-using td.features._common.bus;
+using td.features.eventBus;
 using td.features.gameStatus.bus;
 using td.features.level.bus;
 using td.features.window.common;
@@ -13,7 +14,7 @@ namespace td.features.window
 {
     [RequireComponent(typeof(FadeInOut))]
     [RequireComponent(typeof(UIWindowScreen))]
-    public class UIMainMenuScreen : MonoInjectable
+    public class UIMainMenuScreen : MonoBehaviour
     {
         [SerializeField] private Button startGameButton;
         [SerializeField] private Button choiseLevelButton;
@@ -21,40 +22,38 @@ namespace td.features.window
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button profileButton;
 
-        private readonly EcsInject<Windows_Service> windowsService;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<Common_Service> common;
+        private Window_Service WindowsService =>  ServiceContainer.Get<Window_Service>();
+        private EventBus Events => ServiceContainer.Get<EventBus>();
 
-        private new void Awake()
+        private void Start()
         {
-            base.Awake();
             startGameButton.onClick.AddListener(OnStartGameClicked); 
             choiseLevelButton.onClick.AddListener(OnChoiseLevelClicked); 
             exitButton.onClick.AddListener(OnExitClicked); 
             settingsButton.onClick.AddListener(OnSettingsClicked); 
             profileButton.onClick.AddListener(OnProfileClicked);
-#if TD_AUTO_START_LEVEL
-            OnStartGameClicked();
-#endif
+// #if TD_AUTO_START_LEVEL
+//             OnStartGameClicked();
+// #endif
         }
 
         private async void OnStartGameClicked()
         {
             Debug.Log("OnStartGameClicked");
 
-            events.Value.Unique.Add<Command_StopGameSimulation>();
-            events.Value.Unique.Add<Command_LoadLevel>().levelNumber = 1;
+            Events.unique.GetOrAdd<Command_StopGameSimulation>();
+            Events.unique.GetOrAdd<Command_LoadLevel>();//.levelNumber = 1;
             
             await Task.Yield();
             await Task.Delay(500);
 
             await Task.Yield();
-            await windowsService.Value.CloseAll();
+            await WindowsService.CloseAll();
             
             await Task.Yield();
             await Task.Delay(300);
             
-            events.Value.Unique.Add<Command_StartGame>();
+            Events.unique.GetOrAdd<Command_StartGame>();
         }
 
         private async void OnChoiseLevelClicked()
@@ -62,7 +61,7 @@ namespace td.features.window
             // todo
             Debug.Log("OnChoiseLevelClicked");
 
-            await windowsService.Value.Open(Windows_Service.Type.ChoiseLevelMenu);
+            await WindowsService.Open(Window_Service.Type.ChoiseLevelMenu);
         }
 
         private async void OnExitClicked()
@@ -70,7 +69,7 @@ namespace td.features.window
             // todo
             Debug.Log("OnExitClicked");
 
-            var result = await windowsService.Value.Open(Windows_Service.Type.GameExitConfirm);
+            var result = await WindowsService.Open(Window_Service.Type.GameExitConfirm);
 
             if (result)
             {
@@ -84,7 +83,7 @@ namespace td.features.window
             // todo
             Debug.Log("OnSettingsClicked");
 
-            await windowsService.Value.Open(Windows_Service.Type.SettingsMenu);
+            await WindowsService.Open(Window_Service.Type.SettingsMenu);
         }
 
         private async void OnProfileClicked()
@@ -92,7 +91,7 @@ namespace td.features.window
             // todo
             Debug.Log("OnProfileClicked");
 
-            await windowsService.Value.Open(Windows_Service.Type.ProfilePopup);
+            await WindowsService.Open(Window_Service.Type.ProfilePopup);
         }
 
         private void OnDestroy()

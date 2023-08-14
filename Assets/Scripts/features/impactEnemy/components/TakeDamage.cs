@@ -1,14 +1,14 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
+using td.features.eventBus.types;
 
 namespace td.features.impactEnemy.components
 {
     [Serializable]
-    public struct TakeDamage : IEventEntity
+    public struct TakeDamage : IGlobalEvent
     {
-        public EcsPackedEntityWithWorld Entity { get; set; }
-        // public EcsPackedEntity targetEntity { get; set; }
+        public ProtoPackedEntityWithWorld entity;
         public float damage;
         public DamageType type;
     }

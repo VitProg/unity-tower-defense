@@ -1,12 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Leopotam.EcsProto.QoL;
 using NaughtyAttributes;
 using td.features._common;
+using td.features.camera;
+using td.features.costPopup;
+using td.features.eventBus;
 using td.features.gameStatus.bus;
+using td.features.infoPanel;
 using td.features.level;
 using td.features.level.bus;
 using td.features.shard.components;
 using td.features.shard.mb;
+using td.features.shard.shardStore;
 using td.features.state;
 using td.features.tower;
 using td.utils;
@@ -17,7 +21,7 @@ using UnityEngine.UI;
 
 namespace td.features.shard.shardCollection
 {
-    public class UI_ShardCollection : MonoInjectable
+    public class UI_ShardCollection : MonoBehaviour
     {
         public GridLayoutGroup grid;
 
@@ -26,55 +30,56 @@ namespace td.features.shard.shardCollection
 
         [SerializeField] private GameObject buttonPrefab;
 
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<SharedData> shared;
-        private readonly EcsInject<ShardCalculator> calc;
-        private readonly EcsInject<Shard_Service> shardService;
-        private readonly EcsInject<Tower_Service> towerService;
-        private readonly EcsInject<MB_Shard_Service> mbShardService;
-        private readonly EcsInject<LevelMap_Service> levelMapService;
+        private State State =>  ServiceContainer.Get<State>();
+        private EventBus Events =>  ServiceContainer.Get<EventBus>();
+        private Camera_Service CameraService =>  ServiceContainer.Get<Camera_Service>();
+        private Shard_Calculator Calc =>  ServiceContainer.Get<Shard_Calculator>();
+        private Shard_Service ShardService =>  ServiceContainer.Get<Shard_Service>();
+        private Tower_Service TowerService =>  ServiceContainer.Get<Tower_Service>();
+        private Shard_MB_Service MBShardService =>  ServiceContainer.Get<Shard_MB_Service>();
+        private Level_Map_Service LevelMapService =>  ServiceContainer.Get<Level_Map_Service>();
 
         private ShardConrol dndShard;
 
-        [FormerlySerializedAs("isDrugging")] [NaughtyAttributes.ReadOnly] [SerializeField]
+        [FormerlySerializedAs("isDrugging")] [ReadOnly] [SerializeField]
         private bool isDragging = false;
 
-        [NaughtyAttributes.ReadOnly] [SerializeField] private CanDropStatus canDropStatus = CanDropStatus.False;
+        [ReadOnly] [SerializeField] private CanDropStatus canDropStatus = CanDropStatus.False;
         private uint dropCost;
         private ShardUIButton targetSource;
-
-        private readonly List<IDisposable> eventDisposers = new(3);
-        private EcsPackedEntity? targetTower;
-        private EcsPackedEntity? targetShardInTower;
+        
+        private ProtoPackedEntityWithWorld? targetTower;
+        private ProtoPackedEntityWithWorld? targetShardInTower;
         private Vector2? targetDropPosition;
 
         private void Start()
         {
             grid ??= GetComponent<GridLayoutGroup>();
             
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Event_StateChanged>(OnStateChanged));
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Command_StopGameSimulation>(delegate { StopDragging(); }));
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Event_LevelFinished>(delegate { StopDragging(); }));
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Event_YouDied>(delegate { StopDragging(); }));
+            Events.unique.ListenTo<Event_ShardCollection_StateChanged>(OnStateChanged);
+            Events.unique.ListenTo<Command_StopGameSimulation>(OnStopGameSimulation);
+            Events.unique.ListenTo<Event_LevelFinished>(OnLevelFinished);
+            Events.unique.ListenTo<Event_YouDied>(OnYouDied);
 
             for (var index = 0; index < transform.childCount; index++)
             {
                 Destroy(transform.GetChild(index).gameObject);
             }
 
-            dndShard = shared.Value.draggableShard;
+            dndShard = MBShardService.GetDraggableShard();
             // }
         }
 
+        private void OnYouDied(ref Event_YouDied obj) => StopDragging();
+        private void OnLevelFinished(ref Event_LevelFinished obj) => StopDragging();
+        private void OnStopGameSimulation(ref Command_StopGameSimulation obj) => StopDragging();
+
         private void OnDestroy()
         {
-            foreach (var disposer in eventDisposers)
-            {
-                disposer?.Dispose();
-            }
-
-            eventDisposers.Clear();
+            Events.unique.RemoveListener<Event_ShardCollection_StateChanged>(OnStateChanged);
+            Events.unique.RemoveListener<Command_StopGameSimulation>(OnStopGameSimulation);
+            Events.unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
+            Events.unique.RemoveListener<Event_YouDied>(OnYouDied);
         }
 
         private void OnNewLevel(ref Command_LoadLevel item)
@@ -82,11 +87,11 @@ namespace td.features.shard.shardCollection
             StopDragging();
         }
 
-        private void OnStateChanged(ref Event_StateChanged e)
+        private void OnStateChanged(ref Event_ShardCollection_StateChanged e)
         {
-            if (e.shardCollection.IsEmpty) return;
+            if (e.IsEmpty()) return;
 
-            if (e.shardCollection.items.HasValue || e.shardCollection.maxItems.HasValue)
+            if (e.items || e.maxItems)
             {
                 Refresh();
             }
@@ -96,9 +101,11 @@ namespace td.features.shard.shardCollection
         {
             var tr = transform;
 
-            if (length != state.Value.ShardCollection.MaxItems)
+            var coll = State.Ex<ShardCollection_StateExtension>();
+            
+            if (length != coll.GetMaxItems())
             {
-                length = state.Value.ShardCollection.MaxItems;
+                length = coll.GetMaxItems();
                 if (length < 2) length = 2;
                 if (length > 12) length = 12;
 
@@ -141,12 +148,12 @@ namespace td.features.shard.shardCollection
                 var b = tr.GetChild(index).gameObject.GetComponent<ShardUIButton>();
                 b.SetHidden(false);
 
-                if (state.Value != null && index < state.Value.ShardCollection.Items.Count)
+                if (State != null && index < coll.GetItems().Count)
                 {
                     b.canDrag = true;
                     b.showPlus = false;
                     b.cost = 0;
-                    var shard = state.Value.ShardCollection.Items[index];
+                    var shard = coll.GetItems()[index];
                     b.SetShard(ref shard);
                 }
                 else
@@ -165,29 +172,33 @@ namespace td.features.shard.shardCollection
         private void OnShardDragStart(ShardUIButton shardButton, Vector2 point)
         {
             isDragging = true;
-            mbShardService.Value.InitializeDndShard(shardButton, point);
+            MBShardService.InitializeDndShard(shardButton, point);
             targetSource = shardButton;
             shardButton.SetHidden(true);
         }
 
         private void OnShardDragMove(ShardUIButton shardButton, Vector2 point)
         {
+            var coll = State.Ex<ShardCollection_StateExtension>();
+            var costPopup = State.Ex<CostPopup_StateExtension>();
+            var infoPanel = State.Ex<InfoPanel_StateExtension>();
+            
             var dndTransform = dndShard.transform;
-            dndTransform.position = CameraUtils.ToWorldPoint(shared.Value.canvasCamera, point);
+            dndTransform.position = CameraUtils.ToWorldPoint(CameraService.GetCanvasCamera(), point);
             dndTransform.FixAnchoeredPosition();
 
-            // state.Value.CostPopup.Clear();
+            // sc.Clear();
             canDropStatus = CanDropStatus.False;
 
             ref var shard = ref shardButton.GetShard();
 
-            if (shard.costInsert == 0) shardService.Value.PrecalcAllCosts(ref shard);
+            if (shard.costInsert == 0) ShardService.PrecalcAllCosts(ref shard);
             
             targetTower = null;
             targetShardInTower = null;
             targetDropPosition = null;
  
-            var hoveredInCollection = state.Value.ShardCollection.HoveredItem;
+            var hoveredInCollection = coll.GetHoveredItem();
             if (hoveredInCollection != null)
             {
                 ref var hoveredInCollectionShard = ref hoveredInCollection.GetShard();
@@ -201,13 +212,11 @@ namespace td.features.shard.shardCollection
                 {
                     canDropStatus = CanDropStatus.Rollback;
                     
-                    state.Value.CostPopup.Visible = false;
-
-                    state.Value.InfoPanel.Shard = hoveredInCollectionShard;
-                    state.Value.InfoPanel.Visible = true;
-                    state.Value.InfoPanel.Title = null;
-                    state.Value.InfoPanel.CostTitle = null;
-                    state.Value.InfoPanel.Cost = 0;
+                    infoPanel.SetShard(ref hoveredInCollectionShard);
+                    infoPanel.SetVisible(true);
+                    infoPanel.SetTitle(null);
+                    infoPanel.SetCostTitle(null);
+                    infoPanel.SetCost(0);
                     
                     // Debug.Log($"canDrop: SELF {canDropStatus}, {dropCost}");
                     // Debug.Log(" 1:" + CommonUtils.IdsIsEquals(hoveredInCollectionShard._id_, shard._id_));
@@ -220,7 +229,7 @@ namespace td.features.shard.shardCollection
 
                 ref var targetShard = ref hoveredInCollection.GetShard();
 
-                var (check, combineCost) = shardService.Value.CheckCanCombineShards(ref shard, ref targetShard);
+                var (check, combineCost) = ShardService.CheckCanCombineShards(ref shard, ref targetShard);
 
                 // Debug.Log($"CheckCanCombineShards: {check}, {combineCost}");
 
@@ -228,38 +237,36 @@ namespace td.features.shard.shardCollection
                     ? CanDropStatus.CombineWithShardInCollection
                     : CanDropStatus.False;
 
-                state.Value.CostPopup.Cost = combineCost;
-                state.Value.CostPopup.Visible = true;
-                state.Value.CostPopup.Title = "Combine Shards"; // todo i18
-                state.Value.CostPopup.IsFine = canDropStatus != CanDropStatus.False;
+                costPopup.SetCost(combineCost);
+                costPopup.SetVisible(true);
+                costPopup.SetTitle("Combine Shards"); // todo i18
+                costPopup.SetIsFine(canDropStatus != CanDropStatus.False);
 
-                // state.Value.InfoPanel.Clear();
-                state.Value.InfoPanel.Shard = Shard.CombineTwoShardsToNew(ref targetShard, ref shard);
-                state.Value.InfoPanel.Visible = true;
-                state.Value.InfoPanel.Title = "Combined shard";
-                state.Value.InfoPanel.CostTitle = "Combine cost";
-                state.Value.InfoPanel.Cost = combineCost;
+                var combinedShard = Shard.CombineTwoShardsToNew(ref targetShard, ref shard);
+                infoPanel.SetShard(ref combinedShard);
+                infoPanel.SetVisible(true);
+                infoPanel.SetTitle("Combined shard");
+                infoPanel.SetCostTitle("Combine cost");
+                infoPanel.SetCost(combineCost);
                 
                 dropCost = combineCost;
             }
             else
             {
-                var worldPosition = shared.Value.mainCamera.ScreenToWorldPoint(point);
+                var worldPosition = CameraService.GetMainCamera().ScreenToWorldPoint(point);
                 worldPosition.z = 0f;
                 var coords = HexGridUtils.PositionToCell(worldPosition);
                 
-                var (checkCanDrop, operationCost, towerPackedEntity, shardPackedEntity) = levelMapService.Value.CheckCanDrop(ref coords, ref shard);
+                var (checkCanDrop, operationCost, towerPackedEntity, shardPackedEntity) = LevelMapService.CheckCanDrop(ref coords, ref shard);
 
-                // Debug.Log($"CheckCanDropAndGetCostByScreen: {checkCanDrop}, {operationCost}");
+                infoPanel.SetShard(ref shard);
+                infoPanel.SetVisible(true);
+                infoPanel.SetTitle(null);
+                infoPanel.SetCostTitle(null);
+                infoPanel.SetCost(0);
 
-                state.Value.InfoPanel.Shard = shard;
-                state.Value.InfoPanel.Visible = true;
-                state.Value.InfoPanel.Title = null;
-                state.Value.InfoPanel.CostTitle = null;
-                state.Value.InfoPanel.Cost = 0;
-
-                state.Value.CostPopup.Cost = operationCost;
-                state.Value.CostPopup.Visible = checkCanDrop != CanDropShardOnMapType.False;
+                costPopup.SetCost(operationCost);
+                costPopup.SetVisible(checkCanDrop != CanDropShardOnMapType.False);
                 dropCost = operationCost;
 
                 // ReSharper disable once SwitchStatementMissingSomeEnumCasesNoDefault
@@ -267,44 +274,44 @@ namespace td.features.shard.shardCollection
                 {
                     // case CanDropShardOnMapType.Combine:
                     //     canDropStatus = CanDropStatus.CombineInTower;
-                    //     state.Value.CostPopup.Title = "Combine Shards"; // todo i18
+                    //     sc.Title = "Combine Shards"; // todo i18
                     //     break;
                     // case CanDropShardOnMapType.FalseCombineCost:
-                    //     state.Value.CostPopup.Title = "Combine Shards"; // todo i18
+                    //     sc.Title = "Combine Shards"; // todo i18
                     //     break;
 
                     case CanDropShardOnMapType.CombineInTower:
                         canDropStatus = CanDropStatus.CombineWithShardInTower;
-                        state.Value.CostPopup.Title = "Combine Shards In Tower"; // todo i18
+                        costPopup.SetTitle("Combine Shards In Tower"); // todo i18
                         targetTower = towerPackedEntity;
                         targetShardInTower = shardPackedEntity;
                         break;
                     case CanDropShardOnMapType.FalseCombineInTower:
-                        state.Value.CostPopup.Title = "Combine Shards In Tower"; // todo i18
+                        costPopup.SetTitle("Combine Shards In Tower"); // todo i18
                         break;
 
                     case CanDropShardOnMapType.InsertInTower:
                         canDropStatus = CanDropStatus.InsertInTower;
-                        state.Value.CostPopup.Title = "Integrate Shard To Tower"; //todo i18
+                        costPopup.SetTitle("Integrate Shard To Tower"); //todo i18
                         targetTower = towerPackedEntity;
                         break;
                     case CanDropShardOnMapType.FalseInsertInTower:
-                        state.Value.CostPopup.Title = "Integrate Shard To Tower"; //todo i18
+                        costPopup.SetTitle("Integrate Shard To Tower"); //todo i18
                         break;
 
                     case CanDropShardOnMapType.DropToFloor:
                         canDropStatus = CanDropStatus.DropToFloor;
-                        state.Value.CostPopup.Title = "Explode Shard"; //todo i18
+                        costPopup.SetTitle("Explode Shard"); //todo i18
                         break;
                     case CanDropShardOnMapType.FalseDropToFloor:
-                        state.Value.CostPopup.Title = "Explode Shard"; //todo i18
+                        costPopup.SetTitle("Explode Shard"); //todo i18
                         targetDropPosition = worldPosition;
                         break;
                 }
             }
 
             var deny = !shardButton.IsHovered && canDropStatus == CanDropStatus.False;
-            state.Value.CostPopup.IsFine = !deny;
+            costPopup.SetIsFine(!deny);
             dndShard.shardMB.deny.SetVisible(deny);
 
             // Debug.Log($"canDrop: {canDropStatus}, {dropCost}");
@@ -316,15 +323,18 @@ namespace td.features.shard.shardCollection
 
             isDragging = false;
 
-            mbShardService.Value.RevertDndShard(targetSource);
+            MBShardService.RevertDndShard(targetSource);
             // targetSource.SetHidden(false);
             targetSource = null;
             
-            state.Value.CostPopup.Clear();
+            var costPopup = State.Ex<CostPopup_StateExtension>();
+            costPopup.Clear();
         }
 
         private void OnShardDragFinish(ShardUIButton shardButton, Vector2 point)
         {
+            var coll = State.Ex<ShardCollection_StateExtension>();
+            
             // Just to be sure, let's update the status of the drop opportunity
             OnShardDragMove(shardButton, point);
 
@@ -343,13 +353,13 @@ namespace td.features.shard.shardCollection
             {
                 case CanDropStatus.CombineWithShardInCollection:
                 {
-                    var target = state.Value.ShardCollection.HoveredItem;
+                    var target = coll.GetHoveredItem();
                     if (target != null)
                     {
                         ref var targetShard = ref target.GetShard();
                         targetShard.CombineWith(ref shard);
-                        shardService.Value.PrecalcAllCosts(ref targetShard);
-                        state.Value.ShardCollection.UpdateItem(ref targetShard);
+                        ShardService.PrecalcAllCosts(ref targetShard);
+                        coll.UpdateItem(ref targetShard);
                         //todo: run combine fx
                         success = true;
                     }
@@ -361,12 +371,12 @@ namespace td.features.shard.shardCollection
                     // todo
                     if (targetTower.HasValue && targetShardInTower.HasValue)
                     {
-                        ref var targetShard = ref shardService.Value.GetShard(targetShardInTower.Value, out var shardEntity);
+                        ref var targetShard = ref ShardService.GetShard(targetShardInTower.Value, out var shardEntity);
                         //todo update view
                         targetShard.CombineWith(ref shard);
-                        shardService.Value.PrecalcAllCosts(ref targetShard);
-                        state.Value.ShardCollection.RemoveItem(shard._id_);
-                        var shardMB = shardService.Value.GetShardMB(shardEntity);
+                        ShardService.PrecalcAllCosts(ref targetShard);
+                        coll.RemoveItem(shard._id_);
+                        var shardMB = ShardService.GetShardMB(shardEntity);
                         shardMB.shardData = targetShard;
                         shardMB.Refresh();
                         //todo: run combine fx
@@ -379,9 +389,9 @@ namespace td.features.shard.shardCollection
                     // todo
                     if (targetTower.HasValue)
                     {
-                        shardService.Value.PrecalcAllCosts(ref shard);
-                        shardService.Value.InsertShardInTower(ref shard, targetTower.Value);
-                        state.Value.ShardCollection.RemoveItem(shard._id_);
+                        ShardService.PrecalcAllCosts(ref shard);
+                        ShardService.InsertShardInTower(ref shard, targetTower.Value);
+                        coll.RemoveItem(shard._id_);
                         //todo: run combine fx
                         success = true;
                     }
@@ -392,9 +402,9 @@ namespace td.features.shard.shardCollection
                     // todo
                     if (targetDropPosition.HasValue)
                     {
-                        shardService.Value.DropToMap(ref shard, targetDropPosition.Value);
+                        ShardService.DropToMap(ref shard, targetDropPosition.Value);
                         //todo remove from colection and update it
-                        state.Value.ShardCollection.RemoveItem(shard._id_);
+                        coll.RemoveItem(shard._id_);
                     }
                     break;
                 }
@@ -405,8 +415,8 @@ namespace td.features.shard.shardCollection
 
             if (success)
             {
-                state.Value.ShardCollection.RemoveItem(shard._id_);
-                state.Value.Energy -= dropCost;
+                coll.RemoveItem(shard._id_);
+                State.SetEnergy(State.GetEnergy() - dropCost);
             }
 
             targetDropPosition = null;
@@ -419,39 +429,47 @@ namespace td.features.shard.shardCollection
 
         private void OnShardPointerClicked(ShardUIButton shardButton, Vector2 point)
         {
+            var store = State.Ex<ShardStore_StateEx>();
+            
             if (shardButton.showPlus)
             {
-                state.Value.ShardStore.Visible = !state.Value.ShardStore.Visible;
-                state.Value.ShardStore.X = shardButton.transform.position.x;
+                store.SetVisible(!store.GetVisible());
+                store.SetX(shardButton.transform.position.x);
             }
             else
             {
-                state.Value.ShardStore.Visible = false;
+                store.SetVisible(false);
             }
         }
 
         private void OnShardPointerEntered(ShardUIButton shardButton, Vector2 point)
         {
+            var coll = State.Ex<ShardCollection_StateExtension>();
+            var infoPanel = State.Ex<InfoPanel_StateExtension>();
+            
             if (!shardButton.hasShard || shardButton.hidden || shardButton.cost > 0) return;
-            state.Value.ShardCollection.HoveredItem = shardButton;
-            // state.Value.InfoPanel.Clear();
-            state.Value.InfoPanel.Shard = shardButton.GetShard();
-            state.Value.InfoPanel.Visible = true;
-            state.Value.InfoPanel.Cost = 0;
-            state.Value.InfoPanel.CostTitle = null;
-            state.Value.InfoPanel.Before = null;
-            state.Value.InfoPanel.After = null;
+            coll.SetHoveredItem(shardButton);
+            
+            infoPanel.SetShard(ref shardButton.GetShard());
+            infoPanel.SetVisible(true);
+            infoPanel.SetCost(0);
+            infoPanel.SetCostTitle(null);
+            infoPanel.SetBefore(null);
+            infoPanel.SetAfter(null);
         }
 
         private void OnShardPointerExited(ShardUIButton shardButton, Vector2 point)
         {
-            if (state.Value.ShardCollection.HoveredItem == shardButton)
+            var coll = State.Ex<ShardCollection_StateExtension>();
+            var infoPanel = State.Ex<InfoPanel_StateExtension>();
+            
+            if (coll.GetHoveredItem() == shardButton)
             {
-                state.Value.ShardCollection.HoveredItem = null;
-                if (state.Value.InfoPanel.Shard.HasValue && CommonUtils.IdsIsEquals(state.Value.InfoPanel.Shard.Value._id_, shardButton.GetShard()._id_))
+                coll.SetHoveredItem(null);
+                if (infoPanel.HasShard() && CommonUtils.IdsIsEquals(infoPanel.GetShard()._id_, shardButton.GetShard()._id_))
                 {       
-                    state.Value.InfoPanel.Clear();
-                    state.Value.InfoPanel.Visible = false;
+                    infoPanel.Clear();
+                    infoPanel.SetVisible(false);
                 }
             }
         }

@@ -1,8 +1,8 @@
-﻿using Leopotam.EcsLite;
+﻿using td.features.eventBus.types;
 
 namespace td.features.gameStatus.bus
 {
-    public struct Event_YouDied : IEventUnique
+    public struct Event_YouDied : IUniqueEvent
     {
         
     }

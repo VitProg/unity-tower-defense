@@ -1,41 +1,43 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.eventBus;
 using td.features.level.bus;
 using td.features.state;
 using UnityEngine;
 
 namespace td.features.level.systems
 {
-    public class Level_FinishedSystem : IEcsInitSystem, IEcsDestroySystem
+    public class Level_FinishedSystem : IProtoInitSystem, IProtoDestroySystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<IEventBus> events;
+        [DI] private State state;
+        [DI] private EventBus events;
 
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Unique.ListenTo<Event_LevelFinished>(OnLevelFinished);
+            events.unique.ListenTo<Event_LevelFinished>(OnLevelFinished);
         }
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
+            events.unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
         }
 
         //------------------------------------------//
 
         private void OnLevelFinished(ref Event_LevelFinished _)
         {
-            var spawnSequenceCount = state.Value.ActiveSpawnCount;
-            var enemiesCount = state.Value.EnemiesCount;
+            var spawnSequenceCount = state.GetActiveSpawnCount();
+            var enemiesCount = state.GetEnemiesCount();
 
             if (
-                state.Value.WaveNumber + 1 >= state.Value.WaveCount &&
+                state.GetWaveNumber() + 1 >= state.GetWaveCount() &&
                 spawnSequenceCount <= 0 &&
                 enemiesCount <= 0
             )
             {
                 Debug.Log("LEVEL COMPLETE!!!");
                 //todo show Victory screen
-                events.Value.Unique.Add<Command_LoadLevel>().levelNumber = (ushort)(state.Value.LevelNumber + 1);
+                events.unique.GetOrAdd<Command_LoadLevel>().levelNumber = (ushort)(state.GetLevelNumber() + 1);
             }
         }
     }

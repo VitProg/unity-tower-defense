@@ -1,12 +1,12 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto;
 using td.features.fx.types;
 using UnityEngine;
 
 namespace td.features.fx.effects
 {
     [Serializable]
-    public struct ColdStatusFX : IEntityFallowFX, IWithColorFX, IWithSpriteAnimatorFX, IEcsAutoReset<ColdStatusFX>
+    public struct ColdStatusFX : IEntityFallowFX, IWithColorFX, IWithSpriteAnimatorFX, IProtoAutoReset<ColdStatusFX>
     {
         public Color Color { get; set; }
         public string PrefabName { get; set; }
@@ -16,7 +16,6 @@ namespace td.features.fx.effects
 
         public void AutoReset(ref ColdStatusFX c)
         {
-            Debug.Log($"ColdStatusFX AutoReset");
             c.Color = Constants.FX.ColdDamageColor;
             c.IsReverse = true;
             c.Speed = 0f;

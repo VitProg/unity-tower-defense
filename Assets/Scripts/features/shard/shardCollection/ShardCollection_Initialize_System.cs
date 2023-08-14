@@ -29,7 +29,9 @@ namespace td.features.shard.shardCollection
 
         private void OnEvent(ref Event_LevelLoaded item)
         {
-            state.ShardCollection.Clear();
+            var coll = state.Ex<ShardCollection_StateExtension>();
+            
+            coll.Clear();
             if (levelMap.LevelConfig == null) return;
             
             var started = levelMap.LevelConfig.Value.startedShards;
@@ -37,7 +39,7 @@ namespace td.features.shard.shardCollection
             {
                 var shard = started[index];
                 shardService.PrecalcAllCosts(ref shard);
-                state.ShardCollection.AddItem(ref shard);
+                coll.AddItem(ref shard);
             }
         }
     }

@@ -1,11 +1,9 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
-using td.features._common.components;
-using td.features.destroy.flags;
+using td.features.destroy;
 using td.features.enemy;
 using td.features.impactEnemy;
-using td.features.projectile.attributes;
 using td.features.state;
 using UnityEngine;
 
@@ -14,49 +12,48 @@ namespace td.features.projectile.lightning
     /**
      * Periodically deals damage to enemies in chains, with damage fading from the first to the last one
      */
-    public class LightningDamageSystem : IEcsRunSystem
+    public class LightningDamageSystem : IProtoRunSystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<Enemy_Service> enemyService;
-        private readonly EcsInject<ImpactEnemy_Service> impactEnemy;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsInject<IEventBus> events;
+        [DI] private Lightning_Aspect lightningAspect;
+        [DI] private Projectile_Aspect projectileAspect;
+        [DI] private Destroy_Service destroyService; 
+        [DI] private Enemy_Service enemyService; 
+        [DI] private ImpactEnemy_Service impactEnemy; 
+        [DI] private State state; 
 
-        private readonly EcsFilterInject<Inc<Lightning, LightningAttribute, Ref<GameObject>>, Exc<IsDisabled, IsDestroyed>> entities = default;
-
-        public void Run(IEcsSystems systems)
+        public void Run()
         {
-            foreach (var entity in entities.Value)
+            foreach (var entity in lightningAspect.it)
             {
-                ref var lightningLine = ref entities.Pools.Inc1.Get(entity);
-                ref var lightning = ref entities.Pools.Inc2.Get(entity);
+                ref var lightning = ref lightningAspect.lightningPool.Get(entity);
+                ref var lightningAttr = ref projectileAspect.lightningAttributePool.Get(entity);
                 
-                if (!lightningLine.started)
+                if (!lightning.started)
                 {
-                    lightningLine.timeRemains = lightning.duration;
-                    lightningLine.damageIntervalRemains = lightning.damageInterval;
-                    lightningLine.started = true;
+                    lightning.timeRemains = lightningAttr.duration;
+                    lightning.damageIntervalRemains = lightningAttr.damageInterval;
+                    lightning.started = true;
                 }
                 
-                lightningLine.timeRemains -= Time.deltaTime * state.Value.GameSpeed;
-                lightningLine.damageIntervalRemains -= Time.deltaTime * state.Value.GameSpeed;
+                lightning.timeRemains -= Time.deltaTime * state.GetGameSpeed();
+                lightning.damageIntervalRemains -= Time.deltaTime * state.GetGameSpeed();
 
-                if (lightningLine.timeRemains < Constants.ZeroFloat)
+                if (lightning.timeRemains < Constants.ZeroFloat)
                 {
-                    common.Value.SafeDelete(entity);
+                    destroyService.MarkAsRemoved(projectileAspect.World().PackEntityWithWorld(entity));
                     continue;
                 }
 
-                if (lightningLine.damageIntervalRemains < 0f)
+                if (lightning.damageIntervalRemains < 0f)
                 {
-                    var damage = lightning.damage;
-                    for (var index = 0; index < lightningLine.length; index++)
+                    var damage = lightningAttr.damage;
+                    for (var index = 0; index < lightning.length; index++)
                     {
-                        if (!enemyService.Value.IsAlive(lightningLine.chainEntities[index], out var chainEntity)) continue;
-                        impactEnemy.Value.TakeDamage(chainEntity, damage, DamageType.Electro);
-                        damage /= lightning.damageReduction;
+                        if (!enemyService.IsAlive(lightning.chainEntities[index], out var chainEntity)) continue;
+                        impactEnemy.TakeDamage(chainEntity, damage, DamageType.Electro);
+                        damage /= lightningAttr.damageReduction;
                     }
-                    lightningLine.damageIntervalRemains = lightning.damageInterval;
+                    lightning.damageIntervalRemains = lightningAttr.damageInterval;
                 }
             }
         }

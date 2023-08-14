@@ -1,32 +1,38 @@
-﻿using Leopotam.EcsLite;
-using td.features._common;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.destroy;
 using td.features.ecsConverter;
+using td.features.movement;
 using UnityEngine;
 
 namespace td.features.projectile
 {
     public class Projectile_Converter : BaseEntity_Converter
     {
-        private readonly EcsInject<Projectile_Service> projectileService;
-        private readonly EcsInject<Common_Service> common;
-        
+        [DI] private Projectile_Aspect aspect;
+        [DI] private Projectile_Service projectileService;
+        [DI] private Destroy_Service destroyService;
+        [DI] private Movement_Service movementService;
+
+        public override ProtoWorld World() => aspect.World();
+
         public new void Convert(GameObject gameObject, int entity)
         {
             base.Convert(gameObject, entity);
             
-            projectileService.Value.GetProjectile(entity);
-            projectileService.Value.GetTarget(entity);
-            common.Value.SetIsOnlyOnLevel(entity, true);
+            projectileService.GetProjectile(entity);
+            projectileService.GetTarget(entity);
+            destroyService.SetIsOnlyOnLevel(entity, true);
 
-            ref var movement = ref common.Value.GetMovement(entity);
+            ref var movement = ref movementService.GetMovement(entity);
             movement.gapSqr = Constants.DefaultGapSqr;
             movement.speedOfGameAffected = true;
             
-            common.Value.SetCustomMovement(entity, true);
+            movementService.SetCustomMovement(entity, true);
 
-            common.Value.SetIsDisabled(entity, false);
-            common.Value.SetIsDestroyed(entity, false);
-            projectileService.Value.RemoveAllAttributes(entity);
+            destroyService.SetIsDisabled(entity, false);
+            destroyService.SetIsDestroyed(entity, false);
+            projectileService.RemoveAllAttributes(entity);
         }
     }
 }

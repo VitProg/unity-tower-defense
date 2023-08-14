@@ -1,8 +1,10 @@
 ﻿using NaughtyAttributes;
+using td.features.enemy.data;
 using td.features.state;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.U2D.Animation;
 
 namespace td.features.enemy.mb
@@ -13,7 +15,7 @@ namespace td.features.enemy.mb
         [SerializeField] private Animator animator;
         [SerializeField] private SpriteLibrary spriteLibrary;
         [SerializeField] private SpriteResolver spriteResolver;
-        [SerializeField] private EnemiesConfig enemiesConfig;
+        [FormerlySerializedAs("enemiesConfig")] [SerializeField] private Enemy_Config_SO enemyConfigSo;
 
         [Header("Main")]
         [OnValueChanged("UpdateView")][SerializeField] public CreepEnemyTypes type;
@@ -23,9 +25,9 @@ namespace td.features.enemy.mb
 
         public void UpdateView()
         {
-            spriteLibrary.spriteLibraryAsset = enemiesConfig.GetCreepSprites(type, variant);
+            spriteLibrary.spriteLibraryAsset = enemyConfigSo.GetCreepSprites(type, variant);
             spriteResolver.SetCategoryAndLabel("Run", "1");
-            animator.runtimeAnimatorController = enemiesConfig.GetRuntimeAnimatorController(type);
+            animator.runtimeAnimatorController = enemyConfigSo.GetRuntimeAnimatorController(type);
             // animator.speed = (DI.GetCustom<State>()?.GameSpeed ?? 1) * 3;
             // animator.SetInteger(SType, (int)type);
             // animator.Play(((int)type).ToString());

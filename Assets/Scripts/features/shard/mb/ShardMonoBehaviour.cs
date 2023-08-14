@@ -1,10 +1,11 @@
 ﻿using System;
 using JetBrains.Annotations;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 using NaughtyAttributes;
 using td.features._common;
 using td.features.shard.components;
 using td.monoBehaviours;
+using td.utils.di;
 using UnityEngine;
 
 namespace td.features.shard.mb
@@ -236,21 +237,21 @@ namespace td.features.shard.mb
 
         public void SetShard(Shard shard)
         {
-            ServiceContainer.Get<MB_Shard_Service>()?.Add(this);
+            ServiceContainer.Get<Shard_MB_Service>()?.Add(this);
             shardData = shard;
             // ShardUtils.Copy(ref shardData, ref shard);
         }
 
         public void SetShard(ref Shard shard)
         {
-            ServiceContainer.Get<MB_Shard_Service>()?.Add(this);
+            ServiceContainer.Get<Shard_MB_Service>()?.Add(this);
             shardData = shard;
             // ShardUtils.Copy(ref shardData, ref shard);
         }
 
         private void OnDestroy()
         {
-            ServiceContainer.Get<MB_Shard_Service>()?.Remove(this);
+            ServiceContainer.Get<Shard_MB_Service>()?.Remove(this);
         }
 
         public void SetRotation(float r)

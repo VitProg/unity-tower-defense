@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Leopotam.EcsLite;
+﻿using System.Text;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
+using td.features.eventBus;
 using td.features.gameStatus.bus;
 using td.features.level.bus;
 using td.features.shard;
@@ -13,51 +12,58 @@ using UnityEngine;
 
 namespace td.features.infoPanel
 {
-    public class UI_InfoPanel : MonoInjectable
+    public class UI_InfoPanel : MonoBehaviour
     {
         public TMP_Text textField;
 
-        private readonly EcsInject<ShardCalculator> calc;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<IState> state;
-        
-        private readonly List<IDisposable> eventDisposers = new(3);
+        private Shard_Calculator Calc =>  ServiceContainer.Get<Shard_Calculator>();
+        private EventBus Events =>  ServiceContainer.Get<EventBus>();
+        private State State =>  ServiceContainer.Get<State>();
 
         private void Start()
         {
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Event_StateChanged>(OnStateChanged));
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Event_LevelFinished>(delegate { Hide(); }));
-            eventDisposers.Add(events.Value.Unique.SubscribeTo<Event_YouDied>(delegate { Hide(); }));
+            Events.unique.ListenTo<Event_InfoPanel_StateChanged>(OnStateChanged);
+            Events.unique.ListenTo<Event_LevelFinished>(OnLevelFinished);
+            Events.unique.ListenTo<Event_YouDied>(OnYouDied);
+        }
+
+        private void OnYouDied(ref Event_YouDied obj)
+        {
+            Hide();
+        }
+
+        private void OnLevelFinished(ref Event_LevelFinished obj)
+        {
+            Hide();
         }
 
         private void OnDestroy()
         {
-            foreach (var disposer in eventDisposers)
-            {
-                disposer?.Dispose();
-            }
-
-            eventDisposers.Clear();
+            Events.unique.RemoveListener<Event_InfoPanel_StateChanged>(OnStateChanged);
+            Events.unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
+            Events.unique.RemoveListener<Event_YouDied>(OnYouDied);
         }
         
-        private void OnStateChanged(ref Event_StateChanged item)
+        private void OnStateChanged(ref Event_InfoPanel_StateChanged ev)
         {
-            if (item.infoPanel.IsEmpty) return;
+            if (ev.IsEmpty()) return;
 
-            if (!state.Value.InfoPanel.Visible)
+            var s = State.Ex<InfoPanel_StateExtension>();
+            
+            if (!s.GetVisible())
             {
                 // Debug.Log("infoPanel Visible false");
                 Hide();
                 return;
             }
             
-            if (item.infoPanel.shard.HasValue)
+            if (ev.shard)
             {
                 ShowShardInfo();
                 return;
             }
 
-            if (item.infoPanel.enemy.HasValue)
+            if (ev.enemy)
             {
                 ShowEnemyInfo();
                 return;
@@ -79,24 +85,24 @@ namespace td.features.infoPanel
 
         private StringBuilder GetHead()
         {
-            var s = state.Value.InfoPanel;
+            var s = State.Ex<InfoPanel_StateExtension>();
             
             var sb = new StringBuilder();
             
-            if (s.Title?.Length > 0) sb.AppendLine($"<size=120%><b>{s.Title}</b></size>\n");
-            if (s.Cost > 0) sb.AppendLine($"{s.CostTitle ?? "Cost: "}: ${CommonUtils.CostFormat(s.Cost)}\n");
-            if (s.Before?.Length > 0) sb.AppendLine($"{s.Before}\n");
+            if (s.GetTitle()?.Length > 0) sb.AppendLine($"<size=120%><b>{s.GetTitle()}</b></size>\n");
+            if (s.GetCost() > 0) sb.AppendLine($"{s.GetCostTitle() ?? "Cost: "}: ${CommonUtils.CostFormat(s.GetCost())}\n");
+            if (s.GetBefore()?.Length > 0) sb.AppendLine($"{s.GetBefore()}\n");
 
             return sb;
         }
 
         private void ShowShardInfo()
         {
-            var s = state.Value.InfoPanel;
+            var s = State.Ex<InfoPanel_StateExtension>();
             
-            if (!s.Shard.HasValue) return;
+            if (!s.HasShard()) return;
             
-            var shard = s.Shard!.Value;
+            ref var shard = ref s.GetShard();
 
             // Debug.Log($"InfoPanel ShowShardInfo {shard}");
             gameObject.SetActive(true);
@@ -108,32 +114,32 @@ namespace td.features.infoPanel
             sb.AppendLine($"{quantity}: {shard}");
             sb.AppendLine($"");
 
-            sb.AppendLine($"Level: {calc.Value.GetShardLevel(ref shard)}");
+            sb.AppendLine($"Level: {Calc.GetShardLevel(ref shard)}");
             sb.AppendLine($"");
             
-            var speed = calc.Value.GetProjectileSpeed(ref shard);
+            var speed = Calc.GetProjectileSpeed(ref shard);
             sb.AppendLine($"Projectile Speed: {speed:0.00}");
 
-            var fireRate = calc.Value.GetFireRate(ref shard);
+            var fireRate = Calc.GetFireRate(ref shard);
             sb.AppendLine($"Fire Rate: {fireRate:0.00}");
 
-            var radius = calc.Value.GetTowerRadius(ref shard);
+            var radius = Calc.GetTowerRadius(ref shard);
             sb.AppendLine($"Radius: {radius:0.00}");
 
-            if (calc.Value.HasBaseDamage(ref shard))
+            if (Calc.HasBaseDamage(ref shard))
             {
-                calc.Value.CalculateBaseDamageParams(ref shard, out var damage, out var type);
+                Calc.CalculateBaseDamageParams(ref shard, out var damage, out var type);
                 sb.AppendLine($"Damage: {damage:0.00}");
                 sb.AppendLine($"Damage Type: {type}");
             }
             
-            calc.Value.CalculateSpread(ref shard, out var spread, out var distanceFactor);
+            Calc.CalculateSpread(ref shard, out var spread, out var distanceFactor);
             sb.AppendLine($"Spread: {spread:0.00} / {distanceFactor:0.00}");
 
             // red - разрывной. удар по области
-            if (calc.Value.HasExplosive(ref shard))
+            if (Calc.HasExplosive(ref shard))
             {
-                calc.Value.CalculateExplosiveParams(ref shard, out var damage, out var diameter, out var damageFading);
+                Calc.CalculateExplosiveParams(ref shard, out var damage, out var diameter, out var damageFading);
                 sb.AppendLine($"Explosive");
                 sb.AppendLine($" - damage: {damage:0.00}");
                 sb.AppendLine($" - diameter: {diameter:0.00}");
@@ -142,9 +148,9 @@ namespace td.features.infoPanel
             }
 
             // green - отравляет мобов на время
-            if (calc.Value.HasPoison(ref shard))
+            if (Calc.HasPoison(ref shard))
             {
-                calc.Value.CalculatePoisonParams(ref shard, out var damage, out var duration);
+                Calc.CalculatePoisonParams(ref shard, out var damage, out var duration);
                 sb.AppendLine($"Poison");
                 sb.AppendLine($" - damage: {damage:0.00}");
                 sb.AppendLine($" - duration: {duration:0.00}");
@@ -152,9 +158,9 @@ namespace td.features.infoPanel
             }
 
             // blue - замедляет мобов на время
-            if (calc.Value.HasSlowing(ref shard))
+            if (Calc.HasSlowing(ref shard))
             {
-                calc.Value.CalculateSlowingParams(ref shard, out var speedMultipler, out var duration);
+                Calc.CalculateSlowingParams(ref shard, out var speedMultipler, out var duration);
                 sb.AppendLine($"Slowing");
                 sb.AppendLine($" - speed multipler: {speedMultipler:0.00}");
                 sb.AppendLine($" - duration: {duration:0.00}");
@@ -162,9 +168,9 @@ namespace td.features.infoPanel
             }
 
             // aquamarine - молния. цепная реакция от моба к мобу
-            if (calc.Value.HasLightning(ref shard))
+            if (Calc.HasLightning(ref shard))
             {
-                calc.Value.CalculateLightningParams(ref shard, out var interval, out var damage, out var damageReduction, out var damageInterval, out var chainReaction, out var chainReactionRadius);
+                Calc.CalculateLightningParams(ref shard, out var interval, out var damage, out var damageReduction, out var damageInterval, out var chainReaction, out var chainReactionRadius);
                 sb.AppendLine($"Lightning");
                 sb.AppendLine($" - duration: {interval:0.00}s");
                 sb.AppendLine($" - damage: {damage:0.00}");
@@ -176,9 +182,9 @@ namespace td.features.infoPanel
             }
 
             // violet - шок, кантузия… останавливает цель на короткое время. срабатывает с % вероятности
-            if (calc.Value.HasShocking(ref shard))
+            if (Calc.HasShocking(ref shard))
             {
-                calc.Value.CalculateShockingParams(ref shard, out var duration, out var probability);
+                Calc.CalculateShockingParams(ref shard, out var duration, out var probability);
                 sb.AppendLine($"Shocking");
                 sb.AppendLine($"  - duration: {duration:0.00}");
                 sb.AppendLine($"  - probability: {probability:0.00}");
@@ -192,9 +198,9 @@ namespace td.features.infoPanel
 
         private StringBuilder GetFooter()
         {
-            var s = state.Value.InfoPanel;
+            var s = State.Ex<InfoPanel_StateExtension>();
             var sb = new StringBuilder();
-            if (s.After?.Length > 0) sb.AppendLine($"\n{s.After}");
+            if (s.GetAfter()?.Length > 0) sb.AppendLine($"\n{s.GetAfter()}");
             return sb;
         }
     }

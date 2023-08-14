@@ -1,18 +1,18 @@
 ﻿using System;
 using Leopotam.EcsProto.QoL;
 using td.common;
-using td.features._common;
 using td.features.level;
+using td.features.movement;
 using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.enemy.systems
 {
-    public class EnemyCalcDistanceToKernelSystem : ProtoIntervalableRunSystem
+    public class Enemy_CalcDistanceToKernel_System : ProtoIntervalableRunSystem
     {
         [DI] private Enemy_Aspect aspect;
         [DI] private LevelMap levelMap;
-        [DI] private Common_Service common;
+        [DI] private Movement_Service movementService;
         [DI] private Enemy_Path_Service enemyPathService;
 
         public override void IntervalRun(float deltaTime)
@@ -21,16 +21,16 @@ namespace td.features.enemy.systems
             {
                 ref var enemy = ref aspect.enemyPool.Get(entity);
                 ref var enemyPath = ref aspect.enemyPathPool.Get(entity);
-                ref var toTarget = ref common.GetMovement(entity);
+                ref var toTarget = ref movementService.GetMovement(entity);
 
-                var transform = common.GetTransform(entity);
+                var transform = movementService.GetTransform(entity);
 
                 var path = enemyPathService.GetPath(ref enemyPath);
 
                 var nextStep = enemyPath.index + 1 < path.Count ? path[enemyPath.index + 1] : (Int2?)null;
 
                 var nextCellPosition = nextStep.HasValue
-                    ? EnemyUtils.CalcPosition(nextStep.Value, transform.rotation, enemy.offset)
+                    ? Enemy_Utils.CalcPosition(nextStep.Value, transform.rotation, enemy.offset)
                     : (Vector2?)null;
 
                 var percentToNextCell = Mathf.Min(
@@ -48,7 +48,7 @@ namespace td.features.enemy.systems
             }
         }
 
-        public EnemyCalcDistanceToKernelSystem(float interval, float timeShift, Func<float> getDeltaTime) : base(
+        public Enemy_CalcDistanceToKernel_System(float interval, float timeShift, Func<float> getDeltaTime) : base(
             interval, timeShift, getDeltaTime)
         {
         }

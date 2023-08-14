@@ -1,19 +1,24 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
-using td.features._common.flags;
+using td.features.destroy;
 using td.features.ecsConverter;
 using td.features.enemy.mb;
 using td.features.impactEnemy;
+using td.features.movement;
 using UnityEngine;
 
 namespace td.features.enemy
 {
     public class Enemy_Converter : BaseEntity_Converter
     {
-        private readonly EcsInject<Enemy_Service> enemyService;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsInject<ImpactEnemy_Service> impactEnemy;
+        [DI] private Enemy_Aspect aspect;
+        [DI] private Enemy_Service enemyService;
+        [DI] private Movement_Service movementService;
+        [DI] private Destroy_Service destroyService;
+        [DI] private ImpactEnemy_Service impactEnemy;
+
+        public override ProtoWorld World() => aspect.World();
         
         public new void Convert(GameObject gameObject, int entity)
         {
@@ -21,15 +26,15 @@ namespace td.features.enemy
 
             var mb = gameObject.GetComponent<EnemyMonoBehaviour>();
 
-            enemyService.Value.GetEnemy(entity);
-            enemyService.Value.GetEnemyMBRef(entity).reference = mb;
+            enemyService.GetEnemy(entity);
+            enemyService.GetEnemyMBRef(entity).reference = mb;
             
-            common.Value.SetCustomMovement(entity, true);
+            movementService.SetCustomMovement(entity, true);
             
-            common.Value.GetRefTargetBody(entity).targetBody = mb.body;
+            movementService.GetRefTargetBody(entity).targetBody = mb.body;
             
-            common.Value.SetIsOnlyOnLevel(entity, true);
-            impactEnemy.Value.RemoveAllDebuffs(entity);
+            destroyService.SetIsOnlyOnLevel(entity, true);
+            impactEnemy.RemoveAllDebuffs(entity);
         }
     }
 }

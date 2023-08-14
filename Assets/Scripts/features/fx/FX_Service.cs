@@ -1,25 +1,19 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using Leopotam.EcsLite.UnityEditor;
+﻿using Leopotam.EcsProto.QoL;
+using Leopotam.EcsProto.Unity;
 using td.features.fx.subServices;
 using td.monoBehaviours;
-using td.utils.di;
 using UnityEngine;
 
 namespace td.features.fx
 {
     public class FX_Service
     {
-        [field: AutoResolve] public FX_EntityModifier_SubService EntityModifier { get; } = new();
-
-        [field: AutoResolve]
-        public FX_EntityFallow_SubService EntityFallow { get; } = new();
+        [DI] public FX_EntityModifier_SubService entityModifier;
+        [DI] public FX_EntityFallow_SubService entityFallow;
+        [DI] public FX_Position_SubService position;
+        [DI] public FX_Screen_SubService screen;
         
-        [field: AutoResolve]
-        public FX_Position_SubService Position { get; } = new();
-        
-        [field: AutoResolve]
-        public FX_Screen_SubService Screen { get; } = new();
+        [DI(Constants.Worlds.FX)] public FX_Aspect aspect;
 
         public readonly GameObject fxContainer;
 
@@ -31,19 +25,16 @@ namespace td.features.fx
         internal void PrepareGO(GameObject go, int fxEntity)
         {
             var ecsEntity = go.GetComponent<EcsEntity>() ?? go.AddComponent<EcsEntity>();
-            ecsEntity.packedEntity = fxWorld.Value.PackEntityWithWorld(fxEntity);
+            ecsEntity.packedEntity = aspect.World().PackEntityWithWorld(fxEntity);
 #if UNITY_EDITOR && DEBUG
             // if (!gameObject.GetComponent<EcsComponentsInfo>()) gameObject.AddComponent<EcsComponentsInfo>();
-            if (!go.GetComponent<EcsEntityDebugView>())
+            if (!go.GetComponent<ProtoEntityDebugView>())
             {
-                var entityObserver = go.AddComponent<EcsEntityDebugView>();
+                var entityObserver = go.AddComponent<ProtoEntityDebugView>();
                 entityObserver.Entity = fxEntity;
-                entityObserver.World = fxWorld.Value;
+                entityObserver.World = aspect.World();
             }
 #endif
-
         }
-
-        public readonly EcsWorldInject fxWorld = Constants.Worlds.FX;
     }
 }

@@ -1,15 +1,13 @@
-﻿using Leopotam.EcsLite;
-using td.common;
-using td.features._common;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.utils;
-using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.camera
 {
-    public class CameraMoveSystem : IEcsRunSystem, IEcsInitSystem
+    public class CameraMoveSystem : IProtoRunSystem
     {
-        private readonly EcsInject<SharedData> shared;
+        [DI] private Camera_Service cameraService;
 
         private Vector3 startCursorScreenPosition;
         private Vector3 lastCursorScreenPosition;
@@ -24,18 +22,8 @@ namespace td.features.camera
         private Vector2 mouseVector = Vector2.zero;
         private Vector2 keyboardVector = Vector2.zero;
 
-        private Camera camera;
-
-        public void Init(IEcsSystems systems)
+        public void Run()
         {
-            camera = Camera.main;
-            Debug.Assert(camera != null, "Main Camera Is Null");
-        }
-
-        public void Run(IEcsSystems systems)
-        {
-            if (shared.Value.virtualCamera == null) return;
-
             ///// MOUSE ////
             var cursorScreenPosition = Input.mousePosition;
 
@@ -101,7 +89,7 @@ namespace td.features.camera
                 mouseTime += Time.deltaTime;
 
                 var speed = (mouseVector.magnitude + keyboardVector.magnitude) *
-                            (shared.Value.virtualCamera.m_Lens.OrthographicSize / Constants.Camera.MinOrthographicZoom) *
+                            (cameraService.GetVirtualCamera().m_Lens.OrthographicSize / Constants.Camera.MinOrthographicZoom) *
                             (Mathf.Max(Screen.width, Screen.height) / 1000f);
 
                 speed = Mathf.Clamp(speed, 0, Constants.Camera.MaxMoveSpeed);
@@ -114,7 +102,7 @@ namespace td.features.camera
 
                 /////
 
-                var cameraTransform = camera.transform;
+                var cameraTransform = cameraService.GetMainCamera().transform;
                 var cameraPosition = cameraTransform.position;
                 targetPosition = cameraPosition + (Vector3)vector;
                 currentCameraPosition = targetPosition;
@@ -124,7 +112,7 @@ namespace td.features.camera
 
                 pos.z = cameraPosition.z;
 
-                shared.Value.virtualCamera.ForceCameraPosition(pos, cameraTransform.rotation);
+                cameraService.GetVirtualCamera().ForceCameraPosition(pos, cameraTransform.rotation);
 
                 if (mouseInertia)
                 {

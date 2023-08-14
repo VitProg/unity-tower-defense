@@ -1,95 +1,37 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
-using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.features.costPopup;
+using Leopotam.EcsProto.Unity;
 using td.features.eventBus;
-using td.features.infoPanel;
-using td.features.shard.shardCollection;
-using td.features.shard.shardStore;
-using td.utils;
 using UnityEngine.UIElements;
+using td.utils;
+using UnityEditor.Rendering;
 
 namespace td.features.state
 {
-    // public interface IState
-    // {
-    //     float MaxLives { get; set; }
-    //     float Lives { get; set; }
-    //     ushort LevelNumber { get; set; }
-    //     uint Energy { get; set; }
-    //     float NextWaveCountdown { get; set; }
-    //     int WaveNumber { get; set; }
-    //     int WaveCount { get; set; }
-    //     int ActiveSpawnCount { get; set; }
-    //     int EnemiesCount { get; set; }
-    //     float GameSpeed { get; set; }
-    //     float LastLives { get; }
-    //     uint LastEnergy { get; }
-    //
-    //     InfoPanel_State InfoPanel { get; }
-    //     CostPopup_State CostPopup { get; }
-    //     ShardStore_State ShardStore { get; }
-    //     ShardCollection_State ShardCollection { get; }
-    //     
-    //     ref Event_StateChanged GetEvent();
-    //     void SuspendEvents();
-    //     void ResumeEvents();
-    //     void Refresh();
-    //     void UnSuspend();
-    //     void Clear();
-    // }
-
-    public interface IStateExtension
-    {
-#if UNITY_EDITOR
-        void DrawStateProperties();
-#endif
-    }
-    
     public class State
     {
-        // private readonly EcsInject<IEventBus> events = default;
+        [DI] private readonly State_Aspect aspect;
         [DI] private readonly EventBus events;
         
-        private Slice<IStateExtension> extensions = new();
-        private Dictionary<Type, int> extensionsHash = new (10);
+        private Event_StateChanged ev;
 
-        public T Ex<T>() where T : IStateExtension
-        {
-           var type = typeof(T);
-           if (!extensionsHash.TryGetValue(type, out var idx))
-           {
-               throw new Exception($"State extension {type.Name} not registered");
-           }
-
-           return (T)extensions.Get(idx);
-        }
-
-        public void AddEx<T>(T ex) where T : IStateExtension
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public T Ex<T>() where T : IStateExtension 
         {
             var type = typeof(T);
-            if (extensionsHash.TryGetValue(type, out _))
+            if (!aspect.HasEx(type, out var idx))
             {
-                throw new Exception($"State extension {type.Name} already registered");
+                throw new Exception($"State extension {EditorExtensions.GetCleanTypeName(type)} not registered");
             }
 
-            extensions.Add(ex);
-            var idx = extensions.Len() - 1;
-            extensionsHash[type] = idx;
+            return (T)aspect.GetExByIndex(idx);
         }
-        
-#if UNITY_EDITOR
-        void DrawStateProperties(VisualElement root)
-        {
-            //todo 
-        }
-#endif
         
         // -----
-        
+
+        #region Privite Fields
+        private bool gameSimulationEnabled;
         private float maxLives;
         private float lives;
         private ushort levelNumber;
@@ -100,197 +42,190 @@ namespace td.features.state
         private int activeSpawnCount;
         private int enemiesCount;
         private float gameSpeed;
-        private InfoPanel_State infoPanel;
-        private CostPopup_State costPopup;
-        private ShardStore_State shardStore;
-        private ShardCollection_State shardCollection;
 
-        public InfoPanel_State InfoPanel => infoPanel;
-        public CostPopup_State CostPopup => costPopup;
-        public ShardStore_State ShardStore => shardStore;
-        public ShardCollection_State ShardCollection => shardCollection;
+        private float lastLives;
+        private uint lastEnergy;
+        #endregion        
 
-        // -----
-        
-        private bool eventsSuspended;
-        private Event_StateChanged suspendEvent = new ();
-        private bool hasSuspendEvent = false;
+        #region Getters
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public bool GetGameSimulationEnabled() => gameSimulationEnabled;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public float GetMaxLives() => maxLives;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public float GetLastLives() => lastLives;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public float GetLives() => lives;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public ushort GetLevelNumber() => levelNumber;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public uint GetLastEnergy() => lastEnergy;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public uint GetEnergy() => energy;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public float GetNextWaveCountdown() => nextWaveCountdown;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public int GetWaveNumber() => waveNumber;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public int GetWaveCount() => waveCount;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public int GetActiveSpawnCount() => activeSpawnCount;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public int GetEnemiesCount() => enemiesCount;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)] public float GetGameSpeed() => gameSpeed;
+        #endregion
 
-        public State()
+        #region Setters
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetGameSimulationEnabled(bool value)
         {
-            infoPanel = new InfoPanel_State(this);
-            costPopup = new CostPopup_State(this);
-            shardStore = new ShardStore_State(this);
-            shardCollection = new ShardCollection_State(this);
+            if (gameSimulationEnabled == value) return;
+            gameSimulationEnabled = value;
+            ev.gameSimulationEnabled = true;
         }
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public ref Event_StateChanged GetEvent()
+        public void SetMaxLives(float value)
         {
-            if (!eventsSuspended) return ref events.unique.GetOrAdd<Event_StateChanged>();
-            return ref suspendEvent;
+            if (FloatUtils.IsEquals(maxLives, value)) return;
+            maxLives = value;
+            ev.maxLives = true;
+        }
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void SetLastLives(float value) => lastLives = value;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetLives(float value)
+        {
+            if (FloatUtils.IsEquals(lives, value)) return;
+            SetLastLives(lives);
+            lives = value;
+            ev.lives = true;
+        }
+     
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetLevelNumber(ushort value)
+        {
+            if (levelNumber == value) return;
+            levelNumber = value;
+            ev.levelNumber = true;
         }
         
-        public float MaxLives
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void SetLastEnergy(uint value) => lastEnergy = value;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetEnergy(uint value)
         {
-            get => maxLives;
-            set
-            {
-                if (FloatUtils.IsEquals(maxLives, value)) return;
-                maxLives = value;
-                GetEvent().maxLives = true;
-            }
-        }
-
-        public float LastLives { get; private set; }
-        public float Lives
-        {
-            get => lives;
-            set
-            {
-                if (FloatUtils.IsEquals(lives, value)) return;
-                LastLives = lives;
-                lives = value;
-                GetEvent().lives = true;
-            }
+            if (energy == value) return;
+            SetLastEnergy(energy);
+            energy = value;
+            ev.energy = true;
         }
         
-        public ushort LevelNumber
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetNextWaveCountdown(float value)
         {
-            get => levelNumber;
-            set
-            {
-                if (levelNumber == value) return;
-                levelNumber = value;
-                GetEvent().levelNumber = true;
-            }
+            if (FloatUtils.IsEquals(nextWaveCountdown, value)) return;
+            nextWaveCountdown = value;
+            ev.nextWaveCountdown = true;
         }
 
-        public uint LastEnergy { get; private set; }
-        public uint Energy
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetWaveNumber(int value)
         {
-            get => energy;
-            set
-            {
-                if (energy == value) return;
-                LastEnergy = energy;
-                energy = value;
-                GetEvent().energy = true;
-            }
+            if (waveNumber == value) return;
+            waveNumber = value;
+            ev.waveNumber = true;
         }
 
-        public float NextWaveCountdown
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetWaveCount(int value)
         {
-            get => nextWaveCountdown;
-            set
-            {
-                if (FloatUtils.IsEquals(nextWaveCountdown, value)) return;
-                nextWaveCountdown = value;
-                GetEvent().nextWaveCountdown = true;
-            }
+            if (waveCount == value) return;
+            waveCount = value;
+            ev.waveCount = true;
         }
 
-        public int WaveNumber
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetActiveSpawnCount(int value)
         {
-            get => waveNumber;
-            set
-            {
-                if (waveNumber == value) return;
-                waveNumber = value;
-                GetEvent().waveNumber = true;
-            }
+            if (activeSpawnCount == value) return;
+            activeSpawnCount = value;
+            ev.activeSpawnCount = true;
         }
 
-        public int WaveCount
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetEnemiesCount(int value)
         {
-            get => waveCount;
-            set
-            {
-                if (waveCount == value) return;
-                waveCount = value;
-                GetEvent().waveCount = true;
-            }
-        }
-
-        public int ActiveSpawnCount
-        {
-            get => activeSpawnCount;
-            set
-            {
-                if (activeSpawnCount == value) return;
-                activeSpawnCount = value;
-                GetEvent().activeSpawnCount = true;
-            }
-        }
-
-        public int EnemiesCount
-        {
-            get => enemiesCount;
-            set
-            {
-                if (enemiesCount == value) return;
-                enemiesCount = value;
-                GetEvent().enemiesCount = true;
-            }
+            if (enemiesCount == value) return;
+            enemiesCount = value;
+            ev.enemiesCount = true;
         }
         
-        public float GameSpeed
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SetGameSpeed(float value)
         {
-            get => gameSpeed;
-            set
-            {
-                if (FloatUtils.IsEquals(gameSpeed,value)) return;
-                gameSpeed = value;
-                GetEvent().gameSpeed = true;
-            }
+            if (FloatUtils.IsEquals(gameSpeed, value)) return;
+            gameSpeed = value;
+            ev.gameSpeed = true;
         }
-        
-        
-        
+        #endregion
 
-        public void SuspendEvents() => eventsSuspended = true;
-        public void ResumeEvents()
-        {
-            eventsSuspended = false;
-            if (hasSuspendEvent)
-            {
-                events.unique.GetOrAdd<Event_StateChanged>() = suspendEvent;
-                UnSuspend();
-            }
-        }
-
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void Refresh() {
-            eventsSuspended = false;
-            UnSuspend();
-            events.unique.GetOrAdd<Event_StateChanged>().All();
+            // eventsSuspended = false;
+            ev.All();
+            for (var idx = 0; idx < aspect.LenEx(); idx++)
+            {
+                aspect.GetExByIndex(idx).Refresh();
+            }
         }
 
-        public void UnSuspend()
-        {
-            hasSuspendEvent = false;
-            suspendEvent.Clear();
-        }
-
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
             maxLives = default; 
             lives = default;
-            levelNumber = default;
+            levelNumber = (ushort)(levelNumber > 0 ? levelNumber : 1);
             energy = default;
             nextWaveCountdown = default;
             waveNumber = default;
             waveCount = default;
             activeSpawnCount = default;
             enemiesCount = default;
-            // gameSpeed = 1f
-            costPopup.Clear();
-            shardStore.Clear();
-            shardCollection.Clear();           
+            ev.All();
+            
+            for (var idx = 0; idx < aspect.LenEx(); idx++)
+            {
+                aspect.GetExByIndex(idx).Clear();
+            }
         }
 
-        public void GetObjectData(SerializationInfo info, StreamingContext context)
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public void SendChanges()
         {
-            throw new NotImplementedException();
+            if (!ev.IsEmpty())
+            {
+                events.unique.GetOrAdd<Event_StateChanged>() = ev;
+            }
+            ev = default;
+            
+            for (var idx = 0; idx < aspect.LenEx(); idx++)
+            {
+                var ex = aspect.GetExByIndex(idx);
+                ex.SendChanges();
+            }
         }
+
+        
+#if UNITY_EDITOR
+        public void DrawStateProperties(VisualElement root)
+        {
+            EditorUtils.DrawProperty("Game Simulation Enabled", gameSimulationEnabled);
+            EditorUtils.DrawProperty("Max Lives", maxLives);
+            EditorUtils.DrawProperty("Lives", lives);
+            EditorUtils.DrawProperty("Level Number", levelNumber);
+            EditorUtils.DrawProperty("Energy", energy);
+            EditorUtils.DrawProperty("Next Wave Countdown", nextWaveCountdown);
+            EditorUtils.DrawProperty("Wave Number", waveNumber);
+            EditorUtils.DrawProperty("Wave Count", waveCount);
+            EditorUtils.DrawProperty("Active Spawn Count", activeSpawnCount);
+            EditorUtils.DrawProperty("Enemies Count", enemiesCount);
+            EditorUtils.DrawProperty("Game Speed", gameSpeed);
+
+            for (var idx = 0; idx < aspect.LenEx(); idx++)
+            {
+                aspect.GetExByIndex(idx).DrawStateProperties(root);
+            }
+        }
+#endif
     }
 }

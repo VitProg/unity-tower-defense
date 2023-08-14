@@ -1,23 +1,30 @@
 ﻿using System;
-using Leopotam.EcsLite.Di;
-using td.features._common;
-using td.features._common.components;
-using td.features._common.systems;
-using td.features.projectile.components;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.movement.systems;
+using td.utils.ecs;
 
 namespace td.features.projectile.systems
 {
-    public class ProjectileMovementSystem : BaseMovementSystem
+    public class ProjectileMovementSystem : ProtoIntervalableRunSystem, IProtoPreInitSystem
     {
-        private readonly EcsFilterInject<Inc<MovementToTarget, ObjectTransform, Projectile>, ExcludeImmoveable> projectileMovementFilter = default;
+        [DI] private Projectile_Aspect aspect;
+        private MovementSubSystem movement;
 
-        protected override void Init()
+        public void PreInit(IProtoSystems systems)
         {
-            filter = projectileMovementFilter.Value;
+            movement = new MovementSubSystem(aspect);
+            TotalAutoInjectModule.Inject(movement, systems, systems.Services());
+        }
+
+        public override void IntervalRun(float deltaTime)
+        {
+            movement.Run(deltaTime);
         }
 
         public ProjectileMovementSystem(float interval, float timeShift, Func<float> getDeltaTime) : base(interval, timeShift, getDeltaTime)
         {
-        }   
+        }
+
     }
 }

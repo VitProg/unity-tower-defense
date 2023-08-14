@@ -1,62 +1,59 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
+using td.features.eventBus;
 using td.features.fx.events;
 using td.features.fx.types;
 using td.features.goPool;
+using td.features.prefab;
 using td.features.spriteAnimator;
 using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.fx.effects.@base
 {
-    public class WithSpriteAnimatorFX_System<T> : IEcsInitSystem, IEcsDestroySystem where T : struct, IEntityFallowFX, IWithColorFX, IWithSpriteAnimatorFX
+    public class WithSpriteAnimatorFX_System<T> : IProtoInitSystem, IProtoDestroySystem where T : struct, IEntityFallowFX, IWithColorFX, IWithSpriteAnimatorFX
     {
-        private readonly EcsInject<FX_Pools> pools;
-        private readonly EcsInject<FX_Service> fxService;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<Prefab_Service> prefabService;
-        private readonly EcsInject<GameObjectPool_Service> goPoolService;
-        private readonly EcsWorldInject fxWorld = Constants.Worlds.FX;
+        [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
+        [DI] private FX_Service fxService;
+        [DI] private EventBus events;
+        [DI] private Prefab_Service prefabService;
+        [DI] private GOPool_Service goPoolService;
         
-        private readonly EcsPoolInject<T> pool = Constants.Worlds.FX;
-
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Entity.ListenTo<FX_Event_EnemyFallow_Spawned<T>>(OnSpawned);
+            events.global.ListenTo<FX_Event_EnemyFallow_Spawned<T>>(OnSpawned);
         }
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Entity.RemoveListener<FX_Event_EnemyFallow_Spawned<T>>(OnSpawned);
+            events.global.RemoveListener<FX_Event_EnemyFallow_Spawned<T>>(OnSpawned);
         }
         
         // -----------------------------------------------------
 
-        private void OnSpawned(EcsPackedEntityWithWorld packedentity, ref FX_Event_EnemyFallow_Spawned<T> @event)
+        private void OnSpawned(ref FX_Event_EnemyFallow_Spawned<T> data)
         {
             var fxName = typeof(T).Name;
             
-            Debug.Log($"{fxName} OnSpawned");
-            
-            if (!packedentity.Unpack(out var w, out var fxEntity) || w != fxWorld.Value) return;
-            
-            // todo
+            if (!data.Entity.Unpack(out var w, out var fxEntity) || w != aspect.World()) return;
 
-            ref var fx = ref pool.Value.Get(fxEntity);
+            var pool = (ProtoPool<T>)aspect.World().Pool(typeof(T));
             
-            var prefab = prefabService.Value.GetPrefab(PrefabCategory.FX, string.IsNullOrEmpty(fx.PrefabName) ? "Exploding_Imploding_Lt" : fx.PrefabName);
-            var goPool = goPoolService.Value.GetPool(
+            ref var fx = ref pool.Get(fxEntity);
+            
+            var prefab = prefabService.GetPrefab(PrefabCategory.FX, string.IsNullOrEmpty(fx.PrefabName) ? "Exploding_Imploding_Lt" : fx.PrefabName);
+            var goPool = goPoolService.GetPool(
                 prefab,
-                fxService.Value.fxContainer.transform,
+                fxService.fxContainer.transform,
                 10,
                 100
             );
 
-            ref var transform = ref pools.Value.withTransformPool.Value.Get(fxEntity);
+            ref var transform = ref aspect.withTransformPool.Get(fxEntity);
 
             var go = goPool.Get().gameObject;
-            fxService.Value.PrepareGO(go, fxEntity);
+            fxService.PrepareGO(go, fxEntity);
             go.transform.position = transform.position;
             go.transform.localScale = transform.scale;
             go.transform.rotation = transform.rotation;
@@ -65,11 +62,8 @@ namespace td.features.fx.effects.@base
             if (!sr) sr = go.transform.GetComponentInChildren<SpriteRenderer>();
             if (sr)
             {
-                Debug.Log($"{fxName} set color: {fx.Color}");
-                
                 sr.color = fx.Color;
             }
-            else Debug.Log($"{fxName} SpriteRenderer not found ((");
             
             var anim = go.transform.GetComponent<SpriteAnimatorMB>();
             if (!anim) anim = go.transform.GetComponentInChildren<SpriteAnimatorMB>();
@@ -80,7 +74,7 @@ namespace td.features.fx.effects.@base
                 if (fx.IsReverse.HasValue) anim.reverse = fx.IsReverse.Value;
             } else Debug.Log($"{fxName} SpriteAnimatorMB not found ((");
 
-            pools.Value.refGOPoolFX.Value.SafeAdd(fxEntity).reference = go;
+            aspect.refGOPool.GetOrAdd(fxEntity).reference = go;
         }
     }
 }

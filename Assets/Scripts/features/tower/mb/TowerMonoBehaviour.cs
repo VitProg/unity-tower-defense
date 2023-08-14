@@ -1,7 +1,9 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto.QoL;
 using NaughtyAttributes;
+using td.features.eventBus;
 using td.features.inputEvents;
 using td.features.level;
+using td.features.tower.towerRadius.bus;
 using td.features.towerRadius.bus;
 using td.monoBehaviours;
 using td.utils.di;
@@ -13,7 +15,7 @@ namespace td.features.tower.mb
     [DisallowMultipleComponent]
     [RequireComponent(typeof(EcsEntity))]
     [SelectionBase]
-    public class TowerMonoBehaviour : MonoInjectable, IInputEventsHandler
+    public class TowerMonoBehaviour : MonoBehaviour, IInputEventsHandler
     {
         [Required] public EcsEntity ecsEntity;
         [Required] public GameObject barrel;
@@ -22,8 +24,8 @@ namespace td.features.tower.mb
         
         public float2 size = new float2(1f, 1f);
 
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<LevelMap> levelMap;
+        private EventBus Events =>  ServiceContainer.Get<EventBus>();
+        private LevelMap LevelMap =>  ServiceContainer.Get<LevelMap>();
         
 #if UNITY_EDITOR
         void OnDrawGizmosSelected()
@@ -76,7 +78,7 @@ namespace td.features.tower.mb
             if (ecsEntity.packedEntity.HasValue)
             {
                 //todo add radius preview if shard in hand
-                events.Value.Global.Add<Command_Tower_ShowRadius>().towerEntity = ecsEntity.packedEntity.Value;
+                Events.global.Add<Command_Tower_ShowRadius>().towerEntity = ecsEntity.packedEntity.Value;
             }
         }
 
@@ -88,7 +90,7 @@ namespace td.features.tower.mb
             if (ecsEntity.packedEntity.HasValue)
             {
                 //todo add radius preview if shard in hand
-                events.Value.Global.Add<Command_Tower_HideRadius>().towerEntity = ecsEntity.packedEntity.Value;
+                Events.global.Add<Command_Tower_HideRadius>().towerEntity = ecsEntity.packedEntity.Value;
             }
         }
 
@@ -97,26 +99,21 @@ namespace td.features.tower.mb
             // Debug.Log($"OnPointerDown [{x}, {y}]");
             if (ecsEntity.packedEntity.HasValue)
             {
-                events.Value.Global.Add<Command_Tower_ShowRadius>().towerEntity = ecsEntity.packedEntity.Value;
+                Events.global.Add<Command_Tower_ShowRadius>().towerEntity = ecsEntity.packedEntity.Value;
             }
         }
 
         public void OnPointerUp(float x, float y, bool inRadius)
         {
-            // Debug.Log($"OnPointerUp [{x}, {y}, {inRadius}]");
             if (ecsEntity.packedEntity.HasValue)
             {
-                // Debug.Log("try to show radius");
-                events.Value.Global.AddOnNextFrame(new Command_Tower_ShowRadius()
-                {
-                    towerEntity = ecsEntity.packedEntity.Value,
-                });
+                // todo show radius on next frame!
+                Events.global.Add<Command_Tower_ShowRadius>().towerEntity = ecsEntity.packedEntity.Value;
             }
         }
 
         public void OnPointerClick(float x, float y)
         {
-            // Debug.Log($"OnPointerClick [{x}, {y}]");
         }
 
         public bool IsHovered { get; set; } = false;

@@ -1,12 +1,11 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 
 namespace td.features.tower.components
 {
-    // todo move to Tower
     [Serializable]
     public struct TowerTarget
     {
-        public EcsPackedEntity targetEntity;
+        public ProtoPackedEntityWithWorld targetEntity;
     }
 }

@@ -1,11 +1,12 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
 
 namespace td.features.projectile.components
 {
     [Serializable]
-    public struct Projectile : IEcsAutoReset<Projectile>
+    public struct Projectile : IProtoAutoReset<Projectile>
     {
         public const string Type = "projectile";
         
@@ -18,6 +19,6 @@ namespace td.features.projectile.components
         // ReSharper disable once InconsistentNaming   
         public uint _id_;
         
-        public EcsPackedEntity whoFired;
+        public ProtoPackedEntityWithWorld whoFired;
     }
 }

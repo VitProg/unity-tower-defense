@@ -3,6 +3,7 @@ using Leopotam.EcsProto.QoL;
 using td.features.movement.flags;
 using td.features.state;
 using td.utils;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.movement.systems
@@ -13,15 +14,13 @@ namespace td.features.movement.systems
         public ProtoPool<IsTargetReached> GetIsTargetReachedPool();
     }
     
-    public class BaseMovementSystem
+    public class MovementSubSystem
     {
-        [DI] private readonly IMovementAspect aspect;
+        private readonly IMovementAspect aspect;
         [DI] private Movement_Service movementService;
         [DI] private State state;
         
-        protected ProtoItExc it;
-
-        public BaseMovementSystem(IMovementAspect aspect)
+        public MovementSubSystem(IMovementAspect aspect)
         {
             this.aspect = aspect;
         }
@@ -29,7 +28,7 @@ namespace td.features.movement.systems
         public void Run(float deltaTime)
         {
             // var count = 0u;
-            foreach (var entity in it)
+            foreach (var entity in aspect.GetIt())
             {
                 if (!movementService.HasTransform(entity) || !movementService.HasMovement(entity))
                 {
@@ -43,7 +42,7 @@ namespace td.features.movement.systems
                 ref var m = ref movementService.GetMovement(entity);
 
                 var correctedDeltaTime = m.speedOfGameAffected
-                    ? deltaTime * state.GameSpeed
+                    ? deltaTime * state.GetGameSpeed()
                     : deltaTime;
 
                 if (!Mathf.Approximately(m.speedV.x, 0f) || !Mathf.Approximately(m.speedV.x, 0f))
@@ -66,7 +65,7 @@ namespace td.features.movement.systems
                 
                 if(check)
                 {
-                    aspect.isTargetReachedPool.GetOrAdd(entity);
+                    aspect.GetIsTargetReachedPool().GetOrAdd(entity);
 
                     if (!m.nextTarget.IsZero())
                     {
@@ -124,9 +123,5 @@ namespace td.features.movement.systems
 
             return false;
         }
-
-        // public BaseMovementSystem(float interval, float timeShift, Func<float> getDeltaTime) : base(interval, timeShift, getDeltaTime)
-        // {
-        // }
     }
 }

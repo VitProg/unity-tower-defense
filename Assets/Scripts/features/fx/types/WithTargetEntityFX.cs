@@ -1,12 +1,12 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 
 namespace td.features.fx.types
 {
     [Serializable]
     public struct WithTargetEntityFX
     {
-        public EcsPackedEntityWithWorld entity;
+        public ProtoPackedEntityWithWorld entity;
     }
     
     public interface IWithTargetEntityFX : IFX

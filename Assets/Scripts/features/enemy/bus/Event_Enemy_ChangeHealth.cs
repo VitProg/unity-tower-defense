@@ -1,9 +1,10 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto.QoL;
+using td.features.eventBus.types;
 
 namespace td.features.enemy.bus
 {
-    public struct Event_Enemy_ChangeHealth : IEventEntity
+    public struct Event_Enemy_ChangeHealth : IGlobalEvent
     {
-        public EcsPackedEntityWithWorld Entity { get; set; }
+        public ProtoPackedEntityWithWorld Entity { get; set; }
     }
 }

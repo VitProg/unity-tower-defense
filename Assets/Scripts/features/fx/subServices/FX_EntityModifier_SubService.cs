@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using Leopotam.EcsProto.Unity;
 using td.features.fx.types;
 using td.utils.ecs;
 
@@ -9,25 +10,25 @@ namespace td.features.fx.subServices
 {
     public class FX_EntityModifier_SubService
     {
-        private readonly EcsWorldInject fxWorld = Constants.Worlds.FX;
-        private readonly EcsInject<FX_Pools> pools;
+        [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
 
         public ref T Add<T>(
-            EcsPackedEntityWithWorld packedEntity,
+            ProtoPackedEntityWithWorld packedEntity,
             float? duration = null 
         ) where T : struct, IEntityModifierFX
         {
-            var fxEntity = fxWorld.Value.NewEntity();
+            var fxEntity = aspect.World().NewEntity();
 
-            ref var fx = ref fxWorld.Value.GetPool<T>().Add(fxEntity);
+            var pool = (ProtoPool<T>)aspect.World().Pool(typeof(T));
+            ref var fx = ref pool.Add(fxEntity);
             
-            pools.Value.isEntityModifierPool.Value.Add(fxEntity);
+            aspect.isEntityModifierPool.Add(fxEntity);
             
-            ref var fxDuration = ref pools.Value.withDurationPool.Value.Add(fxEntity);
+            ref var fxDuration = ref aspect.withDurationPool.Add(fxEntity);
             fxDuration.SetDuration(duration);
             fxDuration.remainingTime = fxDuration.duration;
             
-            ref var fxTargetEntity = ref pools.Value.withTargetEntityPool.Value.Add(fxEntity);
+            ref var fxTargetEntity = ref aspect.withTargetEntityPool.Add(fxEntity);
             fxTargetEntity.entity = packedEntity;
 
             // todo add go for this effect
@@ -37,14 +38,15 @@ namespace td.features.fx.subServices
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public ref T GetOrAdd<T>(
-            EcsPackedEntityWithWorld packedEntity,
+            ProtoPackedEntityWithWorld packedEntity,
             float? duration = null
         ) where T : struct, IEntityModifierFX
         {
             if (Has<T>(packedEntity, out var fxEntity))
             {
-                ref var t = ref fxWorld.Value.GetPool<T>().Get(fxEntity);
-                ref var d = ref pools.Value.withDurationPool.Value.GetOrAdd(fxEntity);
+                var pool = (ProtoPool<T>)aspect.World().Pool(typeof(T));
+                ref var t = ref pool.Get(fxEntity);
+                ref var d = ref aspect.withDurationPool.GetOrAdd(fxEntity);
                 d.SetDuration(duration);
                 d.remainingTime = d.duration;
                 return ref t;
@@ -52,13 +54,13 @@ namespace td.features.fx.subServices
             return ref Add<T>(packedEntity, duration);
         }
 
-        public bool Has<T>(EcsPackedEntityWithWorld packedEntity, out int fxEntity) where T : struct, IEntityModifierFX
+        public bool Has<T>(ProtoPackedEntityWithWorld packedEntity, out int fxEntity) where T : struct, IEntityModifierFX
         {
             fxEntity = -1;
-            var pool = fxWorld.Value.GetPool<T>();
-            foreach (var entity in pools.Value.entityModifierFilter.Value)
+            var pool = (ProtoPool<T>)aspect.World().Pool(typeof(T));
+            foreach (var entity in aspect.itEntityModifier)
             {
-                if (pool.Has(entity) && packedEntity.EqualsTo(pools.Value.entityModifierFilter.Pools.Inc2.Get(entity).entity))
+                if (pool.Has(entity) && packedEntity.EqualsTo(aspect.withTargetEntityPool.Get(entity).entity))
                 {
                     fxEntity = entity;
                     return true;
@@ -67,36 +69,36 @@ namespace td.features.fx.subServices
             return false;
         }
         
-        public ref T Get<T>(EcsPackedEntityWithWorld packedEntity) where T : struct, IEntityModifierFX
+        public ref T Get<T>(ProtoPackedEntityWithWorld packedEntity) where T : struct, IEntityModifierFX
         {
-            var pool = fxWorld.Value.GetPool<T>();
-            foreach (var fxEntity in pools.Value.entityModifierFilter.Value)
+            var pool = (ProtoPool<T>)aspect.World().Pool(typeof(T));
+            foreach (var fxEntity in aspect.itEntityModifier)
             {
-                ref var fxType = ref pools.Value.entityModifierFilter.Pools.Inc2.Get(fxEntity);
-                if (pool.Has(fxEntity) && packedEntity.EqualsTo(fxType.entity) && fxType.entity.Unpack(out _, out _))
+                ref var target = ref aspect.withTargetEntityPool.Get(fxEntity);
+                if (pool.Has(fxEntity) && packedEntity.EqualsTo(target.entity) && target.entity.Unpack(out _, out _))
                 {
                     return ref pool.Get(fxEntity);
                 }
             }
-            throw new NullReferenceException($"Entity {packedEntity} not found in {typeof(T).Name} pool");
+            throw new NullReferenceException($"Entity {packedEntity} not found in {EditorExtensions.GetCleanTypeName(typeof(T))} pool");
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public void Remove<T>(EcsPackedEntityWithWorld packedEntity) where T : struct, IEntityModifierFX
+        public void Remove<T>(ProtoPackedEntityWithWorld packedEntity) where T : struct, IEntityModifierFX
         {
             if (Has<T>(packedEntity, out var fxEntity))
             {
-                pools.Value.needRemovePool.Value.SafeAdd(fxEntity);
+                aspect.needRemovePool.GetOrAdd(fxEntity);
             }
         }
 
-        public void RemoveAll(EcsPackedEntityWithWorld packedEntity)
+        public void RemoveAll(ProtoPackedEntityWithWorld packedEntity)
         {
-            foreach (var fxEntity in pools.Value.entityModifierFilter.Value)
+            foreach (var fxEntity in aspect.itEntityModifier)
             {
-                if (packedEntity.EqualsTo(pools.Value.entityModifierFilter.Pools.Inc2.Get(fxEntity).entity))
+                if (packedEntity.EqualsTo(aspect.withTargetEntityPool.Get(fxEntity).entity))
                 {
-                    pools.Value.needRemovePool.Value.SafeAdd(fxEntity);
+                    aspect.needRemovePool.GetOrAdd(fxEntity);
                 }
             }
         }

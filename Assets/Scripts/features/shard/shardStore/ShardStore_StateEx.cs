@@ -1,47 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using Leopotam.EcsProto.QoL;
+using td.features.eventBus;
 using td.features.state;
+using UnityEngine.UIElements;
+#if UNITY_EDITOR
 using td.utils;
+using UnityEditor;
+#endif
 
 namespace td.features.shard.shardStore
 {
 
     [Serializable]
-    public class ShardStore_State
+    public class ShardStore_StateEx : IStateExtension
     {
         private const int Max = 6;
+        
+        [DI] private readonly EventBus events;
+        private static Type evType = typeof(Event_ShardStore_StateChanged);
+        private Event_ShardStore_StateChanged ev;
 
+        #region Private Fields
         private readonly List<ShardStore_Item> items = new(6);
         private bool visible;
         private float x;
+        #endregion
+        
+        #region Getters
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool GetVisible() => visible;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public float GetX() => x;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public IReadOnlyList<ShardStore_Item> GetItems() => items;
 
-        private State state;
-
-        public ShardStore_State(State state)
-        {
-            this.state = state;
-        }
-
+        #endregion
+        
+        #region Setters
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref ShardStore_StateEvent GetEvent() => ref state.GetEvent().shardStore;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
+        public void SetVisible(bool value)
         {
-            visible = false;
-            x = 0;
-            ClearItems();
-            GetEvent().All();
+            if (visible == value) return;
+            visible = value;
+            ev.visible = true;
         }
-
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetX(float value)
+        {
+            if (FloatUtils.IsEquals(x, value)) return;
+            x = value;
+            ev.x = true;
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void ClearItems()
         {
             items.Clear();
             items.Capacity = Max;
-            GetEvent().items = true;
+            ev.items = true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -49,34 +65,56 @@ namespace td.features.shard.shardStore
         {
             if (items.Contains(item)) return;
             items.Add(item);
-            GetEvent().items = true;
+            ev.items = true;
         }
-
-        public List<ShardStore_Item> Items => items;
+        #endregion
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void UpdateItems() => GetEvent().items = true;
+        public Type GetEventType() => evType;
 
-        public bool Visible
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Refresh() => ev.All();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear()
         {
-            get => visible;
-            set
-            {
-                if (visible == value) return;
-                visible = value;
-                GetEvent().visible = true;
-            }
+            visible = false;
+            x = 0;
+            ClearItems();
+            ev.All();
         }
 
-        public float X
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void UpdateItems() => ev.items = true;
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SendChanges()
         {
-            get => x;
-            set
+            if (!ev.IsEmpty())
             {
-                if (FloatUtils.IsEquals(x, value)) return;
-                x = value;
-                GetEvent().x = true;
+                events.unique.GetOrAdd<Event_ShardStore_StateChanged>() = ev;
             }
+            ev = default;
         }
+
+#if UNITY_EDITOR
+
+        public void DrawStateProperties(VisualElement root)
+        {
+            EditorUtils.DrawTitle("Shard Store State", true);
+            EditorGUI.indentLevel++;
+            EditorUtils.DrawProperty("Visible", visible);
+            EditorUtils.DrawProperty("Position X", x);
+            if (EditorUtils.FoldoutBegin("shard_store_items", $"Items ({items.Count})"))
+            {
+                foreach (var item in items)
+                {
+                    EditorUtils.DrawProperty("cost", item.cost);
+                    EditorUtils.DrawProperty("type", item.shardType.ToString());
+                }
+            }
+            EditorGUI.indentLevel--;
+        }
+#endif
     }
 }

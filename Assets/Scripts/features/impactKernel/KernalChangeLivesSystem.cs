@@ -1,33 +1,35 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.eventBus;
 using td.features.impactKernel.bus;
 using td.features.state;
 using td.utils;
 
 namespace td.features.impactKernel
 {
-    public class KernalChangeLivesSystem : IEcsInitSystem, IEcsDestroySystem
+    public class KernalChangeLivesSystem : IProtoInitSystem, IProtoDestroySystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<IEventBus> events;
+        [DI] private State state;
+        [DI] private EventBus events;
         
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Global.SubscribeTo<Command_Kernel_Damage>(OnKernemDamage);
-            events.Value.Global.SubscribeTo<Command_Kernel_Heal>(OnKernelHeal);
+            events.global.ListenTo<Command_Kernel_Damage>(OnKernemDamage);
+            events.global.ListenTo<Command_Kernel_Heal>(OnKernelHeal);
         }
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Global.RemoveListener<Command_Kernel_Damage>(OnKernemDamage);
-            events.Value.Global.RemoveListener<Command_Kernel_Heal>(OnKernelHeal);
+            events.global.RemoveListener<Command_Kernel_Damage>(OnKernemDamage);
+            events.global.RemoveListener<Command_Kernel_Heal>(OnKernelHeal);
         }
         
         //------------------------------------------//
 
         private void OnKernemDamage(ref Command_Kernel_Damage command)
         {
-            state.Value.Lives -= command.damage;
-            if (FloatUtils.IsZero(state.Value.Lives))
+            state.SetLives(state.GetLives() - command.damage);
+            if (FloatUtils.IsZero(state.GetLives()))
             {
                 // ToDo: events.Value.Unique.Add<LevelFiled>();
             }
@@ -35,7 +37,7 @@ namespace td.features.impactKernel
 
         private void OnKernelHeal(ref Command_Kernel_Heal command)
         {
-            state.Value.Lives += command.heal;
+            state.SetLives(state.GetLives() + command.heal);
         }
     }
 }

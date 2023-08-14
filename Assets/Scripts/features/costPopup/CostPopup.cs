@@ -11,38 +11,38 @@ using UnityEngine;
 
 namespace td.features.costPopup
 {
-    public class CostPopup : MonoInjectable
+    public class CostPopup : MonoBehaviour
     {
         [SerializeField] private TMP_Text tTitle;
         [SerializeField] private TMP_Text tCostGood;
         [SerializeField] private TMP_Text tCostBad;
 
-        [DI] private State state;
-        [DI] private EventBus events;
+        private State State =>  ServiceContainer.Get<State>();
+        private EventBus Events =>  ServiceContainer.Get<EventBus>();
 
         private Task currentTask;
         private void Start()
         {
-            events.unique.ListenTo<Event_StateChanged>(OnStateChanged);
-            events.unique.ListenTo<Event_LevelFinished>(OnLevelFinished);
-            events.unique.ListenTo<Event_YouDied>(OnYouDied);
+            Events.unique.ListenTo<Event_CostPopup_StateChanged>(OnStateChanged);
+            Events.unique.ListenTo<Event_LevelFinished>(OnLevelFinished);
+            Events.unique.ListenTo<Event_YouDied>(OnYouDied);
         }
         
         private void OnDestroy()
         {
-            events.unique.RemoveListener<Event_StateChanged>(OnStateChanged);
-            events.unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
-            events.unique.RemoveListener<Event_YouDied>(OnYouDied);
+            Events.unique.RemoveListener<Event_CostPopup_StateChanged>(OnStateChanged);
+            Events.unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
+            Events.unique.RemoveListener<Event_YouDied>(OnYouDied);
         }
 
-        private void OnStateChanged(ref Event_StateChanged e)
+        private void OnStateChanged(ref Event_CostPopup_StateChanged e)
         {
-            if (e.costPopup.IsEmpty) return;
+            if (e.IsEmpty()) return;
             
-            var s = state.CostPopup;
+            var s = State.Ex<CostPopup_StateExtension>();
 
-            if (!s.Visible) Hide();
-            else Show(s.Cost, s.IsFine, s.Title);
+            if (!s.GetVisible()) Hide();
+            else Show(s.GetCost(), s.GetIsFine(), s.GetTitle());
         }
         
         private void OnYouDied(ref Event_YouDied obj)
@@ -79,7 +79,8 @@ namespace td.features.costPopup
 
         public void Hide()
         {
-            state.CostPopup.Visible = false;
+            State.Ex<CostPopup_StateExtension>().SetVisible(false);
+            // state.CostPopup.Visible = false;
             gameObject.SetActive(false);
         }
     }

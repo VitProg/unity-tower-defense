@@ -1,7 +1,8 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+﻿using Leopotam.EcsProto.QoL;
 using td.features._common;
+using td.features.eventBus;
 using td.features.impactEnemy.components;
+using td.features.movement;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -10,20 +11,15 @@ namespace td.features.impactEnemy
 {
     public class ImpactEnemy_Service
     {
-        private readonly EcsWorldInject world = default;
-        private readonly EcsWorldInject eventsWorld = Constants.Worlds.EventBus;
-        
-        private readonly EcsPoolInject<PoisonDebuff> poisonDebuffPool = default;
-        private readonly EcsPoolInject<ShockingDebuff> shockingDebuffPool = default;
-        private readonly EcsPoolInject<SpeedDebuff> speedDebuffPool = default;
-        
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsInject<IEventBus> events;
+        [DI] private ImpactEnemy_Aspect aspect;
+        [DI] private Movement_Service movementService;
+        [DI] private EventBus events;
 
         public ref TakeDamage TakeDamage(int entity, float damage, DamageType type = DamageType.Casual)
         {
-            Debug.Log($"TakeDamage: {entity}, {damage}, {type}");
-            ref var takeDamage =ref events.Value.Entity.Add<TakeDamage>(world.Value.PackEntityWithWorld(entity));
+            // Debug.Log($"TakeDamage: {entity}, {damage}, {type}");
+            ref var takeDamage =ref events.global.Add<TakeDamage>();
+            takeDamage.entity = aspect.World().PackEntityWithWorld(entity);
             takeDamage.damage = damage;
             takeDamage.type = type;
             return ref takeDamage;
@@ -31,23 +27,23 @@ namespace td.features.impactEnemy
         
         public void SpeedDebuff(int target, float duration, float speedMultipler)
         {
-            ref var debuf = ref speedDebuffPool.Value.GetOrAdd(target);
+            ref var debuf = ref aspect.speedDebuffPool.GetOrAdd(target);
             debuf.duration = Mathf.Max(duration, debuf.duration);
             debuf.speedMultipler = Mathf.Max(speedMultipler, debuf.speedMultipler);
         }
             
         public void PoisonDebuff(int target, float damage, float duration)
         {
-            ref var debuf = ref poisonDebuffPool.Value.GetOrAdd(target);
+            ref var debuf = ref aspect.poisonDebuffPool.GetOrAdd(target);
             debuf.damage = Mathf.Max(debuf.damage, damage);
             debuf.duration = Mathf.Max(debuf.duration, duration);
         }
 
         public void ShockingDebuff(int target, float probability, float duration)
         {
-            if (!shockingDebuffPool.Value.Has(target) && RandomUtils.Bool(probability))
+            if (!aspect.shockingDebuffPool.Has(target) && RandomUtils.Bool(probability))
             {
-                ref var debuf = ref shockingDebuffPool.Value.GetOrAdd(target);
+                ref var debuf = ref aspect.shockingDebuffPool.GetOrAdd(target);
                 debuf.timeRemains = duration;
                 debuf.started = false;
             }
@@ -62,18 +58,18 @@ namespace td.features.impactEnemy
 
         public void RemovePoisonDebuff(int entity)
         {
-            poisonDebuffPool.Value.SafeDel(entity);
+            aspect.poisonDebuffPool.Del(entity);
         }
 
         public void RemoveSpeedDebuff(int entity)
         {
-            speedDebuffPool.Value.SafeDel(entity);
+            aspect.speedDebuffPool.Del(entity);
         }
 
         public void RemoveShockingDebuff(int entity)
         {
-            shockingDebuffPool.Value.SafeDel(entity);
-            common.Value.SetIsFreezed(entity, false);
+            aspect.shockingDebuffPool.Del(entity);
+            movementService.SetIsFreezed(entity, false);
         }
     }
 }

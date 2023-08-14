@@ -1,21 +1,19 @@
 ﻿using System.Collections.Generic;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+using Leopotam.EcsProto.QoL;
 using td.common;
 using td.features.enemy.components;
 using td.features.level;
+using td.features.level.cells;
 using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.enemy
 {
     public class Enemy_Path_Service
     {
-        private readonly EcsInject<LevelMap> levelMap;
-        private readonly EcsInject<Enemy_Aspect> pools;
-        private readonly EcsWorldInject world;
+        [DI] private Enemy_Aspect aspect;
+        [DI] private LevelMap levelMap;
 
         // private readonly Dictionary<string, List<byte>> cache = new (1);
         private Dictionary<string, List<List<Int2>>> allPathsCache = new ();
@@ -25,17 +23,17 @@ namespace td.features.enemy
             allPathsCache.Clear();
             allPathsCache = new Dictionary<string, List<List<Int2>>>();
 
-            for (var spawnIndex = 0; spawnIndex < levelMap.Value.SpawnCount; spawnIndex++)
+            for (var spawnIndex = 0; spawnIndex < levelMap.SpawnCount; spawnIndex++)
             {
-                var spawnCoords = levelMap.Value.spawns[spawnIndex];
+                var spawnCoords = levelMap.spawns[spawnIndex];
                 
                 if (!spawnCoords.HasValue) return;
 
                 var sCache = new List<List<Int2>>();
                 
-                if (!levelMap.Value.HasCell(spawnCoords, CellTypes.CanWalk)) continue;
+                if (!levelMap.HasCell(spawnCoords, CellTypes.CanWalk)) continue;
                 
-                ref var cell = ref levelMap.Value.GetCell(spawnCoords.Value, CellTypes.CanWalk);
+                ref var cell = ref levelMap.GetCell(spawnCoords.Value, CellTypes.CanWalk);
                 
                 var path = new List<Int2> { spawnCoords.Value };
                 sCache.Add(path);
@@ -58,8 +56,8 @@ namespace td.features.enemy
 
         private void Tick(ref Int2 coords, ref List<Int2> path, ref List<List<Int2>> sCache, int depth = 0)
         {
-            if (!levelMap.Value.HasCell(coords.x, coords.y, CellTypes.CanWalk)) return; 
-            ref var cell = ref levelMap.Value.GetCell(coords.x, coords.y, CellTypes.CanWalk);
+            if (!levelMap.HasCell(coords.x, coords.y, CellTypes.CanWalk)) return; 
+            ref var cell = ref levelMap.GetCell(coords.x, coords.y, CellTypes.CanWalk);
 
             var n = 0; //path.FindAll(i => i.x == x && i.y == y).Count;
             foreach (var pathItem in path)
@@ -101,7 +99,7 @@ namespace td.features.enemy
         }
         public void PrepareEnemyPath(ref Int2 spawnCoords, int enemyEntity)
         {
-            ref var enemyPath = ref pools.Value.enemyPathPool.Value.GetOrAdd(enemyEntity);
+            ref var enemyPath = ref aspect.enemyPathPool.GetOrAdd(enemyEntity);
 
             enemyPath.spawnKey = spawnCoords.ToString();
 
@@ -116,13 +114,13 @@ namespace td.features.enemy
         public void SetPath(int enemyEntity, ref Int2 spawnCoords, int pathNumber)
         {
             var spawnKey = spawnCoords.ToString();
-            ref var enemyPath = ref pools.Value.enemyPathPool.Value.GetOrAdd(enemyEntity);
+            ref var enemyPath = ref aspect.enemyPathPool.GetOrAdd(enemyEntity);
             enemyPath.spawnKey = spawnKey;
             enemyPath.pathNumber = pathNumber;
             enemyPath.index = 0;
         }
 
-        public List<Int2> GetPath(ref EnemyPath enemyPath)
+        public List<Int2> GetPath(ref Enemy_Path enemyPath)
         {
             return allPathsCache[enemyPath.spawnKey][enemyPath.pathNumber];
         }       
@@ -135,7 +133,7 @@ namespace td.features.enemy
         
         public List<Int2> GetPath(int enemyEntity)
         {
-            ref var enemyPath = ref pools.Value.enemyPathPool.Value.GetOrAdd(enemyEntity);
+            ref var enemyPath = ref aspect.enemyPathPool.GetOrAdd(enemyEntity);
             return GetPath(ref enemyPath);
         }
     }

@@ -1,12 +1,12 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 
 namespace td.features.projectile.lightning
 {
     [Serializable]
-    public struct LightningLine
+    public struct Lightning
     {
-        public EcsPackedEntity[] chainEntities;
+        public ProtoPackedEntityWithWorld[] chainEntities;
         public int length;
         
         public float timeRemains;

@@ -1,4 +1,5 @@
 ﻿using System;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
 using td.utils.ecs;
 
@@ -6,31 +7,26 @@ namespace td.features.movement.systems
 {
     public class ApplyObjectTransformSystem : ProtoIntervalableRunSystem
     {
-        private readonly EcsInject<Common_Pools> commonPools;
-        private readonly EcsInject<Common_Service> common;
+        [DI] private Movement_Aspect aspect;
+        [DI] private Movement_Service movementService;
 
-        public override void IntervalRun(IEcsSystems systems, float _)
+        public override void IntervalRun(float _)
         {
-            var filter = commonPools.Value.objectTransformFilter;
-            var count = filter.Value.GetEntitiesCount();
-            var arr = filter.Value.GetRawEntities();
-            for (var index = 0; index < count; index += 1)
+            foreach (var entity in aspect.itObjectTransform)
             {
-                var entity = arr[index];
-
-                ref var t = ref common.Value.GetTransform(entity);
+                ref var t = ref movementService.GetTransform(entity);
 
                 if (!t.IsChanged()) continue;
 
-                var got = common.Value.GetGOTransform(entity);
+                var got = movementService.GetGOTransform(entity);
 
                 if (t.positionChanged) got.position = t.position;
                 if (t.scaleChanged) got.localScale = t.GetScaleVector(got.localScale.z);
                 if (t.rotationChanged)
                 {
-                    if (common.Value.HasTargetBody(entity))
+                    if (movementService.HasTargetBody(entity))
                     {
-                        common.Value.GetTargetBodyTransform(entity).rotation = t.rotation;
+                        movementService.GetTargetBodyTransform(entity).rotation = t.rotation;
                     }
                     else
                     {

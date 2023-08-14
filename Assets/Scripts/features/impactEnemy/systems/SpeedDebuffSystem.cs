@@ -1,43 +1,44 @@
 ﻿using System;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using td.features._common.flags;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features.enemy;
-using td.features.enemy.components;
+using td.features.eventBus;
 using td.features.fx;
 using td.features.fx.effects;
-using td.features.impactEnemy.components;
+using td.features.impactEnemy.bus;
 using td.features.state;
-using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.impactEnemy.systems
 {
-    public class SpeedDebuffSystem : IEcsRunSystem
+    public class SpeedDebuffSystem : IProtoRunSystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<Enemy_Service> enemyService;
-        private readonly EcsInject<ImpactEnemy_Service> impactEnemy;
-        private readonly EcsInject<FX_Service> fxService;
-        private readonly EcsWorldInject world;
-        
-        private readonly EcsFilterInject<Inc<SpeedDebuff, Enemy>, Exc<IsDestroyed>> speedDebuffEntities = default;
+        [DI] private ImpactEnemy_Aspect aspect;
+        [DI] private State state;
+        [DI] private ImpactEnemy_Service impactEnemy;
+        [DI] private Enemy_Service enemyService;
+        [DI] private EventBus events;
+        // [DI] private FX_Service fxService;
 
-        public void Run(IEcsSystems systems)
+        public void Run()
         {
-            foreach (var enemyEntity in speedDebuffEntities.Value)
+            foreach (var enemyEntity in aspect.itSpeedDebuff)
             {
-                ref var debuff = ref speedDebuffEntities.Pools.Inc1.Get(enemyEntity);
-                ref var enemy = ref speedDebuffEntities.Pools.Inc2.Get(enemyEntity);
+                ref var debuff = ref aspect.speedDebuffPool.Get(enemyEntity);
+                ref var enemy = ref enemyService.GetEnemy(enemyEntity);
                 
                 if (!debuff.started)
                 {
                     debuff.timeRemains = debuff.duration;
                     debuff.started = true;
-                    fxService.Value.EntityFallow.GetOrAdd<ColdStatusFX>(
-                        world.Value.PackEntityWithWorld(enemyEntity),
+                    
+                    ref var gotEvent = ref events.global.Add<Event_GotSpeedDebuff>();
+                    gotEvent.entity = aspect.World().PackEntityWithWorld(enemyEntity);
+                    gotEvent.duration = debuff.duration;
+                    /*fxService.entityFallow.GetOrAdd<ColdStatusFX>(
+                        aspect.World().PackEntityWithWorld(enemyEntity),
                         debuff.duration
-                    );
+                    );*/
                 }
 
                 var debafedSpeed = enemy.startingSpeed / Mathf.Max(1f, debuff.speedMultipler);
@@ -45,7 +46,7 @@ namespace td.features.impactEnemy.systems
                 var startEndDuration = Math.Max(0.5f, debuff.duration / 10f);
                 var mainDuration = Math.Max(0.001f, debuff.duration - startEndDuration * 2);
                 
-                debuff.timeRemains -= Time.deltaTime * state.Value.GameSpeed;
+                debuff.timeRemains -= Time.deltaTime * state.GetGameSpeed();
 
                 var timePassed = debuff.duration - debuff.timeRemains;
 
@@ -65,7 +66,7 @@ namespace td.features.impactEnemy.systems
                     var t = timePassedInPhase / startEndDuration;
                     // todo
                     t = t * t * (3f - 2f * t);
-                    enemyService.Value.ChangeSpeed(enemyEntity, Mathf.Lerp(
+                    enemyService.ChangeSpeed(enemyEntity, Mathf.Lerp(
                         enemy.startingSpeed,
                         debafedSpeed,
                         t
@@ -75,7 +76,7 @@ namespace td.features.impactEnemy.systems
                 if (inMainPhase)
                 {
                     debuff.phase = 2;
-                    enemyService.Value.ChangeSpeed(enemyEntity, debafedSpeed);
+                    enemyService.ChangeSpeed(enemyEntity, debafedSpeed);
                 }
 
                 if (inEndPhase)
@@ -85,7 +86,7 @@ namespace td.features.impactEnemy.systems
                     var t = timePassedInPhase / startEndDuration;
                     // todo
                     t =  t * t * (3f - 2f * t);
-                    enemyService.Value.ChangeSpeed(enemyEntity, Mathf.Lerp(
+                    enemyService.ChangeSpeed(enemyEntity, Mathf.Lerp(
                         debafedSpeed,
                         enemy.startingSpeed,
                         t
@@ -94,9 +95,9 @@ namespace td.features.impactEnemy.systems
                 
                 if (debuff.timeRemains < -0.001f)
                 {
-                    impactEnemy.Value.RemoveSpeedDebuff(enemyEntity);
-                    enemyService.Value.ChangeSpeed(enemyEntity, enemy.startingSpeed);
-                    fxService.Value.EntityFallow.Remove<ColdStatusFX>(world.Value.PackEntityWithWorld(enemyEntity));
+                    impactEnemy.RemoveSpeedDebuff(enemyEntity);
+                    enemyService.ChangeSpeed(enemyEntity, enemy.startingSpeed);
+                    // fxService.entityFallow.Remove<ColdStatusFX>(aspect.World().PackEntityWithWorld(enemyEntity));
                 }
             }
         }

@@ -1,69 +1,75 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using td.features._common;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.costPopup;
 using td.features.enemy;
+using td.features.eventBus;
 using td.features.level.bus;
-using td.features.pathFinding;
+using td.features.level.cells;
+using td.features.movement;
+using td.features.path;
+using td.features.shard.shardStore;
 using td.features.state;
 using td.features.tower;
 using td.features.tower.mb;
 using td.features.wave.bus;
-using td.monoBehaviours;
 using td.utils;
 using UnityEngine;
 
 namespace td.features.level.systems
 {
-    public class Level_LoadingSystem : IEcsInitSystem, IEcsDestroySystem
+    public class Level_LoadingSystem : IProtoInitSystem, IProtoDestroySystem
     {
-        private readonly EcsInject<LevelMap> levelMap;
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<LevelLoader_Service> levelLoader;
-        private readonly EcsInject<IPath_Service> pathService;
-        private readonly EcsInject<EnemyPath_Service> enemyPathService;
-        private readonly EcsInject<Tower_Converter> converter;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<SharedData> shared;
-        private readonly EcsWorldInject world;
+        [DI] private LevelMap levelMap;
+        [DI] private State state;
+        [DI] private LevelLoader_Service levelLoader;
+        [DI] private Path_Service pathService;
+        [DI] private Enemy_Path_Service enemyPathService;
+        [DI] private Tower_Converter converter;
+        [DI] private Movement_Service movementService;
+        [DI] private EventBus events;
+        
+        private ProtoWorld world;
 
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Unique.SubscribeTo<Command_LoadLevel>(OnLoadLevelCommand);
-            events.Value.Unique.SubscribeTo<Event_LevelLoaded>(OnLevelLoaded);
+            world = systems.World();
+            events.unique.ListenTo<Command_LoadLevel>(OnLoadLevelCommand);
+            events.unique.ListenTo<Event_LevelLoaded>(OnLevelLoaded);
         }
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Unique.RemoveListener<Command_LoadLevel>(OnLoadLevelCommand);
-            events.Value.Unique.RemoveListener<Event_LevelLoaded>(OnLevelLoaded);
+            events.unique.RemoveListener<Command_LoadLevel>(OnLoadLevelCommand);
+            events.unique.RemoveListener<Event_LevelLoaded>(OnLevelLoaded);
         }
         
         //------------------------------------------//
 
         private void LoadLevel(ushort levelNumber)
         {
-            state.Value.LevelNumber = levelNumber;
+            state.SetLevelNumber(levelNumber);
 
-            state.Value.ShardStore.Visible = false;
-            state.Value.CostPopup.Visible = false;
+            // todo: move to own modules
+            state.Ex<ShardStore_StateEx>().SetVisible(false);
+            state.Ex<CostPopup_StateExtension>().SetVisible(false);
+            //
 
-            if (levelLoader.Value.HasLevel())
+            if (levelLoader.HasLevel())
             {
-                levelLoader.Value.LoadLevel();
-                pathService.Value.InitPath();
-                enemyPathService.Value.PrecalculateAllPaths();
+                levelLoader.LoadLevel();
+                pathService.InitPath();
+                enemyPathService.PrecalculateAllPaths();
 
-                state.Value.Refresh();
+                state.Refresh();
 
-                var levelConfig = levelMap.Value.LevelConfig;
+                var levelConfig = levelMap.LevelConfig;
 
-                var countdown = state.Value.WaveNumber <= 0
+                var countdown = state.GetWaveNumber() <= 0
                     ? levelConfig?.delayBeforeFirstWave
                     : levelConfig?.delayBetweenWaves;
 
-                events.Value.Unique.Add<Wave_NextCountdown>().countdown = countdown ?? 0;
-                events.Value.Unique.Add<Event_LevelLoaded>();
+                events.unique.GetOrAdd<Wave_NextCountdown>().countdown = countdown ?? 0;
+                events.unique.GetOrAdd<Event_LevelLoaded>();
             }
             else
             {
@@ -75,16 +81,16 @@ namespace td.features.level.systems
         {
             foreach (var towerMb in Object.FindObjectsOfType<TowerMonoBehaviour>())
             {
-                var entity = converter.Value.GetEntity(towerMb.gameObject) ?? world.Value.NewEntity();
-                converter.Value.Convert(towerMb.gameObject, entity);
+                var entity = converter.GetEntity(towerMb.gameObject) ?? world.NewEntity();
+                converter.Convert(towerMb.gameObject, entity);
 
-                var transform = common.Value.GetGOTransform(entity);
+                var transform = movementService.GetGOTransform(entity);
 
                 var cellCoordinates = HexGridUtils.PositionToCell(transform.position);
 
-                if (levelMap.Value.HasCell(cellCoordinates, CellTypes.CanBuild)) {
+                if (levelMap.HasCell(cellCoordinates, CellTypes.CanBuild)) {
                     // ToDo
-                    levelMap.Value.GetCell(cellCoordinates, CellTypes.CanBuild).packedBuildingEntity = world.Value.PackEntity(entity);
+                    levelMap.GetCell(cellCoordinates, CellTypes.CanBuild).packedBuildingEntity = world.PackEntityWithWorld(entity);
                 }
                 else
                 {
@@ -102,18 +108,18 @@ namespace td.features.level.systems
 
         private void OnLoadLevelCommand(ref Command_LoadLevel command)
         {
-            Debug.Log("OnLoadLevelCommand begin");
+            // Debug.Log("OnLoadLevelCommand begin");
                     
             // todo
             //systems.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, true);
-            common.Value.SetGroupSystemState(Constants.EcsSystemGroups.ShardSimulation, true);
-            common.Value.SetGroupSystemState(Constants.EcsSystemGroups.Camera, true);
-            common.Value.SetGroupSystemState(Constants.EcsSystemGroups.DragNDrop, true);
-            common.Value.SetGroupSystemState(Constants.EcsSystemGroups.RemoveGameObject, true);
+            // common.SetGroupSystemState(Constants.EcsSystemGroups.ShardSimulation, true);
+            // common.SetGroupSystemState(Constants.EcsSystemGroups.Camera, true);
+            // common.SetGroupSystemState(Constants.EcsSystemGroups.DragNDrop, true);
+            // common.SetGroupSystemState(Constants.EcsSystemGroups.RemoveGameObject, true);
                     
-            LoadLevel(command.levelNumber);
+            LoadLevel(command.levelNumber == default ? state.GetLevelNumber() : command.levelNumber);
                     
-            Debug.Log("OnLoadLevelCommand fin");
+            // Debug.Log("OnLoadLevelCommand fin");
         }
     }
 }

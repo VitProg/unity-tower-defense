@@ -5,7 +5,7 @@ using UnityEngine.U2D.Animation;
 namespace td.features.enemy.data
 {
     [CreateAssetMenu(menuName = "TD/EnemiesConfig")]
-    public class EnemiesConfig : ScriptableObject
+    public class Enemy_Config_SO : ScriptableObject
     {
         [Header("Creep Enemy")]
         [Header("* Small")]

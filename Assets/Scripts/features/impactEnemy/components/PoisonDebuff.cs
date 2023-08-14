@@ -1,6 +1,4 @@
 ﻿using System;
-using Leopotam.EcsLite;
-using UnityEngine.Serialization;
 
 namespace td.features.impactEnemy.components
 {

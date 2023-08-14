@@ -1,8 +1,8 @@
-﻿using Leopotam.EcsLite;
+﻿using td.features.eventBus.types;
 
 namespace td.features.gameStatus.bus
 {
-    public struct Command_ResumeGameSimulation : IEventUnique
+    public struct Command_ResumeGameSimulation : IUniqueEvent
     {
         
     }

@@ -1,96 +1,61 @@
 ﻿using System;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
-using td.features._common.components;
-using td.features.enemy.components;
+using td.features.enemy;
 using td.features.level;
+using td.features.movement;
 using td.features.projectile;
 using td.features.shard;
-using td.features.tower.components;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.tower.systems
 {
-    public class TowerFindTargetSystem : EcsIntervalableRunSystem
+    public class TowerFindTargetSystem : ProtoIntervalableRunSystem
     {
-        private readonly EcsInject<LevelMap> levelMap;
-        private readonly EcsInject<ShardCalculator> shardCalculator;
-        private readonly EcsInject<Shard_Service> shardService;
-        private readonly EcsInject<Projectile_Service> projectileService;
-        private readonly EcsInject<Tower_Service> towerService;
+        [DI] private Tower_Aspect aspect;
+        [DI] private LevelMap levelMap;
+        [DI] private Shard_Calculator shardCalculator;
+        [DI] private Shard_Service shardService;
+        [DI] private Projectile_Service projectileService;
+        [DI] private Tower_Service towerService;
+        [DI] private Enemy_Service enemyService;
+        [DI] private Movement_Service movementService;
         
-        private readonly EcsFilterInject<Inc<Tower, Ref<GameObject>>, ExcludeNotAlive> towerEntities = default;
-        private readonly EcsFilterInject<Inc<Enemy, Ref<GameObject>>, ExcludeNotAlive> enemyEntities = default;
-
-        public override void IntervalRun(IEcsSystems systems, float _)
+        public override void IntervalRun(float _)
         {
-            var world = systems.GetWorld();
-            
-            foreach (var towerEntity in towerEntities.Value)
+            foreach (var towerEntity in aspect.itTower)
             {
-                var tower = towerEntities.Pools.Inc1.Get(towerEntity);
-                var towerGameObject = towerEntities.Pools.Inc2.Get(towerEntity);
+                var tower = aspect.towerPool.Get(towerEntity);
+                var transform = movementService.GetTransform(towerEntity);
 
-                var towerPosition = towerGameObject.reference.transform.position;
+                var towerPosition = transform.position;
 
                 var radius = tower.radius;
                 
-                // if (shardService.Value.HasShardInTower(towerEntity, out var shardEntity))
-                // {
-                    // ref var shard = ref shardService.Value.GetShard(shardEntity);
-                    // yellow - увеличивает радиус стрельбы
-                    // radius = shardCalculator.Value.GetTowerRadius(ref shard);
-                // }
-                
                 var towerSqrRadius = radius * radius;
                 
-                // var maxDistanceFromSpawn = 0f;
                 var minDistanceToKernel = float.MaxValue;
                 var targetEntity = -1;
 
-                foreach (var enemyEntity in enemyEntities.Value)
+                var enemiesInRadius = enemyService.FindNearestEnemies(towerPosition, towerSqrRadius);
+
+                for (var idx = 0; idx < enemiesInRadius.Len(); idx++)
                 {
-                    var enemy = enemyEntities.Pools.Inc1.Get(enemyEntity);
-                    var enemyGameObject = enemyEntities.Pools.Inc2.Get(enemyEntity);
-                    var enemyPosition = enemyGameObject.reference.transform.position;
+                    var enemyEntity = enemiesInRadius.Get(idx);
+                    var enemy = enemyService.GetEnemy(enemyEntity);
+                    var enemyPosition = movementService.GetTransform(enemyEntity).position;
 
-                    if (
-                        Math.Abs(enemyPosition.x - towerPosition.x) > tower.radius ||
-                        Math.Abs(enemyPosition.y - towerPosition.y) > tower.radius
-                    )
-                    {
-                        continue;
-                    }
-
-                    if ((enemyPosition - towerPosition).sqrMagnitude < towerSqrRadius)
-                    {
-                        if (minDistanceToKernel > enemy.distanceToKernel)
-                        {
-                            minDistanceToKernel = enemy.distanceToKernel;
-                            targetEntity = enemyEntity;
-                        }
-                        // var distanceFromSpawn = float.MaxValue; 
-                        //
-                        // //todo select method by tower settings
-                        // var enemyCoordinate = HexGridUtils.PositionToCell(enemyPosition);
-                        // var cell = levelMap.GetCell(enemyCoordinate, CellTypes.CanWalk);
-                        // if (cell && cell.isSpawn && enemy.distanceFromSpawn > 0)
-                        // {
-                        //     distanceFromSpawn = enemy.distanceFromSpawn;
-                        // }
-                        //
-                        // if (maxDistanceFromSpawn < distanceFromSpawn)
-                        // {
-                        //     maxDistanceFromSpawn = distanceFromSpawn;
-                        //     targetEntity = enemyEntity;
-                        // }
-                    }
+                    if (minDistanceToKernel < enemy.distanceToKernel) continue;
+                    
+                    minDistanceToKernel = enemy.distanceToKernel;
+                    targetEntity = enemyEntity;
                 }
 
-                if (targetEntity >= 0) towerService.Value.GetTowerTarget(towerEntity).targetEntity = world.PackEntity(targetEntity);
-                else towerService.Value.RemoveTowerTarget(towerEntity);
+                if (targetEntity >= 0)
+                {
+                    towerService.GetTowerTarget(towerEntity).targetEntity = aspect.World().PackEntityWithWorld(targetEntity);
+                }
+                else towerService.RemoveTowerTarget(towerEntity);
             }
         }
 

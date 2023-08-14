@@ -1,13 +1,13 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using System.Runtime.CompilerServices;
+using Leopotam.EcsProto;
 using td.features._common;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace td.features.enemy.components
 {
     [Serializable]
-    public struct Enemy : IEcsAutoReset<Enemy>
+    public struct Enemy : IProtoAutoReset<Enemy>
     {
         public const string Type = "enemy";
         
@@ -42,5 +42,8 @@ namespace td.features.enemy.components
         {
             return $"{enemyName}#{_id_}: hp{health}, spd{speed}, dmg{damage}, shp{startingHealth}, sspd{startingSpeed}";
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool IsEquals(ref Enemy value) => _id_ == value._id_;
     }
 }

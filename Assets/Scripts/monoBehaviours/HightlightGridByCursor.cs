@@ -1,17 +1,13 @@
-using JetBrains.Annotations;
-using Leopotam.EcsLite;
 using NaughtyAttributes;
-using td.common;
-using td.features._common;
+using td.features.camera;
 using td.utils.di;
-using td.utils.ecs;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 namespace td.monoBehaviours
 {
     [RequireComponent(typeof(Renderer))]
-    public class HightlightGridByCursor : MonoInjectable
+    public class HightlightGridByCursor : MonoBehaviour
     {
         private new Renderer renderer;
 
@@ -51,8 +47,6 @@ namespace td.monoBehaviours
         private Plane plane;
         
         //
-        private readonly EcsInject<SharedData> shared;
-
         private bool diResolved;
         //
 
@@ -63,7 +57,7 @@ namespace td.monoBehaviours
         // }
 
         // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
             renderer = GetComponent<Renderer>();
             renderer.material.SetColor(SGridColor, fineColor);
@@ -81,9 +75,11 @@ namespace td.monoBehaviours
             var mousePosition = Input.mousePosition;
             var worldPosition = Vector3.zero;
 
-            var mainCamera = shared.Value.mainCamera;
+            var cameraService = ServiceContainer.Get<Camera_Service>();
             
-            if (shared.Value.IsPerspectiveCameraMode)
+            var mainCamera = cameraService.GetMainCamera();
+            
+            if (cameraService.IsPerspectiveCameraMode())
             {
                 var ray = mainCamera.ScreenPointToRay(mousePosition);
 
@@ -127,12 +123,12 @@ namespace td.monoBehaviours
         {
             var (color, bgColor, lr, lp) = GetByStatus(lightRadius, lightPower);
             
-            Debug.Log($"color: {color}");
-            Debug.Log($"bgColor: {bgColor}");
-            Debug.Log($"lightRadius: {lr}");
-            Debug.Log($"lightPower: {lightPower}");
-            Debug.Log($"gridWight: {gridWight}");
-            Debug.Log($"shift: {shift}");
+            // Debug.Log($"color: {color}");
+            // Debug.Log($"bgColor: {bgColor}");
+            // Debug.Log($"lightRadius: {lr}");
+            // Debug.Log($"lightPower: {lightPower}");
+            // Debug.Log($"gridWight: {gridWight}");
+            // Debug.Log($"shift: {shift}");
             
             var renderer = GetComponent<Renderer>();
             renderer.material.SetColor(SGridColor, color);

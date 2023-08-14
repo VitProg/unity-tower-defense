@@ -1,17 +1,12 @@
-﻿using System;
-using JetBrains.Annotations;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+﻿using Leopotam.EcsProto.QoL;
 using NaughtyAttributes;
-using td.features._common;
-using td.utils.di;
 using UnityEngine;
 
 namespace td.monoBehaviours
 {
     public class EcsEntity : MonoBehaviour
     {
-        public EcsPackedEntityWithWorld? packedEntity = null;
+        public ProtoPackedEntityWithWorld? packedEntity = null;
 
         [ShowNativeProperty] public bool HasEntity => packedEntity.HasValue;
         // public string worldName = Constants.Worlds.Default;

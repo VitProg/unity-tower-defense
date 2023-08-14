@@ -1,6 +1,9 @@
-﻿using Leopotam.EcsLite.Di;
-using td.features._common;
-using td.features._common.components;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.destroy.flags;
+using td.features.movement.components;
+using td.features.movement.flags;
+using td.features.movement.systems;
 using td.features.projectile.attributes;
 using td.features.projectile.components;
 using td.features.projectile.explosion;
@@ -8,18 +11,46 @@ using td.features.projectile.lightning;
 
 namespace td.features.projectile
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class Projectile_Pools
+    public class Projectile_Aspect : ProtoAspectInject, IMovementAspect
     {
-        public readonly EcsPoolInject<Projectile> projectilePool = default;
-        public readonly EcsPoolInject<ProjectileTarget> projectileTargetPool = default;
-        public readonly EcsPoolInject<DamageAttribute> damageAttributePool = default;
-        public readonly EcsPoolInject<ExplosiveAttribute> explosiveAttributePool = default;
-        public readonly EcsPoolInject<LightningAttribute> lightningAttributePool = default;
-        public readonly EcsPoolInject<PoisonAttribute> poisonAttributePool = default;
-        public readonly EcsPoolInject<ShockingAttribute> shockingAttributePool = default;
-        public readonly EcsPoolInject<SlowingAttribute> slowingAttributePool = default;
-        public readonly EcsPoolInject<Explosion> explosionPool = default;
-        public readonly EcsPoolInject<LightningLine> lightningLinePool = default;
+        public ProtoPool<Projectile> projectilePool;
+        public ProtoPool<ProjectileTarget> projectileTargetPool;
+
+        public ProtoPool<DamageAttribute> damageAttributePool;
+        public ProtoPool<ExplosiveAttribute> explosiveAttributePool;
+        public ProtoPool<LightningAttribute> lightningAttributePool;
+        public ProtoPool<PoisonAttribute> poisonAttributePool;
+        public ProtoPool<ShockingAttribute> shockingAttributePool;
+        public ProtoPool<SlowingAttribute> slowingAttributePool;
+        
+        private ProtoPool<IsTargetReached> isTargetReachedPool;
+
+        private ProtoItExc itProjectileMovement = It
+            .Chain<Projectile>()
+            .Inc<Movement>()
+            .Inc<ObjectTransform>()
+            .Exc<IsSmoothRotation>()
+            .Exc<IsDestroyed>()
+            .Exc<IsDisabled>()
+            .Exc<IsHidden>()
+            .Exc<IsFreezed>()
+            .End();
+/*            It.Inc<Movement, ObjectTransform, Projectile>(),
+            It.Exc(
+                typeof(IsDestroyed),
+                typeof(IsDisabled),
+                typeof(IsHidden),
+                typeof(IsFreezed),
+                typeof(IsSmoothRotation)
+            )
+        );*/
+
+        public ProtoItExc itProjectileReachTarget = new ProtoItExc(
+            It.Inc<Projectile, IsTargetReached, ObjectTransform, Movement>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
+
+        public ProtoItExc GetIt() => itProjectileMovement;
+        public ProtoPool<IsTargetReached> GetIsTargetReachedPool() => isTargetReachedPool;
     }
 }

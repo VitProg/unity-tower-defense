@@ -1,16 +1,18 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using td.features._common;
+using td.features.destroy;
 using td.features.enemy.bus;
 using td.features.eventBus;
 using td.features.state;
 
 namespace td.features.enemy.systems
 {
-    public class Enemy_Died_Service : IProtoInitSystem, IProtoDestroySystem
+    public class Enemy_Died_System : IProtoInitSystem, IProtoDestroySystem
     {
+        [DI] private Enemy_Aspect aspect;
         [DI] private Enemy_Service enemyService;
-        [DI] private Common_Service common;
+        [DI] private Destroy_Service destroyService;
         [DI] private State state;
         [DI] private EventBus events;
 
@@ -36,9 +38,9 @@ namespace td.features.enemy.systems
             
             //todo тут можно запустиить анимацию смерти, эфекты, добавление очков и т.п.
             
-            common.SafeDelete(enemyEntity);
-            state.Energy += enemy.energy;
-            state.EnemiesCount--;
+            destroyService.MarkAsRemoved(aspect.World().PackEntityWithWorld(enemyEntity));
+            state.SetEnergy(state.GetEnergy() + enemy.energy);
+            state.SetEnemiesCount(state.GetEnemiesCount() - 1);
         }
     }
 }

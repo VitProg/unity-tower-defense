@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using td.common;
-using td.features._common.flags;
 using td.features.enemy.components;
 using td.features.level.cells;
 using td.utils;
@@ -8,7 +7,7 @@ using UnityEngine;
 
 namespace td.features.enemy
 {
-    public static class EnemyUtils
+    public static class Enemy_Utils
     {
         public static Vector2 CalcPosition(Int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
             HexGridUtils.CellToPosition(cellCoordinates) + (Vector2)(rotation * offset);

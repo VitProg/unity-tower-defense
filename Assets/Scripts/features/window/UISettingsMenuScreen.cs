@@ -1,4 +1,4 @@
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 using td.features.window.common;
 using td.utils.di;
 using UnityEngine;
@@ -8,23 +8,20 @@ namespace td.features.window
 {
     [RequireComponent(typeof(FadeInOut))]
     [RequireComponent(typeof(UIWindowPopup))]
-    public class UISettingsMenuScreen : MonoInjectable
+    public class UISettingsMenuScreen : MonoBehaviour
     {
-        private readonly EcsInject<Windows_Service> windowsService;
+        private Window_Service WindowsService => ServiceContainer.Get<Window_Service>();
 
         [SerializeField] private Button closeButton;
 
-        private new void Awake()
+        private void Start()
         {
-            base.Awake();
             closeButton.onClick.AddListener(OnCloseClicked);
         }
 
         private async void OnCloseClicked()
         {
-            Debug.Log("OnCloseClicked");
-
-            await windowsService.Value.Close(Windows_Service.Type.SettingsMenu);
+            await WindowsService.Close(Window_Service.Type.SettingsMenu);
         }
 
         private void OnDestroy()

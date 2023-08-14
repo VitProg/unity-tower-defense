@@ -1,56 +1,56 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
-using td.features._common.components;
-using td.features.enemy.components;
+using td.features.eventBus;
 using td.features.fx;
 using td.features.fx.effects;
-using td.features.impactEnemy.components;
+using td.features.impactEnemy.bus;
 using td.features.state;
-using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.impactEnemy.systems
 {
-    public class PoisonDebuffSystem : IEcsRunSystem
+    public class PoisonDebuffSystem : IProtoRunSystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<ImpactEnemy_Service> impactEnemy;
-        private readonly EcsInject<FX_Service> fxService;
-        private readonly EcsWorldInject world;
+        [DI] private ImpactEnemy_Aspect aspect;
+        [DI] private State state;
+        [DI] private ImpactEnemy_Service impactEnemy;
+        [DI] private EventBus events;
+        // [DI] private FX_Service fxService;
         
-        private readonly EcsFilterInject<Inc<PoisonDebuff, Enemy, Ref<GameObject>>, ExcludeNotAlive> filter = default;
-
-        public void Run(IEcsSystems systems)
+        public void Run()
         {
-            foreach (var enemyEntity in filter.Value)
+            foreach (var enemyEntity in aspect.itPoisonDebuff)
             {
-                ref var debuff = ref filter.Pools.Inc1.Get(enemyEntity);
+                ref var debuff = ref aspect.poisonDebuffPool.Get(enemyEntity);
 
                 if (!debuff.started)
                 {
                     debuff.timeRemains = debuff.duration;
                     debuff.intervalRemains = .5f;
                     debuff.started = true;
-                    fxService.Value.EntityFallow.GetOrAdd<PoisonStatusFX>(
-                        world.Value.PackEntityWithWorld(enemyEntity),
+                    
+                    ref var gotEvent = ref events.global.Add<Event_GotPoisonDebuff>();
+                    gotEvent.entity = aspect.World().PackEntityWithWorld(enemyEntity);
+                    gotEvent.duration = debuff.duration;
+                    /*fxService.entityFallow.GetOrAdd<PoisonStatusFX>(
+                        aspect.World().PackEntityWithWorld(enemyEntity),
                         debuff.duration
-                    );
+                    );*/
                 }
                 
-                debuff.timeRemains -= Time.deltaTime * state.Value.GameSpeed;
-                debuff.intervalRemains -= Time.deltaTime * state.Value.GameSpeed;
+                debuff.timeRemains -= Time.deltaTime * state.GetGameSpeed();
+                debuff.intervalRemains -= Time.deltaTime * state.GetGameSpeed();
 
                 if (debuff.timeRemains < 0f)
                 {
-                    impactEnemy.Value.RemovePoisonDebuff(enemyEntity);
+                    impactEnemy.RemovePoisonDebuff(enemyEntity);
                     continue;
                 }
 
                 if (debuff.intervalRemains < 0f)
                 {
-                    impactEnemy.Value.TakeDamage(enemyEntity, debuff.damage, DamageType.Poison);
+                    impactEnemy.TakeDamage(enemyEntity, debuff.damage, DamageType.Poison);
                     debuff.intervalRemains = .5f;
                 }
             }

@@ -1,6 +1,6 @@
 ﻿namespace td.features.destroy.flags
 {
-    public struct IsDisabled : IFlagComponent
+    public struct IsDisabled
     {
         
     }

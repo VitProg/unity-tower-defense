@@ -46,25 +46,6 @@
               "variant": -1
             }
           ],
-          "quantity": 1,
-          "delayBetween": 0.35,
-          "speed": 0.45,
-          "health": 1000.0,
-          "scale": [0.45, 0.75]
-        }
-      ]
-    },
-    {
-      "spawns": [
-        {
-          "spawner": 0,
-          "enemies": [
-            {
-              "name": "creep",
-              "type": 1,
-              "variant": -1
-            }
-          ],
           "quantity": 5,
           "delayBetween": 0.35,
           "speed": 1.0,

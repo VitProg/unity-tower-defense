@@ -1,5 +1,6 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
+using td.features.eventBus;
 using td.features.level;
 using td.features.level.bus;
 using td.features.state;
@@ -8,35 +9,35 @@ using td.utils.ecs;
 
 namespace td.features.wave.systems
 {
-    public class WaitForWaveCompliteSystem  : EcsIntervalableRunSystem
+    public class WaitForWaveCompliteSystem : ProtoIntervalableRunSystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<LevelMap> levelMap;
-        private readonly EcsInject<IEventBus> events;
+        [DI] private State state;
+        [DI] private LevelMap levelMap;
+        [DI] private EventBus events;
 
-        public override void IntervalRun(IEcsSystems _, float deltaTime)
+        public override void IntervalRun(float deltaTime)
         {
-            if (!events.Value.Unique.Has<Wait_AllEnemiesAreOver>()) return;
+            if (!events.unique.Has<Wait_AllEnemiesAreOver>()) return;
             
-            var spawnSequenceCount = state.Value.ActiveSpawnCount;
-            var enemiesCount = state.Value.EnemiesCount;
+            var spawnSequenceCount = state.GetActiveSpawnCount();
+            var enemiesCount = state.GetEnemiesCount();
 
             if (spawnSequenceCount > 0 || enemiesCount > 0) return;
             
-            if (state.Value.WaveNumber + 1 >= state.Value.WaveCount)
+            if (state.GetWaveNumber() + 1 >= state.GetWaveCount())
             {
-                events.Value.Unique.Add<Event_LevelFinished>();
+                events.unique.GetOrAdd<Event_LevelFinished>();
             }
             else
             {
-                var countdown = state.Value.WaveNumber <= 0
-                    ? levelMap.Value.LevelConfig?.delayBeforeFirstWave
-                    : levelMap.Value.LevelConfig?.delayBetweenWaves;
+                var countdown = state.GetWaveNumber() <= 0
+                    ? levelMap.LevelConfig?.delayBeforeFirstWave
+                    : levelMap.LevelConfig?.delayBetweenWaves;
 
-                events.Value.Unique.Add<Wave_NextCountdown>().countdown = countdown ?? 0;
+                events.unique.GetOrAdd<Wave_NextCountdown>().countdown = countdown ?? 0;
             }
                 
-            events.Value.Unique.Del<Wait_AllEnemiesAreOver>();;
+            events.unique.Del<Wait_AllEnemiesAreOver>();
         }
 
         public WaitForWaveCompliteSystem(float interval, float timeShift, Func<float> getDeltaTime) : base(interval, timeShift, getDeltaTime)

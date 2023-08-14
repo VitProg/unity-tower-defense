@@ -1,30 +1,29 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using Leopotam.EcsProto.QoL;
-using td.features._common;
+﻿using Leopotam.EcsProto.QoL;
 using td.features.goPool;
 using td.features.prefab;
 using td.features.projectile.attributes;
 using td.features.shard;
 using td.monoBehaviours;
 using td.utils;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.projectile.lightning
 {
     public sealed class Lightning_Service
     {
-        private readonly EcsInject<Prefab_Service> prefabService;
-        private readonly EcsInject<GOPool_Service> goPoolService;
-        private readonly EcsInject<Projectile_Service> projectileService;
-        private readonly EcsInject<Lightning_Converter> converter;
-        private readonly EcsInject<ShardsConfig> shardsConfig; // todo
-        private readonly EcsWorldInject world;
+        [DI] private Lightning_Aspect lightningAspect;
+        [DI] private Projectile_Aspect projectileAspect;
+        [DI] private Prefab_Service prefabService;
+        [DI] private GOPool_Service goPoolService;
+        [DI] private Projectile_Service projectileService;
+        [DI] private Lightning_Converter converter;
+        [DI] private ShardsConfig shardsConfig; // todo
 
         private PoolableObject CreateObject()
         {
-            var prefab = prefabService.Value.GetPrefab(PrefabCategory.Projectiles, "LightningLine");
-            var projectilePoolableObject = goPoolService.Value.Get(
+            var prefab = prefabService.GetPrefab(PrefabCategory.Projectiles, "LightningLine");
+            var projectilePoolableObject = goPoolService.Get(
                 prefab,
                 // todo add parent
                 Constants.Pools.ProjectileEffectsDefaultCopacity,
@@ -48,10 +47,10 @@ namespace td.features.projectile.lightning
         {
             var lightningLinePo = CreateObject();
 
-            var lightningLineEntity = converter.Value.GetEntity(lightningLinePo.gameObject) ?? world.Value.NewEntity();
-            converter.Value.Convert(lightningLinePo.gameObject, lightningLineEntity);
+            var lightningLineEntity = converter.GetEntity(lightningLinePo.gameObject) ?? projectileAspect.World().NewEntity();
+            converter.Convert(lightningLinePo.gameObject, lightningLineEntity);
             
-            ref var lightning = ref projectileService.Value.GetLightningAttribute(lightningLineEntity);
+            ref var lightning = ref projectileService.GetLightningAttribute(lightningLineEntity);
             lightning.duration = lightningSource.duration;
             lightning.damage = lightningSource.damage;
             lightning.damageReduction = lightningSource.damageReduction;
@@ -59,9 +58,9 @@ namespace td.features.projectile.lightning
             lightning.chainReaction = lightningSource.chainReaction;
             lightning.chainReactionRadius = lightningSource.chainReactionRadius;
             
-            ref var lightningLine = ref projectileService.Value.GetLightningLine(lightningLineEntity);
+            ref var lightningLine = ref lightningAspect.lightningPool.GetOrAdd(lightningLineEntity);
             lightningLine.started = false;
-            lightningLine.chainEntities ??= new EcsPackedEntity[Constants.WeaponEffects.MaxLightningChainReaction];
+            lightningLine.chainEntities ??= new ProtoPackedEntityWithWorld[Constants.WeaponEffects.MaxLightningChainReaction];
             lightningLine.chainEntities[0] = firstEntity;
             for (var index = 1; index < Constants.WeaponEffects.MaxLightningChainReaction; index++)
             {

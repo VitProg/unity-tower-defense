@@ -1,20 +1,21 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto.QoL;
+using td.features.eventBus;
 using td.features.impactKernel.bus;
 
 namespace td.features.impactKernel
 {
     public class ImpactKernel_Service
     {
-        private readonly EcsInject<IEventBus> events;
+        [DI] private EventBus events;
 
         public void TakeDamage(float damage)
         {
-            events.Value.Global.Add<Command_Kernel_Damage>().damage = damage;
+            events.global.Add<Command_Kernel_Damage>().damage = damage;
         }
 
         public void Heal(float heal)
         {
-            events.Value.Global.Add<Command_Kernel_Heal>().heal = heal;
+            events.global.Add<Command_Kernel_Heal>().heal = heal;
         }
     }
 }

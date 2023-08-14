@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using td.features._common;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features.enemy;
+using td.features.eventBus;
 using td.features.level;
 using td.features.level.data;
 using td.features.state;
@@ -13,34 +13,31 @@ using UnityEngine;
 
 namespace td.features.wave.systems
 {
-    public class SpawnSequenceSystem : IEcsRunSystem, IEcsInitSystem
+    public class SpawnSequenceSystem : IProtoRunSystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<LevelMap> levelMap;
-        private readonly EcsInject<SharedData> shared;
-        private readonly EcsWorldInject world;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<Enemy_Service> enemyService;
-        private EcsFilter filter;
-        private EcsPool<Wave_SpawnSequence> pool;
+        [DI] private State state;
+        [DI] private LevelMap levelMap;
+        [DI] private EventBus events;
+        [DI] private Enemy_Service enemyService;
 
-        public void Run(IEcsSystems systems)
+        public void Run()
         {
-            if (filter.GetEntitiesCount() <= 0) return;
-
-            foreach (var entity in filter)
+            var evPool = events.global.GetPool<Wave_SpawnSequence>();
+            var evIt = events.global.It<Wave_SpawnSequence>();
+            
+            foreach (var evEntity in evIt)
             {
-                ref var spawnData = ref pool.Get(entity); 
+                ref var spawnData = ref evPool.Get(evEntity); 
             
                 if (spawnData.started == false)
                 {
-                    spawnData.delayBeforeCountdown -= Time.deltaTime * state.Value.GameSpeed;
+                    spawnData.delayBeforeCountdown -= Time.deltaTime * state.GetGameSpeed();
 
                     if (spawnData.delayBeforeCountdown > Constants.ZeroFloat) continue;
                     
                     StartSpawnProccess(ref spawnData);
                 }
-                Tick(ref spawnData, entity);
+                Tick(ref spawnData, evEntity);
             }
         }
 
@@ -51,9 +48,9 @@ namespace td.features.wave.systems
             spawnData.started = true;
         }
 
-        private void Tick(ref Wave_SpawnSequence data, int entity)
+        private void Tick(ref Wave_SpawnSequence data, int evEntity)
         {
-            data.delayBetweenCountdown -= Time.deltaTime * state.Value.GameSpeed;
+            data.delayBetweenCountdown -= Time.deltaTime * state.GetGameSpeed();
 
             if (!(data.delayBetweenCountdown <= Constants.ZeroFloat)) return;
 
@@ -62,20 +59,20 @@ namespace td.features.wave.systems
 
             if (data.enemyCounter > data.config.quantity)
             {
-                events.Value.GetEventsWorld().DelEntity(entity);
-                events.Value.Unique.Add<Event_SpawnSequence_Finished>();
+                events.global.Del(evEntity);
+                events.unique.GetOrAdd<Event_SpawnSequence_Finished>();
                 return;
             }
 
             var spawners = new List<int>();
             if (data.config.spawner < 0)
             {
-                for (var spawnIndex = 0; spawnIndex < levelMap.Value.SpawnCount; spawnIndex++)
+                for (var spawnIndex = 0; spawnIndex < levelMap.SpawnCount; spawnIndex++)
                     spawners.Add(spawnIndex);
             }
-            else if (!levelMap.Value.HasSpawn(data.config.spawner))
+            else if (!levelMap.HasSpawn(data.config.spawner))
             {
-                spawners.Add((data.lastSpawner + 1) % levelMap.Value.SpawnCount);
+                spawners.Add((data.lastSpawner + 1) % levelMap.SpawnCount);
             }
             else
             {
@@ -86,7 +83,7 @@ namespace td.features.wave.systems
             {
                 var spawnedEnemy = GetNextEnemy(ref data);
                 
-                enemyService.Value.SpawnEnemy(
+                enemyService.SpawnEnemy(
                     enemyName: spawnedEnemy.name,
                     enemyType: spawnedEnemy.type,
                     enemyVariant: spawnedEnemy.variant,
@@ -115,7 +112,8 @@ namespace td.features.wave.systems
                 ? RandomUtils.RandomArrayItem(ref spawnData.config.enemies)
                 : spawnData.config.enemies[spawnData.enemyCounter % spawnData.config.enemies.Length]; // todo
 
-            var enemy = shared.Value.GetEnemyConfig(spawnedEnemy.name);
+            // var enemy = shared.GetEnemyConfig(spawnedEnemy.name);
+            var enemy = enemyService.GetEnemyConfig(spawnedEnemy.name);
 
             if (enemy == null)
             {
@@ -125,10 +123,9 @@ namespace td.features.wave.systems
             return spawnedEnemy;
         }
 
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            pool = events.Value.Global.GetPool<Wave_SpawnSequence>();
-            filter = events.Value.Global.GetFilter<Wave_SpawnSequence>();
+            throw new NotImplementedException();
         }
     }
 }

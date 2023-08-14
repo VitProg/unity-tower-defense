@@ -1,37 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
-using Leopotam.EcsLite;
 using Leopotam.EcsProto;
 using UnityEngine;
-// #if ENABLE_IL2CPP
-// using System;
-// using Unity.IL2CPP.CompilerServices;
-// #endif
 
 namespace td.utils.ecs
 {
     public abstract class ProtoIntervalableRunSystem : IProtoRunSystem
     {
-        protected float countdown;
-        protected readonly float interval;
-        protected float deltaTime;
-        protected readonly Func<float> getDeltaTime;
-        protected readonly bool withInterval;
+        private float countdown;
+        private readonly float interval;
+        private float deltaTime;
+        private readonly Func<float> getDeltaTime;
+        private readonly bool withInterval;
 
-        public ProtoIntervalableRunSystem(float interval, float timeShift, Func<float> getDeltaTime)
+        protected ProtoIntervalableRunSystem(float interval, float timeShift, Func<float> getDeltaTime)
         {
             this.interval = interval;
             this.countdown = timeShift;
             this.getDeltaTime = getDeltaTime;
             withInterval = !Mathf.Approximately(interval, 0f);
         }
-
-        protected virtual float GetNewInterval()
-        {
-            return interval;
-        }
-            
-        public void Run(IEcsSystems systems)
+    
+        public void Run()
         {
             var dt = getDeltaTime();
             countdown -= dt;
@@ -39,15 +28,11 @@ namespace td.utils.ecs
 
             if (!(countdown < 0.0001f) && withInterval) return;
             
-            IntervalRun(systems, deltaTime);
-            countdown = GetNewInterval();
+            IntervalRun(deltaTime);
+            countdown = interval;
             deltaTime = 0;
         }
 
-        public abstract void IntervalRun(IEcsSystems systems, float dt);
-        public void Run()
-        {
-            throw new NotImplementedException();
-        }
+        public abstract void IntervalRun(float deltaTime);
     }
 }

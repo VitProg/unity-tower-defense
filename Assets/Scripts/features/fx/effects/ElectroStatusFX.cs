@@ -1,12 +1,12 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto;
 using td.features.fx.types;
 using UnityEngine;
 
 namespace td.features.fx.effects
 {
     [Serializable]
-    public struct ElectroStatusFX : IEntityFallowFX, IWithColorFX, IWithSpriteAnimatorFX, IEcsAutoReset<ElectroStatusFX>
+    public struct ElectroStatusFX : IEntityFallowFX, IWithColorFX, IWithSpriteAnimatorFX, IProtoAutoReset<ElectroStatusFX>
     {
         public Color Color { get; set; }
         public string PrefabName { get; set; }

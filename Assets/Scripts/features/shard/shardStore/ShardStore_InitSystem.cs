@@ -9,7 +9,7 @@ using td.features.state;
 
 namespace td.features.shard.shardStore
 {
-    public class InitializeShardStoreSystem : IProtoInitSystem, IProtoDestroySystem
+    public class ShardStore_InitSystem : IProtoInitSystem, IProtoDestroySystem
     {
         [DI] private State state;
         [DI] private LevelMap levelMap;
@@ -30,7 +30,7 @@ namespace td.features.shard.shardStore
 
         private void OnEvent(ref Event_LevelLoaded item)
         {
-            state.ShardStore.Clear();
+            state.Ex<ShardStore_StateEx>().Clear();
             if (levelMap.LevelConfig == null) return;
             
             var shardsStore = levelMap.LevelConfig.Value.shardsStore;
@@ -57,7 +57,7 @@ namespace td.features.shard.shardStore
                     cost = cost,
                 };
 
-                state.ShardStore.AddItem(ref storeItem);
+                state.Ex<ShardStore_StateEx>().AddItem(ref storeItem);
             }
         }
     }

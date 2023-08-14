@@ -6,7 +6,7 @@ using UnityEngine.Serialization;
 namespace td.features.enemy.components
 {
     [Serializable]
-    public struct EnemyPath
+    public struct Enemy_Path
     {
         // public List<byte> steps;
         // public ushort count;

@@ -1,27 +1,22 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using Leopotam.EcsProto;
+﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using td.features._common;
 using td.features.eventBus;
 using td.features.shard;
-using td.features.tower;
-using td.features.tower.components;
+using td.features.tower.towerRadius.bus;
 using td.features.towerRadius.bus;
 using Unity.Collections;
 using UnityEngine;
 
-namespace td.features.towerRadius
+namespace td.features.tower.towerRadius
 {
     public class TowerRadius_System : IProtoInitSystem, IProtoDestroySystem
     {
+        [DI] private Tower_Aspect aspect;
         [DI] private EventBus events;
-        [DI] private Common_Service common;
         [DI] private Tower_Service towerService;
         [DI] private Shard_Service shardService;
-        [DI] private SharedData shared;
-
-        private readonly EcsFilterInject<Inc<Tower>, ExcludeNotAlive> towerFilter = default;
+        [DI] private Shard_MB_Service mbShardService;
 
         public void Init(IProtoSystems systems)
         {
@@ -41,29 +36,30 @@ namespace td.features.towerRadius
 
             var radius = 0f;
             var color = Color.grey;
-            var isDragging = shared.Value.draggableShard.gameObject.activeSelf;
+            var dndShard = mbShardService.GetDraggableShard();
+            var isDragging = dndShard.gameObject.activeSelf;
 
-            if (shardService.Value.HasShardInTower(towerEntity, out var shardEntity))
+            if (shardService.HasShardInTower(towerEntity, out var shardEntity))
             {
-                ref var shard = ref shardService.Value.GetShard(shardEntity);
+                ref var shard = ref shardService.GetShard(shardEntity);
                 if (isDragging)
                 {
-                    ref var draggingShard = ref shared.Value.draggableShard.GetShard();
+                    ref var draggingShard = ref dndShard.GetShard();
                     var combinerShard = shard.MakeCopy();
                     combinerShard.CombineWith(ref draggingShard);
-                    radius = shardService.Value.GetRadius(ref combinerShard);
+                    radius = shardService.GetRadius(ref combinerShard);
                 }
                 else
                 {
-                    radius = shardService.Value.GetRadius(ref shard);   
+                    radius = shardService.GetRadius(ref shard);   
                 }
 
                 color = shard.currentColor;
             }
             else if (isDragging)
             {
-                ref var shard = ref shared.Value.draggableShard.GetShard();
-                radius = shardService.Value.GetRadius(ref shard);
+                ref var shard = ref dndShard.GetShard();
+                radius = shardService.GetRadius(ref shard);
                 color = shard.currentColor;
             }
 
@@ -71,12 +67,12 @@ namespace td.features.towerRadius
             
             HideAllRadiuses();
 
-            DrawRadius(towerService.Value.GetTowerMB(towerEntity).radiusRenderer, radius, color);
+            DrawRadius(towerService.GetTowerMB(towerEntity).radiusRenderer, radius, color);
         }
 
         private void HideRadius(ref Command_Tower_HideRadius item)
         {
-            if (!events.Value.Global.Has<Command_Tower_ShowRadius>())
+            if (!events.global.Has<Command_Tower_ShowRadius>())
             {
                 HideAllRadiuses();
             }
@@ -84,13 +80,9 @@ namespace td.features.towerRadius
         
         private void HideAllRadiuses() // ALL
         {
-            //todo hide radius
-            var count = towerFilter.Value.GetEntitiesCount();
-            var arr = towerFilter.Value.GetRawEntities();
-            for (var i = 0; i < count; i++)
+            foreach (var entity in aspect.itTower)
             {
-                var entity = arr[i];
-                var towerMB = towerService.Value.GetTowerMB(entity);
+                var towerMB = towerService.GetTowerMB(entity);
                 towerMB.radiusRenderer.enabled = false;
             }
         }

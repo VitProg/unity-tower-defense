@@ -1,25 +1,24 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 using td.features._common;
 using td.features.level;
 using td.features.shard.components;
 using UnityEngine;
-using UnityEngine.U2D;
 
 namespace td.features.shard
 {
     public class Shard_Calculator
     {
-        private readonly EcsInject<ShardsConfig> config;
-        private readonly EcsInject<LevelMap> levelMap;
+        [DI] private ShardsConfig config;
+        [DI] private LevelMap levelMap;
         
         public float GetProjectileSpeed(ref Shard shard)
         {
             return 5;
-            var speedBase = config.Value.speedBase;
+            var speedBase = config.speedBase;
             // var speedReduce = config.speedReduce;
-            var impactOfRed = config.Value.speedImpactOfRed;
+            var impactOfRed = config.speedImpactOfRed;
 
             var quantity = ShardUtils.GetQuantity(ref shard);
             // var max = ShardUtils.GetMax(ref shard);
@@ -37,7 +36,7 @@ namespace td.features.shard
             // var speed = speedBase * (Mathf.Sqrt(amplifier / (Mathf.Sqrt(0.333333f))) / 10f + 0.87f);
             
             //todo
-            var levelModifier = Mathf.Pow(config.Value.GetLevelCoefficient(quantity) / 5.35f, 2f);
+            var levelModifier = Mathf.Pow(config.GetLevelCoefficient(quantity) / 5.35f, 2f);
             var speed = levelModifier * Mathf.Log10(Mathf.Pow(quantity, 2f)) + speedBase;
 
             if (shard.red > 0)
@@ -98,10 +97,10 @@ namespace td.features.shard
             return;
             //todo
             //
-            // var powerDivider = config.Value.slowPowerDivider;
-            // var powerMin = config.Value.slowPowerMin;
-            // var durationDevider = config.Value.slowDurationDevider;
-            // var durationMin = config.Value.slowDurationMin;
+            // var powerDivider = config.slowPowerDivider;
+            // var powerMin = config.slowPowerMin;
+            // var durationDevider = config.slowDurationDevider;
+            // var durationMin = config.slowDurationMin;
             //
             // var quantity = ShardUtils.GetQuantity(ref shard);
             //
@@ -113,8 +112,8 @@ namespace td.features.shard
 
         public void CalculateBaseDamageParams(ref Shard shard, out float damage, out DamageType type)
         {
-            var baseDamage = config.Value.baseDamage;
-            var impactOfRed = config.Value.baseDamageImpactOfRed;
+            var baseDamage = config.baseDamage;
+            var impactOfRed = config.baseDamageImpactOfRed;
             
             var quantity = ShardUtils.GetQuantity(ref shard);
             
@@ -122,7 +121,7 @@ namespace td.features.shard
             //
             // damage = GetShardAmplifier(Math.Max(max, Mathf.CeilToInt(quantity / 10f)));
 
-            var levelModifier = 1 + Mathf.Pow(config.Value.GetLevelCoefficient(quantity) / 2.97823f, 2f);
+            var levelModifier = 1 + Mathf.Pow(config.GetLevelCoefficient(quantity) / 2.97823f, 2f);
             damage = levelModifier * Mathf.Pow(quantity / 7.5f, 2) + baseDamage;
 
             //todo
@@ -155,11 +154,11 @@ namespace td.features.shard
         public int GetShardLevel(ref Shard shard)
         {
             var quantity = ShardUtils.GetQuantity(ref shard);
-            return config.Value.GetLevelCoefficient(quantity);
+            return config.GetLevelCoefficient(quantity);
         }
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public int GetShardLevel(uint quantity) => config.Value.GetLevelCoefficient(quantity);
+        public int GetShardLevel(uint quantity) => config.GetLevelCoefficient(quantity);
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private float GetShardLogSqrLevel(uint quantity) => LogSqrLevel[GetShardLevel(quantity)];
 
@@ -182,7 +181,7 @@ namespace td.features.shard
         };
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public int GetQuantityForLevel(uint quantity) => config.Value.triangularPyramids[Math.Clamp(quantity - 1, 0, config.Value.triangularPyramids.Length - 1)];
+        public int GetQuantityForLevel(uint quantity) => config.triangularPyramids[Math.Clamp(quantity - 1, 0, config.triangularPyramids.Length - 1)];
 
         public void CalculateExplosiveParams(
             ref Shard shard,
@@ -190,9 +189,9 @@ namespace td.features.shard
             out float diameter,
             out float damageFading
         ) {
-            var damageReducer = config.Value.explosiveDamageReducer;
-            var radiusAdd = config.Value.explosiveRadiusAdd;
-            var fadingReducer = config.Value.explosiveFadingReducer;
+            var damageReducer = config.explosiveDamageReducer;
+            var radiusAdd = config.explosiveRadiusAdd;
+            var fadingReducer = config.explosiveFadingReducer;
             
             var quantity = ShardUtils.GetQuantity(ref shard);
             var amplifier = GetShardAmplifier(shard.red, quantity);
@@ -207,10 +206,10 @@ namespace td.features.shard
             out float damage,
             out float duration)
         {
-            var damageBase = config.Value.poisonDamageBase;
-            var damageReducer = config.Value.poisonDamageReducer;
-            // var minInterval = config.Value.poisonMinInterval;
-            var minDuration = config.Value.poisonMinDuration;
+            var damageBase = config.poisonDamageBase;
+            var damageReducer = config.poisonDamageReducer;
+            // var minInterval = config.poisonMinInterval;
+            var minDuration = config.poisonMinDuration;
             
             var amplifier = GetShardAmplifier(shard.green, ShardUtils.GetQuantity(ref shard));
 
@@ -250,15 +249,15 @@ namespace td.features.shard
         // pink - увеличивает скорострельность
         public float GetFireRate(ref Shard shard)
         {
-            var baseFireRate = config.Value.fireRateBase;
-            var pinkReduser = config.Value.fireRatePinkReduser;
+            var baseFireRate = config.fireRateBase;
+            var pinkReduser = config.fireRatePinkReduser;
             
             var max = ShardUtils.GetMax(ref shard);
             var quantity = ShardUtils.GetQuantity(ref shard);
             var amplifier = GetShardAmplifier(max);
 
             // var fireRate = baseFireRate + (Mathf.Log(amplifier) * Mathf.Sqrt(max));
-            var levelModifier = Mathf.Pow(config.Value.GetLevelCoefficient(quantity) / 3.62f, 2f);
+            var levelModifier = Mathf.Pow(config.GetLevelCoefficient(quantity) / 3.62f, 2f);
             var fireRate = levelModifier * Mathf.Log10(Mathf.Pow(quantity, 2f)) + baseFireRate;
 
             if (shard.pink > 0)
@@ -278,11 +277,11 @@ namespace td.features.shard
         // yellow - увеличивает радиус
         public float GetTowerRadius(ref Shard shard)
         {
-            var baseRadius = config.Value.radiusBase;
-            var impactOfYellow = config.Value.radiusImpactOfYellow;
+            var baseRadius = config.radiusBase;
+            var impactOfYellow = config.radiusImpactOfYellow;
 
             var quantity = ShardUtils.GetQuantity(ref shard);
-            var levelCooficient = config.Value.GetLevelCoefficient(quantity);
+            var levelCooficient = config.GetLevelCoefficient(quantity);
             var levelModifier = Mathf.Pow(levelCooficient / 10f, 2f);
 
             var radius = levelModifier * Mathf.Log10(Mathf.Pow(quantity + 1, 2f)) + baseRadius;
@@ -302,7 +301,7 @@ namespace td.features.shard
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public uint GetBaseCostByType(ShardTypes type)
         {
-            var costs = levelMap.Value.LevelConfig?.shardsCost;
+            var costs = levelMap.LevelConfig?.shardsCost;
             return type switch
             {
                 ShardTypes.Red => costs?.red ?? 10,

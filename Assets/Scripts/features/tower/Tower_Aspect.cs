@@ -1,18 +1,29 @@
-﻿using Leopotam.EcsLite.Di;
-using td.features._common;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using td.features._common.components;
+using td.features.destroy.flags;
 using td.features.tower.components;
 using td.features.tower.mb;
 
 namespace td.features.tower
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
-    public class Tower_Pools
+    public class Tower_Aspect: ProtoAspectInject
     {
-        public readonly EcsPoolInject<Tower> towerPool = default;
-        public readonly EcsPoolInject<ShardTower> shardTowerPool = default;
-        public readonly EcsPoolInject<TowerTarget> towerTargetPool = default;
-        public readonly EcsPoolInject<Ref<TowerMonoBehaviour>> refTowerMB = default;
-        public readonly EcsPoolInject<Ref<ShardTowerMonoBehaviour>> refShardTowerMB = default;
+        public ProtoPool<Tower> towerPool;
+        public ProtoPool<ShardTower> shardTowerPool;
+        public ProtoPool<ShardTowerWithShard> shardTowerWithShardPool;
+        public ProtoPool<TowerTarget> towerTargetPool;
+        public ProtoPool<Ref<TowerMonoBehaviour>> refTowerMB;
+        public ProtoPool<Ref<ShardTowerMonoBehaviour>> refShardTowerMB;
+
+        public readonly ProtoItExc itTower = new ProtoItExc(
+            It.Inc<Tower>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
+
+        public readonly ProtoItExc itShardTower = new ProtoItExc(
+            It.Inc<Tower, ShardTower, TowerTarget, ShardTowerWithShard>(),
+            It.Exc<IsDestroyed, IsDisabled>()
+        );
     }
 }

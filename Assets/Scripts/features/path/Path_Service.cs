@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Leopotam.EcsProto.QoL;
 using td.common;
 using td.features.level;
 using td.features.level.cells;
@@ -8,9 +9,9 @@ using UnityEngine;
 
 namespace td.features.path
 {
-    public class Path_Service : IPath_Service
+    public class Path_Service
     {
-        private readonly EcsInject<LevelMap> levelMap;
+        [DI] private LevelMap levelMap;
         
         private readonly Queue<Int2> queue = new();
         private readonly Queue<Int2> idleQueue = new();
@@ -29,13 +30,13 @@ namespace td.features.path
         {
             queue.Clear();
 
-            Debug.Assert(levelMap.Value.spawns != null && levelMap.Value.SpawnCount > 0);
+            Debug.Assert(levelMap.spawns != null && levelMap.SpawnCount > 0);
 
-            for (var spawnIndex = 0; spawnIndex < levelMap.Value.SpawnCount; spawnIndex++)
+            for (var spawnIndex = 0; spawnIndex < levelMap.SpawnCount; spawnIndex++)
             {
-                var spawnCoords = levelMap.Value.spawns[spawnIndex];
-                if (!spawnCoords.HasValue || !levelMap.Value.HasCell(spawnCoords.Value.x, spawnCoords.Value.y, CellTypes.CanWalk)) continue;
-                ref var spawnCell = ref levelMap.Value.GetCell(spawnCoords.Value.x, spawnCoords.Value.y, CellTypes.CanWalk);
+                var spawnCoords = levelMap.spawns[spawnIndex];
+                if (!spawnCoords.HasValue || !levelMap.HasCell(spawnCoords.Value.x, spawnCoords.Value.y, CellTypes.CanWalk)) continue;
+                ref var spawnCell = ref levelMap.GetCell(spawnCoords.Value.x, spawnCoords.Value.y, CellTypes.CanWalk);
                 spawnCell.spawnNumber = (byte)spawnIndex;
                 spawnCell.distanceFromSpawn = 0;
                 queue.Enqueue(spawnCell.coords);
@@ -71,9 +72,9 @@ namespace td.features.path
 
         private void Tick(Int2 coords)
         {
-            if (!levelMap.Value.HasCell(coords.x, coords.y)) return;
+            if (!levelMap.HasCell(coords.x, coords.y)) return;
 
-            ref var cell = ref levelMap.Value.GetCell(coords.x, coords.y);
+            ref var cell = ref levelMap.GetCell(coords.x, coords.y);
             
             var directions = new List<HexDirections>();
             
@@ -103,8 +104,8 @@ namespace td.features.path
             foreach (var direction in directions)
             {
                 var nCoords = HexGridUtils.GetNeighborsCoords(ref cell.coords, direction);
-                if (!levelMap.Value.HasCell(nCoords.x, nCoords.y, CellTypes.CanWalk)) continue;
-                ref var nextCell = ref levelMap.Value.GetCell(nCoords.x, nCoords.y, CellTypes.CanWalk);
+                if (!levelMap.HasCell(nCoords.x, nCoords.y, CellTypes.CanWalk)) continue;
+                ref var nextCell = ref levelMap.GetCell(nCoords.x, nCoords.y, CellTypes.CanWalk);
                 
                 // if we look at the cell from which we came, we skip it
                 if (nextCell.isPathAnalyzed)
@@ -171,9 +172,9 @@ namespace td.features.path
                 
             var prevCoords = HexGridUtils.GetNeighborsCoords(ref cell.coords, cell.dirToPrev);
                 
-            if (!levelMap.Value.HasCell(prevCoords, CellTypes.CanWalk)) return;
+            if (!levelMap.HasCell(prevCoords, CellTypes.CanWalk)) return;
                 
-            ref var prevCell = ref levelMap.Value.GetCell(prevCoords.x, prevCoords.y, CellTypes.CanWalk);
+            ref var prevCell = ref levelMap.GetCell(prevCoords.x, prevCoords.y, CellTypes.CanWalk);
 
             if (!prevCell.isPathAnalyzed) return;
             

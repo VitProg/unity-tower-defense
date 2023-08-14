@@ -1,30 +1,37 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 using td.features._common.components;
+using td.features.inputEvents.components;
 using td.utils.ecs;
-using UnityEngine.EventSystems;
 
 namespace td.features.inputEvents
 {
     public class InputEvents_Service
     {
-        private readonly EcsInject<InputEvents_Pools> pool;
+        [DI] private InputEvents_Aspect aspect;
 
-        public bool HasCicleCollider(int entity) => pool.Value.cicleColliderPool.Value.Has(entity);
-        public ref ObjectCicleCollider GetCicleCollider(int entity) => ref pool.Value.cicleColliderPool.Value.GetOrAdd(entity);
-        public void DelCicleCollider(int entity) => pool.Value.cicleColliderPool.Value.SafeDel(entity);
-        
-        public bool HasHandlers(int entity) => pool.Value.refPointerHandlers.Value.Has(entity) && pool.Value.refPointerHandlers.Value.Get(entity).references != null && pool.Value.refPointerHandlers.Value.Get(entity).count > 0;
+        public bool HasCicleCollider(int entity) => aspect.cicleColliderPool.Has(entity);
+        public ref ObjectCicleCollider GetCicleCollider(int entity) => ref aspect.cicleColliderPool.GetOrAdd(entity);
+        public void DelCicleCollider(int entity) => aspect.cicleColliderPool.Del(entity);
+
+        public bool HasHandlers(int entity) => aspect.refPointerHandlersPool.Has(entity) &&
+                                               aspect.refPointerHandlersPool.Get(entity).references != null &&
+                                               aspect.refPointerHandlersPool.Get(entity).count > 0;
 
         public void AddHandler(int entity, IInputEventsHandler handler)
         {
             ref var many = ref GetRefHandlers(entity);
             if (many.references == null) many.references = new IInputEventsHandler[5];
 
-            if (!many.references.Contains(handler))
+            var contains = false;
+            foreach (var reference in many.references)
+            {
+                if (reference != handler) continue;
+                contains = true;
+                break;
+            }
+            
+            if (!contains)
             {
                 if (many.references.Length < many.count + 1)
                 {
@@ -52,6 +59,10 @@ namespace td.features.inputEvents
 
             many.count = 0;
         }
-        public ref RefMany<IInputEventsHandler> GetRefHandlers(int entity) => ref pool.Value.refPointerHandlers.Value.GetOrAdd(entity);
+
+        public ref RefMany<IInputEventsHandler> GetRefHandlers(int entity)
+        {
+            return ref aspect.refPointerHandlersPool.GetOrAdd(entity);
+        }
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace td.features.fx.types
+﻿namespace td.features.fx.types
 {
     public interface IWithSpriteAnimatorFX
     {

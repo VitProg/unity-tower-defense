@@ -1,26 +1,27 @@
 ﻿using System;
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
+using td.features.state;
 using td.utils.ecs;
 
 namespace td.features.fx.systems
 {
-    public class FX_ApplyTransformSystem : EcsIntervalableRunSystem
+    public class FX_ApplyTransformSystem : ProtoIntervalableRunSystem
     {
-        private readonly EcsInject<FX_Pools> pools;
+        [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
+        [DI] private State state;
 
-        public override void IntervalRun(IEcsSystems systems, float dt)
+        public override void IntervalRun(float deltaTime)
         {
-            var count = pools.Value.entityFallowFilter.Value.GetEntitiesCount();
-            var arr = pools.Value.entityFallowFilter.Value.GetRawEntities();
-            for (var index = 0; index < count; index += 1)
+            if (!state.GetGameSimulationEnabled()) return;
+            
+            foreach (var entity in aspect.itEentityFallow) 
             {
-                var entity = arr[index];
-                ref var t = ref pools.Value.withTransformPool.Value.Get(entity);
+                ref var t = ref aspect.withTransformPool.Get(entity);
                 if (!t.IsChanged()) continue;
                 
-                if (!pools.Value.refGOPoolFX.Value.Has(entity)) continue;
+                if (!aspect.refGOPool.Has(entity)) continue;
 
-                ref var goRef = ref pools.Value.refGOPoolFX.Value.Get(entity).reference;
+                ref var goRef = ref aspect.refGOPool.Get(entity).reference;
                 
                 if (goRef == null || !goRef.activeSelf) continue;
 

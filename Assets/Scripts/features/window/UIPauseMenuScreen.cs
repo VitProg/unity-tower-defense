@@ -1,4 +1,4 @@
-using Leopotam.EcsLite;
+using Leopotam.EcsProto.QoL;
 using td.features.window.common;
 using td.utils.di;
 using UnityEngine;
@@ -8,9 +8,9 @@ namespace td.features.window
 {
     [RequireComponent(typeof(FadeInOut))]
     [RequireComponent(typeof(UIWindowPopup))]
-    public class UIPauseMenuScreen : MonoInjectable
+    public class UIPauseMenuScreen : MonoBehaviour
     {
-        private readonly EcsInject<Windows_Service> windowsService;
+        private Window_Service WindowsService =>  ServiceContainer.Get<Window_Service>();
 
         [SerializeField] private Button closeButton;
         [SerializeField] private Button resumeButton;
@@ -18,9 +18,8 @@ namespace td.features.window
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button quitButton;
 
-        private new void Awake()
+        private void Start()
         {
-            base.Awake();
             closeButton.onClick.AddListener(OnCloseClicked);
             resumeButton.onClick.AddListener(OnCloseClicked);
             restartButton.onClick.AddListener(OnRestartClicked);
@@ -37,7 +36,7 @@ namespace td.features.window
         private async void OnSettingsClicked()
         {
             Debug.Log("OnSettingsClicked");
-            await windowsService.Value.Open(Windows_Service.Type.SettingsMenu);
+            await WindowsService.Open(Window_Service.Type.SettingsMenu);
         }
 
         private void OnRestartClicked()
@@ -49,7 +48,7 @@ namespace td.features.window
         private async void OnCloseClicked()
         {
             Debug.Log("OnCloseClicked");
-            await windowsService.Value.Close(Windows_Service.Type.PauseMenu);
+            await WindowsService.Close(Window_Service.Type.PauseMenu);
         }
 
         private void OnDestroy()

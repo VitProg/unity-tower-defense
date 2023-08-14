@@ -1,41 +1,43 @@
-﻿using Leopotam.EcsLite;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.eventBus;
 using td.features.level.bus;
 using td.features.state;
 using td.features.wave.bus;
 
 namespace td.features.wave.systems
 {
-    public class IncreaseWaveSystem: IEcsInitSystem, IEcsDestroySystem
+    public class IncreaseWaveSystem: IProtoInitSystem, IProtoDestroySystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<IEventBus> events;
+        [DI] private State state;
+        [DI] private EventBus events;
         
-        public void Init(IEcsSystems systems)
+        public void Init(IProtoSystems systems)
         {
-            events.Value.Unique.ListenTo<Command_Wave_Increase>(IncreaseWave);
+            events.unique.ListenTo<Command_Wave_Increase>(IncreaseWave);
         }
 
-        public void Destroy(IEcsSystems systems)
+        public void Destroy()
         {
-            events.Value.Unique.RemoveListener<Command_Wave_Increase>(IncreaseWave);
+            events.unique.RemoveListener<Command_Wave_Increase>(IncreaseWave);
         }
         
         //------------------------------------------//
         
         private void IncreaseWave(ref Command_Wave_Increase _)
         {
-            var waveNumber = state.Value.WaveNumber;
-            var waveCount = state.Value.WaveCount;
+            var waveNumber = state.GetWaveNumber();
+            var waveCount = state.GetWaveCount();
 
             if (waveNumber + 1 > waveCount)
             {
-                events.Value.Unique.Add<Event_LevelFinished>();
+                events.unique.GetOrAdd<Event_LevelFinished>();
             }
             else
             {
                 waveNumber++;
-                events.Value.Unique.Add<Command_Wave_Start>().waveNumber = waveNumber;
-                state.Value.WaveNumber = waveNumber;
+                events.unique.GetOrAdd<Command_Wave_Start>().waveNumber = waveNumber;
+                state.SetWaveNumber(waveNumber);
             }
         }
 

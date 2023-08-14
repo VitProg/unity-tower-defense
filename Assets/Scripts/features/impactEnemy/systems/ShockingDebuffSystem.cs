@@ -1,40 +1,43 @@
-﻿using Leopotam.EcsLite;
-using Leopotam.EcsLite.Di;
-using td.features._common;
-using td.features._common.components;
-using td.features.enemy.components;
-using td.features.impactEnemy.components;
+﻿using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
+using td.features.eventBus;
+using td.features.impactEnemy.bus;
+using td.features.movement;
 using td.features.state;
 using td.utils;
 using UnityEngine;
 
 namespace td.features.impactEnemy.systems
 {
-    public class ShockingDebuffSystem: IEcsRunSystem
+    public class ShockingDebuffSystem: IProtoRunSystem
     {
-        private readonly EcsInject<IState> state;
-        private readonly EcsInject<Common_Service> common;
-        private readonly EcsInject<IEventBus> events;
-        private readonly EcsInject<ImpactEnemy_Service> impactEnemy;
-
-        private readonly EcsFilterInject<Inc<ShockingDebuff, Enemy, Ref<GameObject>>, ExcludeNotAlive> filter = default;
-
-        public void Run(IEcsSystems systems)
+        [DI] private ImpactEnemy_Aspect aspect;
+        [DI] private State state;
+        [DI] private ImpactEnemy_Service impactEnemy;
+        [DI] private Movement_Service movementService;
+        [DI] private EventBus events;
+        // [DI] private FX_Service fxService;
+        
+        public void Run()
         {
-            foreach (var debuffEntity in filter.Value)
+            foreach (var enemyEntity in aspect.itShockingDebuff)
             {
-                ref var debuff = ref filter.Pools.Inc1.Get(debuffEntity);
-                var transform = filter.Pools.Inc3.Get(debuffEntity).reference!.transform;
+                ref var debuff = ref aspect.shockingDebuffPool.Get(enemyEntity);
+                var transform = movementService.GetTransform(enemyEntity);
 
                 if (!debuff.started)
                 {
-                    common.Value.SetIsFreezed(debuffEntity, true);
+                    movementService.SetIsFreezed(enemyEntity, true);
                     debuff.originalPosition = transform.position;
                     debuff.shiftPositionTimeRemains = Constants.Debuff.ShockingShiftPositionTimeRemains;
                     debuff.started = true;
+                    
+                    ref var gotEvent = ref events.global.Add<Event_GotShockingDebuff>();
+                    gotEvent.entity = aspect.World().PackEntityWithWorld(enemyEntity);
+                    gotEvent.duration = debuff.timeRemains;
                 }
                 
-                debuff.shiftPositionTimeRemains -= Time.deltaTime * state.Value.GameSpeed;
+                debuff.shiftPositionTimeRemains -= Time.deltaTime * state.GetGameSpeed();
                 if (debuff.shiftPositionTimeRemains < 0f)
                 {
                     var shift = new Vector3(
@@ -50,7 +53,7 @@ namespace td.features.impactEnemy.systems
                 if (debuff.timeRemains < 0f)
                 {
                     transform.position = debuff.originalPosition;
-                    impactEnemy.Value.RemoveShockingDebuff(debuffEntity);
+                    impactEnemy.RemoveShockingDebuff(enemyEntity);
                 }
             }
         }
