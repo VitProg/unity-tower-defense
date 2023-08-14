@@ -30,17 +30,7 @@ namespace td.features.movement
             .Exc<IsHidden>()
             .Exc<IsFreezed>()
             .End();
-        /*private ProtoItExc itBaseMovement = new ProtoItExc(
-            It.Inc<ObjectTransform, Movement>(),
-            It.Exc(
-                typeof(IsCustomMovement),
-                typeof(IsDestroyed),
-                typeof(IsDisabled),
-                typeof(IsHidden),
-                typeof(IsFreezed),
-                typeof(IsSmoothRotation)
-            )
-        );*/         
+
         public ProtoItExc itObjectTransform = new ProtoItExc(
             It.Inc<ObjectTransform, Ref<GameObject>>(),
             It.Exc<IsDestroyed, IsDisabled>()
