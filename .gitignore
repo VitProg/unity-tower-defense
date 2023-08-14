@@ -112,3 +112,7 @@ PolygonParticleFX.meta
 /[Aa]ssets/Samples*
 
 /[Aa]ssets/SCI-FI UI Pack Pro/*.psd
+
+# ignore Proto ECS sources
+/[Aa]ssets/[Ll]ibrary/[Ll]eopotam.*
+/[Aa]ssets/[Ll]ibrary/[Ll]eopotam.*/*/**

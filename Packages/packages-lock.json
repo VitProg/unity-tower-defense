@@ -7,30 +7,6 @@
       "dependencies": {},
       "url": "https://package.openupm.com"
     },
-    "com.leopotam.ecsproto": {
-      "version": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.EcsProto",
-      "depth": 0,
-      "source": "local",
-      "dependencies": {}
-    },
-    "com.leopotam.ecsproto-qol": {
-      "version": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.EcsProto.QoL",
-      "depth": 0,
-      "source": "local",
-      "dependencies": {}
-    },
-    "com.leopotam.ecsproto.unity": {
-      "version": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.EcsProto.Unity",
-      "depth": 0,
-      "source": "local",
-      "dependencies": {}
-    },
-    "com.leopotam.types": {
-      "version": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.Types",
-      "depth": 0,
-      "source": "local",
-      "dependencies": {}
-    },
     "com.unity.2d.animation": {
       "version": "9.0.3",
       "depth": 1,

@@ -1,10 +1,6 @@
 {
   "dependencies": {
     "com.dbrizov.naughtyattributes": "2.1.4",
-    "com.leopotam.ecsproto": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.EcsProto",
-    "com.leopotam.ecsproto-qol": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.EcsProto.QoL",
-    "com.leopotam.ecsproto.unity": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.EcsProto.Unity",
-    "com.leopotam.types": "file:D:/dev/ecs-proto/cs-202308131304/cs/Leopotam.Types",
     "com.unity.ai.navigation": "1.1.4",
     "com.unity.cinemachine": "2.9.7",
     "com.unity.device-simulator.devices": "1.0.0",
