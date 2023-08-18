@@ -5,7 +5,6 @@ using td.features.destroy;
 using td.features.enemy;
 using td.features.movement;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.projectile.lightning
 {
@@ -48,8 +47,8 @@ namespace td.features.projectile.lightning
                     destroyService.MarkAsRemoved(lightningEntity, projectileAspect.World());
                     continue;
                 }
-                
-                var sqrChainRadius = Mathf.Pow(lightningAttr.chainReactionRadius, 2f);
+
+                var sqrChainRadius = lightningAttr.chainReactionRadius * lightningAttr.chainReactionRadius;
 
                 var chainOfEnemies = new List<int> { firstEntity };
                 

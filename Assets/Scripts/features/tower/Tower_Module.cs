@@ -1,9 +1,9 @@
 ﻿using System;
 using Leopotam.EcsProto;
 using td.features.tower.systems;
+using td.features.tower.towerMenu;
 using td.features.tower.towerRadius;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.tower
 {
@@ -40,7 +40,8 @@ namespace td.features.tower
         {
             return new IProtoModule[]
             {
-                new TowerRadius_Module()
+                new TowerRadius_Module(),
+                new TowerMenu_Module(),
             };
         }
     }

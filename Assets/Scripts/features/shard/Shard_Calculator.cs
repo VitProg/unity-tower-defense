@@ -1,24 +1,25 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using td.features._common;
 using td.features.level;
 using td.features.shard.components;
-using UnityEngine;
+using td.features.shard.data;
 
 namespace td.features.shard
 {
     public class Shard_Calculator
     {
-        [DI] private ShardsConfig config;
+        [DI] private Shards_Config_SO configSO;
         [DI] private LevelMap levelMap;
         
         public float GetProjectileSpeed(ref Shard shard)
         {
             return 5;
-            var speedBase = config.speedBase;
+            var speedBase = configSO.speedBase;
             // var speedReduce = config.speedReduce;
-            var impactOfRed = config.speedImpactOfRed;
+            var impactOfRed = configSO.speedImpactOfRed;
 
             var quantity = ShardUtils.GetQuantity(ref shard);
             // var max = ShardUtils.GetMax(ref shard);
@@ -36,13 +37,14 @@ namespace td.features.shard
             // var speed = speedBase * (Mathf.Sqrt(amplifier / (Mathf.Sqrt(0.333333f))) / 10f + 0.87f);
             
             //todo
-            var levelModifier = Mathf.Pow(config.GetLevelCoefficient(quantity) / 5.35f, 2f);
-            var speed = levelModifier * Mathf.Log10(Mathf.Pow(quantity, 2f)) + speedBase;
+            var lm = configSO.GetLevelCoefficient(quantity) / 5.35f;
+            var levelModifier = lm * lm;
+            var speed = (float)(levelModifier * MathF.Log10(quantity * quantity) + speedBase);
 
             if (shard.red > 0)
             {
                 var redAmplifier = GetShardAmplifier(shard.red, quantity);
-                speed /= Mathf.Sqrt(Mathf.Sqrt(redAmplifier) / impactOfRed) + 1f;
+                speed /= (MathF.Sqrt(MathF.Sqrt(redAmplifier) / impactOfRed)) + 1f;
             }
 
             return speed;
@@ -59,7 +61,7 @@ namespace td.features.shard
             var a = (float)allQuantity;
             // @see https://docs.google.com/spreadsheets/d/1Vze5h6492TZL5gN8KHKPSS2ckDovCIrYgW4ylsVhmCk/edit#gid=0
             // return o / a * (Mathf.Log(a) * o + 1) * (Mathf.Pow(2, Mathf.Sqrt(o)) - 1);
-            return o / a * (Mathf.Log(a) * o + 1) * (Mathf.Pow(2, Mathf.Sqrt(o))) / 2 / (Mathf.Sqrt(a / o));
+            return o / a * (MathF.Log(a) * o + 1.0f) * (MathF.Pow(2.0f, MathF.Sqrt(o))) / 2.0f / MathF.Sqrt(a / o);
         }
 
         public float GetShardDropAmplifier(uint quantity, uint allQuantity) =>
@@ -70,7 +72,7 @@ namespace td.features.shard
 
         // @see https://docs.google.com/spreadsheets/d/1Vze5h6492TZL5gN8KHKPSS2ckDovCIrYgW4ylsVhmCk/edit#gid=676981276
         public float GetNearbyBuildingsAmplifier(uint quantity) =>
-            0.75f / Mathf.Exp(quantity / 1.15f - 1f) + 1f;
+            0.75f / MathF.Exp(quantity / 1.15f - 1f) + 1f;
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool HasBaseDamage(ref Shard shard) => true;
@@ -112,23 +114,25 @@ namespace td.features.shard
 
         public void CalculateBaseDamageParams(ref Shard shard, out float damage, out DamageType type)
         {
-            var baseDamage = config.baseDamage;
-            var impactOfRed = config.baseDamageImpactOfRed;
+            var baseDamage = configSO.baseDamage;
+            var impactOfRed = configSO.baseDamageImpactOfRed;
             
             var quantity = ShardUtils.GetQuantity(ref shard);
             
             // var max = ShardUtils.GetMax(ref shardPackedEntity);
             //
-            // damage = GetShardAmplifier(Math.Max(max, Mathf.CeilToInt(quantity / 10f)));
+            // damage = GetShardAmplifier(MathF.Max(max, Mathf.CeilToInt(quantity / 10f)));
 
-            var levelModifier = 1 + Mathf.Pow(config.GetLevelCoefficient(quantity) / 2.97823f, 2f);
-            damage = levelModifier * Mathf.Pow(quantity / 7.5f, 2) + baseDamage;
+            var lm = configSO.GetLevelCoefficient(quantity) / 2.97823f;
+            var levelModifier = 1 + lm * lm;
+            var q = quantity / 7.5f;
+            damage = levelModifier * (q * q) + baseDamage;
 
             //todo
             if (shard.red > 0)
             {
                 var redAmplifier = GetShardDropAmplifier(shard.red, quantity);
-                damage /= Mathf.Sqrt(redAmplifier * impactOfRed) + 1f;
+                damage /= MathF.Sqrt(redAmplifier * impactOfRed) + 1f;
             }
 
             var pRed = shard.red / (float)quantity;
@@ -154,11 +158,11 @@ namespace td.features.shard
         public int GetShardLevel(ref Shard shard)
         {
             var quantity = ShardUtils.GetQuantity(ref shard);
-            return config.GetLevelCoefficient(quantity);
+            return configSO.GetLevelCoefficient(quantity);
         }
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public int GetShardLevel(uint quantity) => config.GetLevelCoefficient(quantity);
+        public int GetShardLevel(uint quantity) => configSO.GetLevelCoefficient(quantity);
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private float GetShardLogSqrLevel(uint quantity) => LogSqrLevel[GetShardLevel(quantity)];
 
@@ -181,7 +185,7 @@ namespace td.features.shard
         };
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public int GetQuantityForLevel(uint quantity) => config.triangularPyramids[Math.Clamp(quantity - 1, 0, config.triangularPyramids.Length - 1)];
+        public int GetQuantityForLevel(uint quantity) => configSO.triangularPyramids[Math.Clamp(quantity - 1, 0, configSO.triangularPyramids.Length - 1)];
 
         public void CalculateExplosiveParams(
             ref Shard shard,
@@ -189,15 +193,15 @@ namespace td.features.shard
             out float diameter,
             out float damageFading
         ) {
-            var damageReducer = config.explosiveDamageReducer;
-            var radiusAdd = config.explosiveRadiusAdd;
-            var fadingReducer = config.explosiveFadingReducer;
+            var damageReducer = configSO.explosiveDamageReducer;
+            var radiusAdd = configSO.explosiveRadiusAdd;
+            var fadingReducer = configSO.explosiveFadingReducer;
             
             var quantity = ShardUtils.GetQuantity(ref shard);
             var amplifier = GetShardAmplifier(shard.red, quantity);
 
             damage = amplifier / damageReducer;
-            diameter = Mathf.Log(Mathf.Sqrt(amplifier / 10f)) + radiusAdd;
+            diameter = MathF.Log(MathF.Sqrt(amplifier / 10f)) + radiusAdd;
             damageFading = 0.9f;//diameter / Mathf.Sqrt(shard.red * fadingReducer);
         }
 
@@ -206,16 +210,16 @@ namespace td.features.shard
             out float damage,
             out float duration)
         {
-            var damageBase = config.poisonDamageBase;
-            var damageReducer = config.poisonDamageReducer;
+            var damageBase = configSO.poisonDamageBase;
+            var damageReducer = configSO.poisonDamageReducer;
             // var minInterval = config.poisonMinInterval;
-            var minDuration = config.poisonMinDuration;
+            var minDuration = configSO.poisonMinDuration;
             
             var amplifier = GetShardAmplifier(shard.green, ShardUtils.GetQuantity(ref shard));
 
-            damage = amplifier / Mathf.Sqrt(shard.green * 2f) / damageReducer;
+            damage = amplifier / MathF.Sqrt(shard.green * 2f) / damageReducer;
             // interval = Mathf.Sqrt((Mathf.Log(amplifier))) + minInterval;
-            duration = Mathf.Sqrt(Mathf.Sqrt(amplifier)) + minDuration;
+            duration = MathF.Sqrt(MathF.Sqrt(amplifier)) + minDuration;
 
             duration *= damageBase;
         }
@@ -249,26 +253,27 @@ namespace td.features.shard
         // pink - увеличивает скорострельность
         public float GetFireRate(ref Shard shard)
         {
-            var baseFireRate = config.fireRateBase;
-            var pinkReduser = config.fireRatePinkReduser;
+            var baseFireRate = configSO.fireRateBase;
+            var pinkReduser = configSO.fireRatePinkReduser;
             
             var max = ShardUtils.GetMax(ref shard);
             var quantity = ShardUtils.GetQuantity(ref shard);
             var amplifier = GetShardAmplifier(max);
 
             // var fireRate = baseFireRate + (Mathf.Log(amplifier) * Mathf.Sqrt(max));
-            var levelModifier = Mathf.Pow(config.GetLevelCoefficient(quantity) / 3.62f, 2f);
-            var fireRate = levelModifier * Mathf.Log10(Mathf.Pow(quantity, 2f)) + baseFireRate;
+            var lm = configSO.GetLevelCoefficient(quantity) / 3.62f;
+            var levelModifier = lm * lm;
+            var fireRate = levelModifier * MathF.Log10(quantity * quantity) + baseFireRate;
 
             if (shard.pink > 0)
             {
                 var pinkAmplifier = GetShardAmplifier(shard.pink, quantity);
-                fireRate += Mathf.Sqrt(pinkAmplifier * pinkReduser) / Mathf.Sqrt(quantity);
+                fireRate += MathF.Sqrt(pinkAmplifier * pinkReduser) / MathF.Sqrt(quantity);
             }
 
             if (shard.aquamarine > 0)
             {
-                fireRate /= 1 + Mathf.Sqrt(shard.aquamarine);
+                fireRate /= MathF.Sqrt(shard.aquamarine) + 1f;
             }
 
             return fireRate;
@@ -277,23 +282,24 @@ namespace td.features.shard
         // yellow - увеличивает радиус
         public float GetTowerRadius(ref Shard shard)
         {
-            var baseRadius = config.radiusBase;
-            var impactOfYellow = config.radiusImpactOfYellow;
+            var baseRadius = configSO.radiusBase;
+            var impactOfYellow = configSO.radiusImpactOfYellow;
 
             var quantity = ShardUtils.GetQuantity(ref shard);
-            var levelCooficient = config.GetLevelCoefficient(quantity);
-            var levelModifier = Mathf.Pow(levelCooficient / 10f, 2f);
+            var levelCooficient = configSO.GetLevelCoefficient(quantity);
+            var lm = levelCooficient / 10f;
+            var levelModifier = lm * lm;
 
-            var radius = levelModifier * Mathf.Log10(Mathf.Pow(quantity + 1, 2f)) + baseRadius;
+            var radius = levelModifier * MathF.Log10((quantity + 1) * (quantity + 1)) + baseRadius;
 
             if (shard.yellow > 0)
             {
                 var yellowAmplifier = GetShardAmplifier(shard.yellow, quantity);
 
-                radius += Mathf.Sqrt(yellowAmplifier * impactOfYellow) / Mathf.Sqrt(quantity);
+                radius += MathF.Sqrt(yellowAmplifier * impactOfYellow) / MathF.Sqrt(quantity);
             }
 
-            radius = Mathf.Max(baseRadius, radius);
+            radius = MathFast.Max(baseRadius, radius);
 
             return radius;
         }
@@ -343,28 +349,28 @@ namespace td.features.shard
         {
             //todo
             uint cost = 0;
-            cost += (uint)(CalculateCostByType(ShardTypes.Red, shard.red) / 6 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.red) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Green, shard.green) / 6 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.green) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Blue, shard.blue) / 6 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.blue) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Yellow, shard.yellow) / 6 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.yellow) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Orange, shard.orange) / 6 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.orange) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Pink, shard.pink) / 6 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.pink) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Violet, shard.violet) / 6 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.violet) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Aquamarine, shard.aquamarine) / 6 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.aquamarine) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Red, shard.red) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.red) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Green, shard.green) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.green) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Blue, shard.blue) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.blue) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Yellow, shard.yellow) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.yellow) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Orange, shard.orange) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.orange) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Pink, shard.pink) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.pink) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Violet, shard.violet) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.violet) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Aquamarine, shard.aquamarine) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.aquamarine) + 1));
             return Math.Max(1, cost);
         }
         
         public uint CalculateCombineCost(ref Shard shard)
         {
             uint cost = 0;
-            cost += (uint)(CalculateCostByType(ShardTypes.Red, shard.red) / 4 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.red) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Green, shard.green) / 4 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.green) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Blue, shard.blue) / 4 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.blue) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Yellow, shard.yellow) / 4 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.yellow) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Orange, shard.orange) / 4 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.orange) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Pink, shard.pink) / 4 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.pink) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Violet, shard.violet) / 4 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.violet) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Aquamarine, shard.aquamarine) / 4 * Mathf.CeilToInt(GetShardLogSqrLevel(shard.aquamarine) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Red, shard.red) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.red) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Green, shard.green) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.green) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Blue, shard.blue) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.blue) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Yellow, shard.yellow) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.yellow) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Orange, shard.orange) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.orange) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Pink, shard.pink) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.pink) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Violet, shard.violet) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.violet) + 1));
+            cost += (uint)(CalculateCostByType(ShardTypes.Aquamarine, shard.aquamarine) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.aquamarine) + 1));
 
             return Math.Max(2, cost);
         }

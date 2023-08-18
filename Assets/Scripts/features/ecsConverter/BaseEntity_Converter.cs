@@ -1,11 +1,9 @@
 ﻿using System.Runtime.InteropServices;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using Leopotam.Types;
 using td.features.destroy;
 using td.features.movement;
 using td.monoBehaviours;
-using td.utils;
 using td.utils.di;
 using UnityEngine;
 #if UNITY_EDITOR
@@ -38,6 +36,7 @@ namespace td.features.ecsConverter
         {
             if (gameObject.TryGetComponent<EcsEntity>(out var e))
             {
+#if UNITY_EDITOR
                 if (
                     e.packedEntity != null &&
                     e.packedEntity.Value.Unpack(out var checkWorld, out var entityTest)
@@ -45,6 +44,7 @@ namespace td.features.ecsConverter
                     if (checkWorld != World()) throw new InvalidComObjectException("GameObject already linked in another ecs world");
                     if (entityTest != entity) throw new InvalidComObjectException("GameObject already linked with other ecs entity");
                 }
+#endif
                 e.packedEntity = World().PackEntityWithWorld(entity);
             }
             else

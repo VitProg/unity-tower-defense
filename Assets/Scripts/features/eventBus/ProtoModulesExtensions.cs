@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
 using td.features.eventBus.types;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.eventBus
 {
@@ -30,6 +28,7 @@ namespace td.features.eventBus
                             hasEventInterface = true;
                             break;
                         }
+#if UNITY_EDITOR
                         if (!hasEventInterface)
                         {
                             throw new Exception($"Failed to add the {EditorExtensions.GetCleanTypeName(evType)} event because it does not implement the IEvent interface");
@@ -38,6 +37,7 @@ namespace td.features.eventBus
                         {
                             throw new Exception($"Failed to add the {EditorExtensions.GetCleanTypeName(evType)} event because it is already registered");
                         }
+#endif
                         events.Add(evType);
                         // Debug.Log("- добавленно событие " + evType.Name);
                     }

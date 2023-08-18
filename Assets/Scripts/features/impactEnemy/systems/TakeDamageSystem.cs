@@ -1,14 +1,8 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.features._common;
 using td.features.enemy;
 using td.features.eventBus;
-using td.features.fx;
-using td.features.fx.effects;
 using td.features.impactEnemy.components;
-using td.features.movement;
-using td.features.state;
-using UnityEngine;
 
 namespace td.features.impactEnemy.systems
 {

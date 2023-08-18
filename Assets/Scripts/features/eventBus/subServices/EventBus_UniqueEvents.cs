@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using System.Security.Authentication.ExtendedProtection;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using td.features.eventBus.@internal;
@@ -18,11 +17,11 @@ namespace td.features.eventBus.subServices
         private readonly Type persistEventType = typeof(IPersistEvent);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ProtoPool<T> GetPool<T>() where T : struct, IEvent => 
+        public ProtoPool<T> GetPool<T>() where T : struct, IEvent => 
             (ProtoPool<T>)aspect.World().Pool(typeof(T));
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IProtoPool GetPool(Type evType) => 
+        public IProtoPool GetPool(Type evType) => 
             aspect.World().Pool(evType);
 
         public int GetOrAdd(Type evType, object evData)
@@ -76,16 +75,23 @@ namespace td.features.eventBus.subServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Del<T>() where T : struct, IUniqueEvent
         {
-            var pool = GetPool<T>();
+            Del(typeof(T));
+        }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Del(Type evType)
+        {
+            var pool = GetPool(evType);
+            var count = pool.Len();
+            
             if (pool.Len() == 0) return;
 
-            foreach (var evEntity in pool.Entities())
-            {
-                aspect.World().DelEntity(evEntity);
-            }
+#if DEBUG
+            if (count > 1) throw new Exception($"Unique event pool contain more then one entity");
+#endif
+            aspect.World().DelEntity(pool.Entities()[0]);
         }
-        
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Has<T>() where T : struct, IUniqueEvent
         {
@@ -93,6 +99,9 @@ namespace td.features.eventBus.subServices
             var pool = GetPool<T>();
             return pool.Len() > 0;
         }
+        
+        public bool HasListeners<T>() where T : struct, IGlobalEvent => eventListeners.ContainsKey(typeof(T));
+        public bool HasListeners(Type evType) => eventListeners.ContainsKey(evType);
 
         public void ListenTo<T>(RefAction<T> action) where T : struct, IUniqueEvent
         {

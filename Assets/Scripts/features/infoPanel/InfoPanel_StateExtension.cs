@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using System;
 using System.Runtime.CompilerServices;
 using Leopotam.EcsProto.QoL;
 using td.features.enemy.components;
@@ -8,10 +11,8 @@ using td.features.shard.components;
 using td.features.state;
 using td.utils.di;
 using UnityEngine.UIElements;
-#if UNITY_EDITOR
 using td.utils;
-using UnityEditor;
-#endif
+
 
 namespace td.features.infoPanel
 {
@@ -25,8 +26,10 @@ namespace td.features.infoPanel
         #region Private Fields
         private bool visible;
         private string title;
-        private string costTitle;
-        private uint cost;
+        private string priceTitle;
+        private uint price;
+        private string timeTitle;
+        private uint time;
         private string before;
         private string after;
         private bool hasShard;
@@ -44,8 +47,10 @@ namespace td.features.infoPanel
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public string GetTitle() => title;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public string GetBefore() => before;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public string GetAfter() => after;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public uint GetCost() => cost;
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public string GetCostTitle() => costTitle;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public uint GetPrice() => price;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public string GetPriceTitle() => priceTitle;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public uint GetTime() => time;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public string GetTimeTitle() => timeTitle;
         #endregion
 
         #region Setters
@@ -137,24 +142,47 @@ namespace td.features.infoPanel
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void SetCostTitle(string value)
         {
-            if (costTitle == value) return;
-            costTitle = value;
-            ev.costTitle = true;
+            if (priceTitle == value) return;
+            priceTitle = value;
+            ev.priceTitle = true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetCost(uint value)
+        public void SetPrice(uint value)
         {
-            if (cost == value) return;
-            cost = value;
-            ev.cost = true;
+            if (price == value) return;
+            price = value;
+            ev.price = true;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetCost(uint costValue, string costTitleValue)
+        public void SetPrice(uint costValue, string costTitleValue)
         {
-            SetCost(costValue);
-            SetTitle(costTitleValue);
+            SetPrice(costValue);
+            SetCostTitle(costTitleValue);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetTimeTitle(string value)
+        {
+            if (timeTitle == value) return;
+            timeTitle = value;
+            ev.timeTitle = true;
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetTime(uint value)
+        {
+            if (time == value) return;
+            time = value;
+            ev.price = true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void SetTime(uint timeValue, string timeTitleValue)
+        {
+            SetTime(timeValue);
+            SetTimeTitle(timeTitleValue);
         }
         #endregion
         
@@ -169,8 +197,8 @@ namespace td.features.infoPanel
         {
             visible = false;
             title = null;
-            costTitle = null;
-            cost = 0;
+            priceTitle = null;
+            price = 0;
             before = null;
             after = null;
             hasShard = false;
@@ -197,8 +225,10 @@ namespace td.features.infoPanel
             EditorUtils.DrawTitle("Info Panel State", true);
             EditorGUI.indentLevel++;
             EditorUtils.DrawProperty("Visible", visible);
-            EditorUtils.DrawProperty("Cost", cost);
-            EditorUtils.DrawProperty("Cost Title", costTitle);
+            EditorUtils.DrawProperty("Cost", price);
+            EditorUtils.DrawProperty("Cost Title", priceTitle);
+            EditorUtils.DrawProperty("Time", time);
+            EditorUtils.DrawProperty("Time Title", timeTitle);
             EditorUtils.DrawProperty("Before Text", before);
             EditorUtils.DrawProperty("After Text", after);
             if (HasShard())

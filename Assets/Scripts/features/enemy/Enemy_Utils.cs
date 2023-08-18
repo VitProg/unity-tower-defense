@@ -1,18 +1,20 @@
 ﻿using System.Collections.Generic;
-using td.common;
 using td.features.enemy.components;
 using td.features.level.cells;
 using td.utils;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.enemy
 {
     public static class Enemy_Utils
     {
-        public static Vector2 CalcPosition(Int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
+        public static Vector2 CalcPosition(int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
             HexGridUtils.CellToPosition(cellCoordinates) + (Vector2)(rotation * offset);
-        public static Vector2 CalcPosition(ref Int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
+        
+        public static Vector2 CalcPosition(ref int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
             HexGridUtils.CellToPosition(ref cellCoordinates) + (Vector2)(rotation * offset);
+        
         public static Vector2 CalcPosition(int cellX, int cellY, Quaternion rotation, Vector2 offset) =>
             HexGridUtils.CellToPosition(cellX, cellY) + (Vector2)(rotation * offset);
 

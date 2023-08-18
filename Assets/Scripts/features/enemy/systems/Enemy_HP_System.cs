@@ -1,8 +1,8 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using td.features.enemy.bus;
 using td.features.eventBus;
-using UnityEngine;
 
 namespace td.features.enemy.systems
 {
@@ -39,8 +39,8 @@ namespace td.features.enemy.systems
                 mb.hp.gameObject.SetActive(true);
             }
 
-            var p = Mathf.Clamp01(enemy.health / enemy.startingHealth);
-            var n = Mathf.FloorToInt(p * (Constants.Enemy.HpBarColors.Length - 1));
+            var p = MathFast.Clamp(enemy.health / enemy.startingHealth, 0f, 1f);
+            var n = MathFast.Floor(p * (Constants.Enemy.HpBarColors.Length - 1));
 
             mb.hpLine.color = Constants.Enemy.HpBarColors[n];
         }

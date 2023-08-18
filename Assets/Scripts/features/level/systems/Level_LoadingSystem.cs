@@ -1,12 +1,13 @@
-﻿using Leopotam.EcsProto;
+﻿using System;
+using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.features.costPopup;
 using td.features.enemy;
 using td.features.eventBus;
 using td.features.level.bus;
 using td.features.level.cells;
 using td.features.movement;
 using td.features.path;
+using td.features.pricePopup;
 using td.features.shard.shardStore;
 using td.features.state;
 using td.features.tower;
@@ -14,6 +15,7 @@ using td.features.tower.mb;
 using td.features.wave.bus;
 using td.utils;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace td.features.level.systems
 {
@@ -24,7 +26,8 @@ namespace td.features.level.systems
         [DI] private LevelLoader_Service levelLoader;
         [DI] private Path_Service pathService;
         [DI] private Enemy_Path_Service enemyPathService;
-        [DI] private Tower_Converter converter;
+        [DI] private Tower_Converter towerConverter;
+        [DI] private Tower_Service towerService;
         [DI] private Movement_Service movementService;
         [DI] private EventBus events;
         
@@ -51,7 +54,7 @@ namespace td.features.level.systems
 
             // todo: move to own modules
             state.Ex<ShardStore_StateEx>().SetVisible(false);
-            state.Ex<CostPopup_StateExtension>().SetVisible(false);
+            state.Ex<PricePopup_StateExtension>().SetVisible(false);
             //
 
             if (levelLoader.HasLevel())
@@ -68,6 +71,9 @@ namespace td.features.level.systems
                     ? levelConfig?.delayBeforeFirstWave
                     : levelConfig?.delayBetweenWaves;
 
+                Debug.Log(">>> Wave_NextCountdown" + (countdown ?? 0));
+                Debug.Log(">>> Event_LevelLoaded");
+                
                 events.unique.GetOrAdd<Wave_NextCountdown>().countdown = countdown ?? 0;
                 events.unique.GetOrAdd<Event_LevelLoaded>();
             }
@@ -81,21 +87,29 @@ namespace td.features.level.systems
         {
             foreach (var towerMb in Object.FindObjectsOfType<TowerMonoBehaviour>())
             {
-                var entity = converter.GetEntity(towerMb.gameObject) ?? world.NewEntity();
-                converter.Convert(towerMb.gameObject, entity);
+                var towerEntity = towerConverter.GetEntity(towerMb.gameObject) ?? world.NewEntity();
+                towerConverter.Convert(towerMb.gameObject, towerEntity);
 
-                var transform = movementService.GetGOTransform(entity);
+                var transform = movementService.GetGOTransform(towerEntity);
 
                 var cellCoordinates = HexGridUtils.PositionToCell(transform.position);
 
                 if (levelMap.HasCell(cellCoordinates, CellTypes.CanBuild)) {
                     // ToDo
-                    levelMap.GetCell(cellCoordinates, CellTypes.CanBuild).packedBuildingEntity = world.PackEntityWithWorld(entity);
+                    ref var cell = ref levelMap.GetCell(cellCoordinates, CellTypes.CanBuild);
+                    cell.packedBuildingEntity = world.PackEntityWithWorld(towerEntity);
+                    cell.inputEventsHandlers.Add(towerService.GetTowerMB(towerEntity));
+                    if (towerService.HasShardTower(towerEntity))
+                    {
+                        cell.inputEventsHandlers.Add(towerService.GetShardTowerMB(towerEntity));
+                    }
                 }
+#if UNITY_EDITOR
                 else
                 {
-                    throw new System.Exception($"Cell {cellCoordinates.x}, {cellCoordinates.y} is not type of CanBuild");
+                    throw new Exception($"Cell {cellCoordinates.x}, {cellCoordinates.y} is not type of CanBuild");
                 }
+#endif
             }
         }
 

@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using td.common;
-using UnityEngine.Serialization;
 
 namespace td.features.enemy.components
 {

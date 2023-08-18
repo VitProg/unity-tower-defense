@@ -1,9 +1,9 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.features._common;
 using td.features.eventBus;
 using td.features.gameStatus.bus;
 using td.features.state;
+using UnityEngine;
 
 namespace td.features.gameStatus.systems
 {
@@ -43,6 +43,7 @@ namespace td.features.gameStatus.systems
 
         private void OnGameStarted(ref Command_StartGame item)
         {
+            Debug.Log("!!!!!!!!!! OnGameStarted !!!!!!!");
             state.SetGameSimulationEnabled(true);
             // common.SetGroupSystemState(Constants.EcsSystemGroups.GameSimulation, true);
             state.SetGameSpeed(1f);

@@ -1,17 +1,22 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.features._common;
+using Leopotam.Types;
+using td.features.camera.bus;
+using td.features.eventBus;
 using td.utils;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace td.features.camera
 {
     public class CameraZoomSystem : IProtoRunSystem, IProtoInitSystem
     {
         [DI] private Camera_Service cameraService;
+        [DI] private EventBus events;
         
         private float zoom = 0;
         private float perspectiveZoomOnePercent;
+        private float lastZoom;
 
         public void Run()
         {
@@ -27,34 +32,45 @@ namespace td.features.camera
             {
                 mouseZoom = isPerspective ? Constants.Camera.PerspectiveZoomStep : Constants.Camera.OrthographicZoomStep;
             }
-            
+
             if (isPerspective)
             {
                 zoom += mouseZoom;
-                zoom = Mathf.Clamp(zoom, Constants.Camera.MinPerspectiveZoom, Constants.Camera.MaxPerspectiveZoom);
-                
-                var cameraTransform = cameraService.GetVirtualCamera().transform;
-                var cameraPosition = cameraTransform.position;
-                var position = new Vector3(
-                    cameraPosition.x,
-                    cameraPosition.y,
-                    zoom
-                );
-                cameraTransform.position = Vector3.Lerp(
-                    cameraPosition,
-                    position,
-                    EasingUtils.EaseOutSine(Time.deltaTime * Constants.Camera.PerspectiveZoomSpeed)
-                );
+                zoom = MathFast.Clamp(zoom, Constants.Camera.MinPerspectiveZoom, Constants.Camera.MaxPerspectiveZoom);
+
+                if (!FloatUtils.IsEquals(lastZoom, zoom))
+                {
+                    lastZoom = zoom;
+                    var cameraTransform = cameraService.GetVirtualCamera().transform;
+                    var cameraPosition = cameraTransform.position;
+                    var position = new Vector3(
+                        cameraPosition.x,
+                        cameraPosition.y,
+                        zoom
+                    );
+                    cameraTransform.position = Vector3.Lerp(
+                        cameraPosition,
+                        position,
+                        EasingUtils.EaseOutQuad(Time.deltaTime * Constants.Camera.PerspectiveZoomSpeed)
+                    );
+                    events.unique.GetOrAdd<Event_Camera_Moved>();
+                }
             }
             else
             {
                 zoom += mouseZoom;
-                zoom = Mathf.Clamp(zoom, Constants.Camera.MaxOrthographicZoom, Constants.Camera.MinOrthographicZoom);
-                cameraService.GetVirtualCamera().m_Lens.OrthographicSize = Mathf.Lerp(
-                    cameraService.GetVirtualCamera().m_Lens.OrthographicSize,
-                    zoom,
-                    EasingUtils.EaseOutSine(Time.deltaTime * Constants.Camera.OrthographicZoomSpeed)
-                );
+                zoom = MathFast.Clamp(zoom, Constants.Camera.MaxOrthographicZoom, Constants.Camera.MinOrthographicZoom);
+                
+                if (!FloatUtils.IsEquals(lastZoom, zoom))
+                {
+                    lastZoom = zoom;
+                    cameraService.GetVirtualCamera().m_Lens.OrthographicSize = MathFast.Lerp(
+                        cameraService.GetVirtualCamera().m_Lens.OrthographicSize,
+                        zoom,
+                        EasingUtils.EaseOutQuad(Time.deltaTime * Constants.Camera.OrthographicZoomSpeed)
+                    );
+                    events.unique.GetOrAdd<Event_Camera_Moved>();
+                }
             }
         }
 
@@ -63,6 +79,7 @@ namespace td.features.camera
             zoom = cameraService.IsPerspectiveCameraMode() ?
                 cameraService.GetVirtualCamera().transform.position.z :
                 cameraService.GetVirtualCamera().m_Lens.OrthographicSize;
+            lastZoom = zoom;
         }
     }
 }

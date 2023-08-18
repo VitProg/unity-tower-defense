@@ -1,10 +1,9 @@
 ﻿using System.Collections.Generic;
 using Leopotam.EcsProto.QoL;
-using td.common;
 using td.features.level;
 using td.features.level.cells;
-using td.monoBehaviours;
 using td.utils;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.path
@@ -13,8 +12,8 @@ namespace td.features.path
     {
         [DI] private LevelMap levelMap;
         
-        private readonly Queue<Int2> queue = new();
-        private readonly Queue<Int2> idleQueue = new();
+        private readonly Queue<int2> queue = new();
+        private readonly Queue<int2> idleQueue = new();
 
         private static readonly HexDirections[] DefaultDirections = new []
         {
@@ -70,7 +69,7 @@ namespace td.features.path
             //todo add step for calculate distanceToKernel
         }
 
-        private void Tick(Int2 coords)
+        private void Tick(int2 coords)
         {
             if (!levelMap.HasCell(coords.x, coords.y)) return;
 
@@ -110,8 +109,10 @@ namespace td.features.path
                 // if we look at the cell from which we came, we skip it
                 if (nextCell.isPathAnalyzed)
                 {
-                    if ((HexGridUtils.GetNeighborsCoords(ref nextCell.coords, nextCell.dirToNext) == cell.coords) ||
-                        nextCell.isSwitcher && HexGridUtils.GetNeighborsCoords(ref nextCell.coords, nextCell.dirToNextAlt) == cell.coords )
+                    if (
+                        cell.coords.Equals(HexGridUtils.GetNeighborsCoords(ref nextCell.coords, nextCell.dirToNext)) ||
+                        nextCell.isSwitcher && cell.coords.Equals(HexGridUtils.GetNeighborsCoords(ref nextCell.coords, nextCell.dirToNextAlt))
+                    )
                     {
                         continue;
                     }

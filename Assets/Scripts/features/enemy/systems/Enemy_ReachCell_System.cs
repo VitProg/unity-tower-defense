@@ -1,11 +1,11 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.common;
 using td.features.enemy.bus;
 using td.features.eventBus;
 using td.features.level;
 using td.features.movement;
 using td.utils;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.enemy.systems
@@ -74,13 +74,13 @@ namespace td.features.enemy.systems
                 }
 
                 // var stepCurrent = path[enemyPath.index];
-                var stepNext = enemyPath.index + 1 < path.Count ? path[enemyPath.index + 1] : Int2.Zero;
-                var stepNextNext = enemyPath.index + 2 < path.Count ? path[enemyPath.index + 2] : Int2.Zero;
+                var stepNext = enemyPath.index + 1 < path.Count ? path[enemyPath.index + 1] : int2.zero;
+                var stepNextNext = enemyPath.index + 2 < path.Count ? path[enemyPath.index + 2] : int2.zero;
 
-                var nextCell = stepNext.IsZero || !levelMap.HasCell(stepNext)
+                var nextCell = stepNext.IsZero() || !levelMap.HasCell(stepNext)
                     ? default
                     : levelMap.GetCell(stepNext);
-                var nextNextCell = stepNext.IsZero || !levelMap.HasCell(stepNextNext)
+                var nextNextCell = stepNext.IsZero() || !levelMap.HasCell(stepNextNext)
                     ? default
                     : levelMap.GetCell(stepNextNext);
 

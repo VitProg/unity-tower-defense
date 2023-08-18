@@ -1,13 +1,11 @@
-﻿using Leopotam.EcsProto.QoL;
+﻿using System.Runtime.CompilerServices;
 using NaughtyAttributes;
 using td.features.eventBus;
 using td.features.inputEvents;
 using td.features.level;
 using td.features.tower.towerRadius.bus;
-using td.features.towerRadius.bus;
 using td.monoBehaviours;
 using td.utils.di;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.tower.mb
@@ -22,55 +20,10 @@ namespace td.features.tower.mb
         [Required] public SpriteRenderer sprite;
         [Required] public LineRenderer radiusRenderer;
         
-        public float2 size = new float2(1f, 1f);
-
         private EventBus Events =>  ServiceContainer.Get<EventBus>();
         private LevelMap LevelMap =>  ServiceContainer.Get<LevelMap>();
-        
-#if UNITY_EDITOR
-        void OnDrawGizmosSelected()
-        {
-            // Display the explosion radius when selected
-            Gizmos.color = new Color(1, 0, 0, 0.75F);
 
-            var radius = size.x;
-            var yScale = size.y / size.x;
-
-            const byte triangelesCount = 32;
-            const float fov = 360f;
-
-            var position = transform.position;
-            
-            var vertices = new Vector3[triangelesCount + 1 + 1];
-            var circleVerticesv = new Vector3[triangelesCount];
-            
-            var origin = Vector2.zero;
-            var angle = 0f;
-            var angleIncrease = fov / triangelesCount;
-
-            var vertexIndex = 1;
-            var circleIndex = 0;
-            for (var i = 0; i <= triangelesCount; i++)
-            {
-                var angleRad = angle * (Mathf.PI / 180f);
-                var vectorFromAngle = new Vector2(Mathf.Cos(angleRad), Mathf.Sin(angleRad) * yScale);
-                Vector3 vertex = origin + vectorFromAngle * radius;
-                vertex += position;
-                vertices[vertexIndex] = vertex;
-                if (i > 0 && i <= circleVerticesv.Length)
-                {
-                    circleVerticesv[circleIndex] = vertices[vertexIndex];
-                    circleIndex++;
-                }
-
-                vertexIndex++;
-                angle -= angleIncrease;
-            }
-            
-            Gizmos.DrawLineStrip(circleVerticesv, true);
-        }
-#endif
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnPointerEnter(float x, float y)
         {
             // Debug.Log($"OnPointerEnter [{x}, {y}]");
@@ -82,6 +35,7 @@ namespace td.features.tower.mb
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnPointerLeave(float x, float y)
         {
             // Debug.Log($"OnPointerLeave [{x}, {y}]");
@@ -94,6 +48,7 @@ namespace td.features.tower.mb
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnPointerDown(float x, float y)
         {
             // Debug.Log($"OnPointerDown [{x}, {y}]");
@@ -103,7 +58,8 @@ namespace td.features.tower.mb
             }
         }
 
-        public void OnPointerUp(float x, float y, bool inRadius)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void OnPointerUp(float x, float y, bool inside)
         {
             if (ecsEntity.packedEntity.HasValue)
             {
@@ -112,11 +68,13 @@ namespace td.features.tower.mb
             }
         }
 
-        public void OnPointerClick(float x, float y)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void OnPointerClick(float x, float y, bool isLong)
         {
         }
 
-        public bool IsHovered { get; set; } = false;
-        public bool IsPressed { get; set; } = false;
+        public bool IsHovered { get; set; }
+        public bool IsPressed { get; set; }
+        public float TimeFromDown { get; set; }
     }
 }

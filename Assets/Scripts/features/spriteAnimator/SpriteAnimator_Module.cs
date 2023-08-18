@@ -1,5 +1,4 @@
 ﻿using Leopotam.EcsProto;
-using UnityEngine;
 
 namespace td.features.spriteAnimator
 {

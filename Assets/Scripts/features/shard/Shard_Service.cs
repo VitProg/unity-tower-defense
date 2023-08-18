@@ -1,6 +1,5 @@
 ﻿using System;
 using Leopotam.EcsProto.QoL;
-using td.features._common;
 using td.features._common.components;
 using td.features.level;
 using td.features.level.cells;
@@ -10,10 +9,8 @@ using td.features.shard.components;
 using td.features.shard.mb;
 using td.features.state;
 using td.features.tower;
-using td.monoBehaviours;
 using td.utils.ecs;
 using UnityEngine;
-using NullReferenceException = System.NullReferenceException;
 using Object = UnityEngine.Object;
 
 namespace td.features.shard
@@ -97,7 +94,10 @@ namespace td.features.shard
 
         public ref Shard GetShardInTower(int towerEntity, out int shardEntity)
         {
-            if (!HasShardInTower(towerEntity, out shardEntity)) throw new NullReferenceException("Shard not found in Tower. Use HasShardInTower method for check");
+            var check = HasShardInTower(towerEntity, out shardEntity);
+#if UNITY_EDITOR
+            if (!check) throw new NullReferenceException("Shard not found in Tower. Use HasShardInTower method for check");
+#endif
             return ref GetShard(shardEntity);
         }
 
@@ -108,12 +108,18 @@ namespace td.features.shard
         public ref Shard GetShard(int shardEntity) => ref aspect.shardPool.GetOrAdd(shardEntity);
 
         public ref Shard GetShard(ProtoPackedEntityWithWorld packedEntity, out int shardEntity) {
-            if (!packedEntity.Unpack(out var w, out shardEntity)) throw new NullReferenceException("Shard not found. Use HasShard method for check");
+            var check = packedEntity.Unpack(out var w, out shardEntity);
+#if UNITY_EDITOR
+            if (!check) throw new NullReferenceException("Shard not found. Use HasShard method for check");
             if (!aspect.World().Equals(w)) throw new Exception("Shards not equal.");
+#endif
             return ref aspect.shardPool.GetOrAdd(shardEntity);
         }
         public ref Shard GetShard(ProtoPackedEntity packedEntity, out int shardEntity) {
-            if (!packedEntity.Unpack(aspect.World(), out shardEntity)) throw new NullReferenceException("Shard not found. Use HasShard method for check");
+            var check = packedEntity.Unpack(aspect.World(), out shardEntity);
+#if UNITY_EDITOR
+            if (!check) throw new NullReferenceException("Shard not found. Use HasShard method for check");
+#endif
             return ref aspect.shardPool.GetOrAdd(shardEntity);
         }
         public (CanCombineShardType check, uint cost) CheckCanCombineShards(ref Shard targetShard, ref Shard sourceShard)
@@ -151,7 +157,7 @@ namespace td.features.shard
 
         public bool InsertShardInTower(ref Shard shard, ProtoPackedEntityWithWorld towerPackedEntity)
         {
-            if (!towerService.HasTower(towerPackedEntity, out var towerEntity) && towerService.HasShardTower(towerPackedEntity)) return false;
+            if (!towerService.HasTower(towerPackedEntity, out var world, out var towerEntity) && towerService.HasShardTower(towerPackedEntity)) return false;
             
             var transform = movementService.GetGOTransform(towerEntity);
             var position = (Vector2)transform.position;
@@ -186,7 +192,9 @@ namespace td.features.shard
 
         public void DropToMap(ref Shard shard, Vector2 worldPosition)
         {
+#if UNITY_EDITOR
             throw new NullReferenceException();
+#endif
         }
         
         public float GetRadiusByTower(int towerEntity)

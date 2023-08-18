@@ -22,6 +22,12 @@ namespace td.features.eventBus.subServices
         public ProtoPool<T> GetPool<T>() where T : struct, IEvent
         {
             return (ProtoPool<T>)aspect.World().Pool(typeof(T));
+        } 
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public IProtoPool GetPool(Type evType)
+        {
+            return aspect.World().Pool(evType);
         }
         
         public ref T Add<T>() where T : struct, IGlobalEvent
@@ -47,9 +53,18 @@ namespace td.features.eventBus.subServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear<T>() where T : struct, IGlobalEvent
         {
-            var pool = GetPool<T>();
+            Clear(typeof(T));
+        }      
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Clear(Type evType)
+        {
+            var pool = GetPool(evType);
+            var count = pool.Len();
+            
+            if (count > 0) Debug.Log($"@@@ EventBus.Global: clear {evType.Name}[{count}]");
 
-            if (pool.Len() == 0) return;
+            if (count  == 0) return;
 
             foreach (var evEntity in pool.Entities())
             {
@@ -60,7 +75,13 @@ namespace td.features.eventBus.subServices
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Del<T>(int evEntity) where T : struct, IGlobalEvent
         {
-            var pool = GetPool<T>();
+            Del(typeof(T), evEntity);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Del(Type evType, int evEntity)
+        {
+            var pool = GetPool(evType);
 
             var entities = pool.Entities();
             var count = pool.Len();
@@ -80,6 +101,14 @@ namespace td.features.eventBus.subServices
             aspect.World().DelEntity(evEntity);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Has(Type evType)
+        {
+            if (!aspect.release) return false;
+            var pool = GetPool(evType);
+            return pool.Len() > 0;
+        }
+        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool Has<T>() where T : struct, IGlobalEvent
         {
@@ -121,13 +150,17 @@ namespace td.features.eventBus.subServices
         public ProtoIt It<T>() where T : struct, IGlobalEvent
         {
             var evType = typeof(T);
+#if UNITY_EDITOR
             if (!aspect.itUniqueEventsHash.TryGetValue(evType, out var itIdx))
             {
                 throw new Exception($"Iterator for type {EditorExtensions.GetCleanTypeName(evType)} not found for unique event");
             }
-
-            return aspect.itUniqueEvents.Get(itIdx);
+#endif
+            return aspect.itUniqueEvents.Get(aspect.itUniqueEventsHash[evType]);
         }
+
+        public bool HasListeners<T>() where T : struct, IGlobalEvent => eventListeners.ContainsKey(typeof(T));
+        public bool HasListeners(Type evType) => eventListeners.ContainsKey(evType);
 
         public void ListenTo<T>(RefAction<T> action) where T : struct, IGlobalEvent 
         {

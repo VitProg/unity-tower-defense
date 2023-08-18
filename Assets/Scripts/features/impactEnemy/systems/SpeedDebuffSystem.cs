@@ -1,10 +1,8 @@
-﻿using System;
-using Leopotam.EcsProto;
+﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using td.features.enemy;
 using td.features.eventBus;
-using td.features.fx;
-using td.features.fx.effects;
 using td.features.impactEnemy.bus;
 using td.features.state;
 using UnityEngine;
@@ -41,10 +39,10 @@ namespace td.features.impactEnemy.systems
                     );*/
                 }
 
-                var debafedSpeed = enemy.startingSpeed / Mathf.Max(1f, debuff.speedMultipler);
+                var debafedSpeed = enemy.startingSpeed / MathFast.Max(1f, debuff.speedMultipler);
 
-                var startEndDuration = Math.Max(0.5f, debuff.duration / 10f);
-                var mainDuration = Math.Max(0.001f, debuff.duration - startEndDuration * 2);
+                var startEndDuration = MathFast.Max(0.5f, debuff.duration / 10f);
+                var mainDuration = MathFast.Max(0.001f, debuff.duration - startEndDuration * 2f);
                 
                 debuff.timeRemains -= Time.deltaTime * state.GetGameSpeed();
 
@@ -66,7 +64,7 @@ namespace td.features.impactEnemy.systems
                     var t = timePassedInPhase / startEndDuration;
                     // todo
                     t = t * t * (3f - 2f * t);
-                    enemyService.ChangeSpeed(enemyEntity, Mathf.Lerp(
+                    enemyService.ChangeSpeed(enemyEntity, MathFast.Lerp(
                         enemy.startingSpeed,
                         debafedSpeed,
                         t
@@ -86,7 +84,7 @@ namespace td.features.impactEnemy.systems
                     var t = timePassedInPhase / startEndDuration;
                     // todo
                     t =  t * t * (3f - 2f * t);
-                    enemyService.ChangeSpeed(enemyEntity, Mathf.Lerp(
+                    enemyService.ChangeSpeed(enemyEntity, MathFast.Lerp(
                         debafedSpeed,
                         enemy.startingSpeed,
                         t

@@ -87,7 +87,7 @@ PlayerSettings:
   deferSystemGesturesMode: 0
   hideHomeButton: 0
   submitAnalytics: 1
-  usePlayerLog: 1
+  usePlayerLog: 0
   bakeCollisionMeshes: 0
   forceSingleInstance: 0
   useFlipModelSwapchain: 1
@@ -388,10 +388,10 @@ PlayerSettings:
   - m_BuildTarget: WebGL
     m_EncodingQuality: 1
   - m_BuildTarget: Standalone
-    m_EncodingQuality: 1
+    m_EncodingQuality: 0
   m_BuildTargetGroupHDRCubemapEncodingQuality:
   - m_BuildTarget: Standalone
-    m_EncodingQuality: 1
+    m_EncodingQuality: 0
   m_BuildTargetGroupLightmapSettings:
   - m_BuildTarget: Standalone
     m_TextureStreamingEnabled: 0
@@ -659,7 +659,7 @@ PlayerSettings:
   webGLPowerPreference: 2
   scriptingDefineSymbols:
     Android: LEOECSLITE_DI
-    Standalone: LEOECSLITE_DI;TD_AUTO_START_LEVEL;MOVEMENT_DEBUG
+    Standalone: LEOECSLITE_DI
     WebGL: LEOECSLITE_DI
   additionalCompilerArguments:
     WebGL: []
@@ -667,7 +667,7 @@ PlayerSettings:
   scriptingBackend:
     Standalone: 1
   il2cppCompilerConfiguration:
-    Standalone: 0
+    Standalone: 1
   il2cppCodeGeneration:
     Standalone: 0
   managedStrippingLevel: {}

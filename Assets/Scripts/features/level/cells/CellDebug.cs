@@ -1,5 +1,4 @@
 ﻿using NaughtyAttributes;
-using td.monoBehaviours;
 using td.utils;
 using TMPro;
 using UnityEngine;
@@ -22,7 +21,7 @@ namespace td.features.level.cells
         [BoxGroup("Links")] [SerializeField] private GameObject spawnLabel;
         [BoxGroup("Links")] [SerializeField] private GameObject manualLabel;
 
-        [FormerlySerializedAs("cell")] public CellEditorMB cellMB;
+        [FormerlySerializedAs("cell")] public CellMonoBehaviour cellMB;
         private bool isCellMBNull;
 
         private void Start()
@@ -36,7 +35,7 @@ namespace td.features.level.cells
             {
                 if (transform.parent)
                 {
-                    cellMB = transform.parent.GetComponent<CellEditorMB>();
+                    cellMB = transform.parent.GetComponent<CellMonoBehaviour>();
                     isCellMBNull = cellMB == null;
                 }
             }

@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Leopotam.Types;
 using NaughtyAttributes;
 using td.utils;
 using UnityEngine;
@@ -32,7 +33,7 @@ namespace td.features.window.common
 
         private void UpdateAlpha()
         {
-            alpha = Mathf.Clamp(alpha, min, max);
+            alpha = MathFast.Clamp(alpha, min, max);
             // Debug.Log("alpha = " + alpha);
             group.alpha = alpha;
         }
@@ -75,7 +76,7 @@ namespace td.features.window.common
             {
                 progress += Time.deltaTime * speed;
                 var t = EasingUtils.EaseMethod(fateInMethod, progress);
-                alpha = Mathf.Lerp(min, max, t);
+                alpha = MathFast.Lerp(min, max, t);
                 UpdateAlpha();
                 if (state != MenuState.FadeIn || progress > 1f) break;
                 await Task.Yield();
@@ -107,7 +108,7 @@ namespace td.features.window.common
             {
                 progress += Time.deltaTime * speed;
                 var t = EasingUtils.EaseMethod(fateOutMehthod, progress);
-                alpha = Mathf.Lerp(max, min, t);
+                alpha = MathFast.Lerp(max, min, t);
                 UpdateAlpha();
                 if (state != MenuState.FadeOut || progress > 1f) break;
                 await Task.Yield();

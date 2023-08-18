@@ -393,7 +393,6 @@ MonoBehaviour:
   numVertices: 32
   outerRadius: 1
   innerRadius: 0.596
-  shardsConfig: {fileID: 11400000, guid: 539cb70cee1d722469513f0e93eb841b, type: 2}
   levelIndicator: {fileID: 6279133292376413236}
   hover: {fileID: 7367936218045013213}
   deny: {fileID: 8710154877128619106}

@@ -8,7 +8,7 @@ namespace td.monoBehaviours
     {
         public ProtoPackedEntityWithWorld? packedEntity = null;
 
-        [ShowNativeProperty] public bool HasEntity => packedEntity.HasValue;
+        // [ShowNativeProperty] public bool HasEntity => packedEntity.HasValue;
         // public string worldName = Constants.Worlds.Default;
         
         // private readonly EcsWorldInject world = default;

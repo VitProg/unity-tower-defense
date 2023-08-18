@@ -11,12 +11,14 @@ namespace td.features.inputEvents
         [DI] private InputEvents_Aspect aspect;
 
         public bool HasCicleCollider(int entity) => aspect.cicleColliderPool.Has(entity);
-        public ref ObjectCicleCollider GetCicleCollider(int entity) => ref aspect.cicleColliderPool.GetOrAdd(entity);
+        public ref CicleCollider GetCicleCollider(int entity) => ref aspect.cicleColliderPool.GetOrAdd(entity);
         public void DelCicleCollider(int entity) => aspect.cicleColliderPool.Del(entity);
 
         public bool HasHandlers(int entity) => aspect.refPointerHandlersPool.Has(entity) &&
                                                aspect.refPointerHandlersPool.Get(entity).references != null &&
                                                aspect.refPointerHandlersPool.Get(entity).count > 0;
+        
+        public ref HexCellCollider GetHexCellCollider(int entity) => ref aspect.hexCellColliderPool.GetOrAdd(entity);
 
         public void AddHandler(int entity, IInputEventsHandler handler)
         {

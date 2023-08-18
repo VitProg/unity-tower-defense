@@ -2,7 +2,6 @@
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using NaughtyAttributes;
-using td.features._common;
 using td.features.eventBus;
 using td.features.fx.events;
 using td.features.fx.types;
@@ -105,7 +104,9 @@ namespace td.features.fx.effects
             fxService.PrepareGO(go, fxEntity);
             
             var fxmb = go.transform.GetComponent<HitEffect>();
+#if UNITY_EDITOR
             if (!fxmb || !fxmb.animator || !fxmb.spriteRenderer) throw new Exception("FX dasn't valid!");
+#endif
 
             fxmb.Color = fx.Color;
             fxmb.animator.OnFinish.AddListener(delegate

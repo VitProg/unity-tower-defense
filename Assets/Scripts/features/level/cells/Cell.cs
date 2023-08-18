@@ -1,23 +1,26 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Leopotam.EcsProto.QoL;
-using td.common;
-using td.monoBehaviours;
+using td.features.inputEvents;
 using td.utils;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td.features.level.cells
 {
     [Serializable]
     public struct Cell
     {
-        public Int2 coords;
+        [FormerlySerializedAs("coord")] public int2 coords;
         public GameObject go;
+        public CellMonoBehaviour mb;
         public CellTypes type;
         public ProtoPackedEntityWithWorld? packedBuildingEntity;
         public ProtoPackedEntityWithWorld? packedShardEntity;
 
-        public bool IsEmpty => coords.IsZero;
+        public bool IsEmpty => coords is { x: 0, y: 0 };
 
         public bool isKernel;
         public byte kernelNumber;
@@ -36,30 +39,39 @@ namespace td.features.level.cells
         public bool isPathAnalyzed;
 
         public bool HasNextDir => dirToNext != HexDirections.NONE; 
-        public bool HasNextAltDir => dirToNextAlt != HexDirections.NONE; 
+        public bool HasNextAltDir => dirToNextAlt != HexDirections.NONE;
+
+        public List<IInputEventsHandler> inputEventsHandlers;
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public static Cell FromCellEditor(CellEditorMB cell)
+        public static Cell FromCellEditor(CellMonoBehaviour cellMB)
         {
-            return new Cell()
+            return new Cell
             {
-                go = cell.gameObject,
-                coords = HexGridUtils.PositionToCell(cell.transform.position),
-                type = cell.type,
+                mb = cellMB,
+                go = cellMB.gameObject,
+                coords = HexGridUtils.PositionToCell(cellMB.transform.position),
+                type = cellMB.type,
 
-                isKernel = cell.isKernel,
-                kernelNumber = cell.kernelNumber,
+                isKernel = cellMB.isKernel,
+                kernelNumber = cellMB.kernelNumber,
 
-                isSpawn = cell.isSpawn,
-                spawnNumber = cell.spawnNumber,
+                isSpawn = cellMB.isSpawn,
+                spawnNumber = cellMB.spawnNumber,
 
-                isSwitcher = cell.isSwitcher,
-                isAutoNextSearching = cell.isAutoNextSearching,
-                dirToNext = cell.directionToNext,
-                dirToNextAlt = cell.directionToAltNext,
+                isSwitcher = cellMB.isSwitcher,
+                isAutoNextSearching = cellMB.isAutoNextSearching,
+                dirToNext = cellMB.directionToNext,
+                dirToNextAlt = cellMB.directionToAltNext,
+                
+                inputEventsHandlers = new List<IInputEventsHandler> { cellMB },
             };
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool HasBuilding() => packedBuildingEntity.HasValue;
         
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public override string ToString()
         {
             return IsEmpty 

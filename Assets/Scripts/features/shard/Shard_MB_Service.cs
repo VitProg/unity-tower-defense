@@ -4,6 +4,7 @@ using Leopotam.EcsProto.QoL;
 using td.features.camera;
 using td.features.level;
 using td.features.level.cells;
+using td.features.shard.data;
 using td.features.shard.mb;
 using td.features.state;
 using td.features.tower;
@@ -15,7 +16,7 @@ namespace td.features.shard
     public class Shard_MB_Service
     {
         [DI] private Shard_Calculator calc;
-        [DI] private ShardsConfig config;
+        [DI] private Shards_Config_SO configSO;
         [DI] private LevelMap levelMap;
         [DI] private State state;
         [DI] private Tower_Service towerService;
@@ -28,9 +29,16 @@ namespace td.features.shard
         public Shard_MB_Service()
         {
             var shardGO = GameObject.FindGameObjectWithTag(Constants.Tags.DraggableShard);
+#if UNITY_EDITOR
             if (shardGO == null) throw new Exception($"На сцене не найден DruggableShard");
+#endif
             var shardC = shardGO.GetComponent<ShardConrol>();
+#if UNITY_EDITOR
             if (shardC == null) throw new Exception($"DruggableShard не содержит компонент ShardConrol");
+#endif
+            
+            shardGO.gameObject.SetActive(false);
+            
             draggableShard = shardC;
         }
 
@@ -67,11 +75,13 @@ namespace td.features.shard
                 var li = mb.levelIndicator;
                 var h = mb.hover;
 
+#if UNITY_EDITOR
                 if (li == null || h == null)
                 {
                     Debug.Log("LevelIndicator or Hover is null", mb.gameObject);
                     continue;
                 }
+#endif
                 
                 var level = calc.GetShardLevel(ref mb.shardData);
 
@@ -82,8 +92,8 @@ namespace td.features.shard
                 if (li.colorTime > cMax) li.colorTime -= cMax;
 
                 var colorFloat = li.colorTime; //((li.time) % (cm));
-                var colorMinIndex = Mathf.FloorToInt(colorFloat) % cMax;
-                var colorMaxIndex = Mathf.CeilToInt(colorFloat) % cMax;
+                var colorMinIndex = (int)MathF.Floor(colorFloat) % cMax;
+                var colorMaxIndex = (int)MathF.Ceiling(colorFloat) % cMax;
                 
                 var colorMin = mb.Colors[colorMinIndex * cDivider];
                 var colorMax = mb.Colors[colorMaxIndex * cDivider];
@@ -106,7 +116,7 @@ namespace td.features.shard
                 // Debug.Log("___________________________________");
                 
                 
-                li.SetLevel(level, config);
+                li.SetLevel(level, configSO);
                 li.SetColor(color);
                 li.SetRotation(rotation);
 
@@ -153,7 +163,8 @@ namespace td.features.shard
             draggableShard.shardMB.levelIndicator.colorTime = shardButton.shardConrol.shardMB.levelIndicator.colorTime;
             draggableShard.Refresh();
             draggableShard.gameObject.SetActive(true);
-            draggableShard.transform.position = CameraUtils.ToWorldPoint(cameraService.GetCanvasCamera(), screenPoint);
+            // draggableShard.transform.position = CameraUtils.TransformPointToCameraSpace(cameraService.GetCanvasCamera(), screenPoint);
+            draggableShard.transform.position = cameraService.ScreenToCanves(screenPoint);
             draggableShard.transform.FixAnchoeredPosition();
         }
 

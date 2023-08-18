@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using td.features.building;
 using td.features.destroy;
 using td.features.ecsConverter;
 using td.features.inputEvents;
@@ -16,6 +17,7 @@ namespace td.features.tower
         [DI] private Tower_Service towerService;
         [DI] private Destroy_Service destroyService;
         [DI] private InputEvents_Service input;
+        [DI] private Building_Service buildingService;
 
         public override ProtoWorld World()
         {
@@ -25,6 +27,8 @@ namespace td.features.tower
         public new void Convert(GameObject gameObject, int entity)
         {
             base.Convert(gameObject, entity);
+
+            buildingService.Init(entity, "shard_tower");
             
             ref var tower = ref towerService.GetTower(entity);
             tower.coords = HexGridUtils.PositionToCell(gameObject.transform.position);
@@ -36,7 +40,8 @@ namespace td.features.tower
             
             tower.barrel = towerMB.barrel ? (Vector2)towerMB.barrel.transform.localPosition : new Vector2(0, 0);
 
-            input.GetCicleCollider(entity).SetRadius(towerMB.size.x, towerMB.size.y / towerMB.size.x); // todo calc or move to contatnts
+            // input.GetCicleCollider(entity).SetRadius(towerMB.size.x, towerMB.size.y / towerMB.size.x); // todo calc or move to contatnts
+            // input.GetHexCellCollider(entity);
             input.AddHandler(entity, towerMB);
             
 #if UNITY_EDITOR

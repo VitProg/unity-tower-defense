@@ -2,7 +2,7 @@
   "enemies": [
     {
       "name": "simple_walker",
-      "prefabPath": "Enemy",
+      "prefabName": "Enemy",
       "baseSpeed": 1,
       "baseHealth": 10,
       "baseDamage": 1,
@@ -10,7 +10,7 @@
     },
     {
       "name": "speedy_walker",
-      "prefabPath": "Enemy2",
+      "prefabName": "Enemy2",
       "baseSpeed": 1.25,
       "baseHealth": 2,
       "baseDamage": 0.5,
@@ -18,7 +18,7 @@
     },
     {
       "name": "creep-1-blue",
-      "prefabPath": "creep-1-blue",
+      "prefabName": "creep-1-blue",
       "baseSpeed": 1,
       "baseHealth": 5,
       "baseDamage": 1,
@@ -27,7 +27,7 @@
     },
     {
       "name": "creep-1-red",
-      "prefabPath": "creep-1-red",
+      "prefabName": "creep-1-red",
       "baseSpeed": 1,
       "baseHealth": 5,
       "baseDamage": 1,
@@ -36,7 +36,7 @@
     },
     {
       "name": "creep-1-green",
-      "prefabPath": "creep-1-green",
+      "prefabName": "creep-1-green",
       "baseSpeed": 1,
       "baseHealth": 5,
       "baseDamage": 1,
@@ -45,7 +45,7 @@
     },
     {
       "name": "creep-1-yellow",
-      "prefabPath": "creep-1-yellow",
+      "prefabName": "creep-1-yellow",
       "baseSpeed": 1,
       "baseHealth": 5,
       "baseDamage": 1,
@@ -54,7 +54,7 @@
     },
     {
       "name": "creep",
-      "prefabPath": "creep",
+      "prefabName": "creep",
       "types": [
         {
           "baseSpeed": 1.5,

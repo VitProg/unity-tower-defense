@@ -1,8 +1,11 @@
-﻿using System.Collections.Generic;
+﻿#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using System.Collections.Generic;
 using td.features.enemy.components;
 using td.features.shard;
 using td.features.shard.components;
-using UnityEditor;
+using Unity.Mathematics;
 using UnityEngine;
 
 #if UNITY_EDITOR
@@ -49,6 +52,16 @@ namespace td.utils
         public static void DrawProperty(string sNname, string value)
         {
             EditorGUILayout.LabelField(sNname, value);
+        }
+        
+        public static void DrawProperty(string sNname, Vector2 value)
+        {
+            EditorGUILayout.Vector2Field(sNname, value);
+        }
+        
+        public static void DrawProperty(string sNname, int2 value)
+        {
+            EditorGUILayout.Vector2IntField(sNname, new Vector2Int(value.x , value.y));
         }
 
         public static void DrawProperty(Enemy? enemy)

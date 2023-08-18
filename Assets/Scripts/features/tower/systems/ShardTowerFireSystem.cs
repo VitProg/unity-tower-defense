@@ -1,14 +1,15 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using td.features.enemy;
 using td.features.level;
 using td.features.movement;
 using td.features.projectile;
 using td.features.shard;
+using td.features.shard.data;
 using td.features.state;
 using td.utils;
 using UnityEngine;
-using Random = UnityEngine.Random;
 
 namespace td.features.tower.systems
 {
@@ -21,7 +22,7 @@ namespace td.features.tower.systems
         [DI] private Movement_Service movementService;
         [DI] private Shard_Service shardService;
         [DI] private Enemy_Service enemyService;
-        [DI] private ShardsConfig shardsConfig; // todo
+        [DI] private Shards_Config_SO shardsConfigSO; // todo
         [DI] private LevelMap levelMap;
         
         public void Run()
@@ -63,7 +64,7 @@ namespace td.features.tower.systems
                 var speed = calc.GetProjectileSpeed(ref shard);
                 
                 var enemyScale = movementService.GetTransform(targetEnemyEntity).scale;
-                var scale = Mathf.Max(enemyScale.x, enemyScale.y);
+                var scale = MathFast.Max(enemyScale.x, enemyScale.y);
                 
                 if (movementService.HasMovement(targetEnemyEntity) && !movementService.IsFreezed(targetEnemyEntity))
                 {
@@ -109,7 +110,7 @@ namespace td.features.tower.systems
                     speed,
                     sqrGap,
                     towerEntity,
-                    ShardUtils.GetMixedColor(ref shard, shardsConfig)
+                    ShardUtils.GetMixedColor(ref shard, shardsConfigSO)
                 );
 
                 // all

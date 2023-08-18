@@ -1,9 +1,10 @@
 ﻿using System;
 using Leopotam.EcsProto.QoL;
-using td.common;
+using Leopotam.Types;
 using td.features.level;
 using td.features.movement;
 using td.utils.ecs;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.enemy.systems
@@ -27,13 +28,13 @@ namespace td.features.enemy.systems
 
                 var path = enemyPathService.GetPath(ref enemyPath);
 
-                var nextStep = enemyPath.index + 1 < path.Count ? path[enemyPath.index + 1] : (Int2?)null;
+                var nextStep = (int2?)(enemyPath.index + 1 < path.Count ? path[enemyPath.index + 1] : null);
 
                 var nextCellPosition = nextStep.HasValue
                     ? Enemy_Utils.CalcPosition(nextStep.Value, transform.rotation, enemy.offset)
                     : (Vector2?)null;
 
-                var percentToNextCell = Mathf.Min(
+                var percentToNextCell = MathFast.Min(
                     1f,
                     nextCellPosition.HasValue
                         ? (transform.position - toTarget.target).magnitude

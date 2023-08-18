@@ -1,0 +1,62 @@
+﻿{
+  "buildings": [
+    {
+      "id": "shard_tower",
+      "name": "Shard Tower",
+      "description": "It's a defense structure. Fires projectiles based on the integrated shard. Need a shard to work",
+      "prefabName": "shard_tower",
+      "price": 50,
+      "priceIncrease": 1.15,
+      "buildTime": 3,
+      "buildTimeIncrease": 1.1,
+      "extraFeaturePrice": 1.0,
+      "extraFeaturePriceIncrease": 1.1,
+      "extraFeatureTime": 1.0,
+      "extraFeatureTimeIncrease": 1.1
+    },
+    {
+      "id": "shard_trap",
+      "name": "Trap",
+      "description": "Mounts in the path of enemy movement. Deals damage to an area based on an integrated shard. Need a shard to work",
+      "prefabName": "shard_trap",
+      "price": 100,
+      "priceIncrease": 1.5,
+      "buildTime": 5,
+      "buildTimeIncrease": 1.5,
+      "extraFeaturePrice": 1.1,
+      "extraFeaturePriceIncrease": 1.25,
+      "extraFeatureTime": 1.1,
+      "extraFeatureTimeIncrease": 1.25
+    },
+    {
+      "id": "generator",
+      "name": "Generator",
+      "description": "...",
+      "prefabName": "generator",
+      "price": 10000,
+      "priceIncrease": 2,
+      "buildTime": 30,
+      "buildTimeIncrease": 1.5
+    },
+    {
+      "id": "energy_storage",
+      "name": "Energy Storage",
+      "description": "...",
+      "prefabName": "energy_storage",
+      "price": 25000,
+      "priceIncrease": 2,
+      "buildTime": 60,
+      "buildTimeIncrease": 1.25
+    },
+    {
+      "id": "solar_power",
+      "name": "Solar Power",
+      "description": "...",
+      "prefabName": "solar_power",
+      "price": 5000,
+      "priceIncrease": 1.25,
+      "buildTime": 20,
+      "buildTimeIncrease": 1.5
+    }
+  ]
+}

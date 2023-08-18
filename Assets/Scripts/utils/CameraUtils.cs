@@ -6,7 +6,7 @@ namespace td.utils
     {
         // private static Camera Camera;
         
-        public static Vector3 ToWorldPoint(Camera camera, Vector2 inputPos, float z = 0f) {
+        public static Vector3 TransformPointToCameraSpace(Camera camera, Vector2 inputPos, float z = 0f) {
             // if (Camera == null)
             // {
                 // Camera = Camera.main;
@@ -21,6 +21,12 @@ namespace td.utils
         public static void FixAnchoeredPosition(this Transform transform)
         {
             var rectTransform = ((RectTransform)transform);
+            var ap = rectTransform.anchoredPosition3D;
+            rectTransform.anchoredPosition3D = new Vector3(ap.x, ap.y, 0.0f);
+        }
+        
+        public static void FixAnchoeredPosition(this RectTransform rectTransform)
+        {
             var ap = rectTransform.anchoredPosition3D;
             rectTransform.anchoredPosition3D = new Vector3(ap.x, ap.y, 0.0f);
         }

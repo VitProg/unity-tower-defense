@@ -1,6 +1,7 @@
 ﻿using System;
 using Leopotam.EcsProto;
 using td.features.enemy.bus;
+using td.features.enemy.data;
 using td.features.enemy.systems;
 using td.features.eventBus;
 using td.utils.ecs;
@@ -11,11 +12,14 @@ namespace td.features.enemy
     public class Enemy_Module : IProtoModuleWithEvents
     {
         private readonly Func<float> getDeltaTime;
+        private readonly Enemies_Config_SO enemiesConfigSO;
         
         public Enemy_Module(Func<float> getDeltaTime)
         {
-            // Debug.Log($"{GetType().Name} Init");
             this.getDeltaTime = getDeltaTime;
+            
+            // Attension! also used in CreepEnemyMonoBehaviour, the values must match!
+            enemiesConfigSO = Resources.Load<Enemies_Config_SO>("Configs/Enemies Config");
         }
 
         public void Init(IProtoSystems systems)
@@ -30,6 +34,7 @@ namespace td.features.enemy
                 .AddSystem(new Enemy_ReachCell_System())
                 .AddSystem(new Enemy_ReachKernel_System())
                 //
+                .AddService(enemiesConfigSO, true)
                 .AddService(new Enemy_Service(), true)
                 .AddService(new Enemy_Converter(), true)
                 .AddService(new Enemy_Path_Service(), true)

@@ -1,6 +1,5 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.features._common;
 using td.features.destroy;
 using td.features.ecsConverter;
 using td.features.enemy.mb;

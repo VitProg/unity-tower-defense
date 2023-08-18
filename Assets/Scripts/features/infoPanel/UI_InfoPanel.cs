@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Leopotam.EcsProto.QoL;
 using td.features._common;
 using td.features.eventBus;
 using td.features.gameStatus.bus;
@@ -48,33 +47,10 @@ namespace td.features.infoPanel
         {
             if (ev.IsEmpty()) return;
 
-            var s = State.Ex<InfoPanel_StateExtension>();
-            
-            if (!s.GetVisible())
-            {
-                // Debug.Log("infoPanel Visible false");
-                Hide();
-                return;
-            }
-            
-            if (ev.shard)
-            {
-                ShowShardInfo();
-                return;
-            }
+            var state = State.Ex<InfoPanel_StateExtension>();
 
-            if (ev.enemy)
-            {
-                ShowEnemyInfo();
-                return;
-            }
-
-            // Hide(); 
-        }
-
-        private void ShowEnemyInfo()
-        {
-            // TODO
+            if (state.GetVisible()) Show(ref state);
+            else Hide();
         }
 
         private void Hide()
@@ -83,39 +59,66 @@ namespace td.features.infoPanel
             gameObject.SetActive(false);
         }
 
-        private StringBuilder GetHead()
+        private void Show(ref InfoPanel_StateExtension state)
         {
-            var s = State.Ex<InfoPanel_StateExtension>();
-            
             var sb = new StringBuilder();
-            
-            if (s.GetTitle()?.Length > 0) sb.AppendLine($"<size=120%><b>{s.GetTitle()}</b></size>\n");
-            if (s.GetCost() > 0) sb.AppendLine($"{s.GetCostTitle() ?? "Cost: "}: ${CommonUtils.CostFormat(s.GetCost())}\n");
-            if (s.GetBefore()?.Length > 0) sb.AppendLine($"{s.GetBefore()}\n");
 
-            return sb;
+            Header(ref sb, ref state);
+
+            if (state.HasShard())
+            {
+                ShardInfo(ref sb, ref state);
+            }
+            
+            if (state.HasEnemy())
+            {
+                EnemyInfo(ref sb, ref state);
+            }
+            
+            Footer(ref sb, ref state);
+            
+            textField.text = sb.ToString();
+                
+            gameObject.SetActive(true);
         }
 
-        private void ShowShardInfo()
+        private void Header(ref StringBuilder sb, ref InfoPanel_StateExtension state)
         {
-            var s = State.Ex<InfoPanel_StateExtension>();
-            
-            if (!s.HasShard()) return;
-            
-            ref var shard = ref s.GetShard();
+            var title = state.GetTitle();
+            if (title?.Length > 0) sb.AppendLine($"<size=120%><b>{title}</b></size>").AppendLine();
 
-            // Debug.Log($"InfoPanel ShowShardInfo {shard}");
-            gameObject.SetActive(true);
+            var price = state.GetPrice();
+            var priceTitle = state.GetPriceTitle();
+            if (price > 0) sb.AppendLine($"{priceTitle ?? "Price: "}: ${CommonUtils.PriceFormat(price)}");
+            
+            var time = state.GetTime();
+            var timeTitle = state.GetTimeTitle();
+            if (time > 0) sb.AppendLine($"{timeTitle ?? "Time: "}: ${CommonUtils.TMPTimeFormat(price)}");
 
-            var sb = GetHead();
+            if (price > 0 || time > 0) sb.AppendLine();
+
+            var before = state.GetBefore();
+            if (before?.Length > 0) sb.AppendLine(before);
+        }
+
+
+        private void Footer(ref StringBuilder sb, ref InfoPanel_StateExtension state)
+        {
+            var after = state.GetAfter();
+            if (after?.Length > 0) sb.AppendLine().AppendLine(after);
+        }
+
+        private void ShardInfo(ref StringBuilder sb, ref InfoPanel_StateExtension state)
+        {
+            ref var shard = ref state.GetShard();
 
             var quantity = ShardUtils.GetQuantity(ref shard);
 
             sb.AppendLine($"{quantity}: {shard}");
-            sb.AppendLine($"");
+            sb.AppendLine();
 
             sb.AppendLine($"Level: {Calc.GetShardLevel(ref shard)}");
-            sb.AppendLine($"");
+            sb.AppendLine();
             
             var speed = Calc.GetProjectileSpeed(ref shard);
             sb.AppendLine($"Projectile Speed: {speed:0.00}");
@@ -190,18 +193,15 @@ namespace td.features.infoPanel
                 sb.AppendLine($"  - probability: {probability:0.00}");
                 sb.AppendLine($"");
             }
-
-            sb.Append(GetFooter());
-
-            textField.text = sb.ToString();
         }
 
-        private StringBuilder GetFooter()
+        private void EnemyInfo(ref StringBuilder sb, ref InfoPanel_StateExtension state)
         {
-            var s = State.Ex<InfoPanel_StateExtension>();
-            var sb = new StringBuilder();
-            if (s.GetAfter()?.Length > 0) sb.AppendLine($"\n{s.GetAfter()}");
-            return sb;
+            ref var enemy = ref state.GetEnemy();
+
+            //todo
+
+            sb.AppendLine("ToDo: Enemy Info");
         }
     }
 }

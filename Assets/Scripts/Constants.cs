@@ -68,6 +68,9 @@ namespace td
             public const string DraggableShard = "DraggableShard";
             public const string HightlightGrid = "HightlightGrid";
             public const string MainCanvas = "MainCanvas";
+            public const string WindowsContainer = "WindowsContainer";
+            public const string ProjectilesContainer = "ProjectilesContainer";
+            public const string FXContainer = "FXContainer";
         }
         
         public static class Level
@@ -152,6 +155,7 @@ namespace td
             }
             
             public const string CurrencySign = "₮";
+            public const float LongClickTime = 0.25f;
             
             public static class Shard
             {

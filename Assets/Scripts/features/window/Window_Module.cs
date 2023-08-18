@@ -1,6 +1,5 @@
 ﻿using Leopotam.EcsProto;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.window
 {

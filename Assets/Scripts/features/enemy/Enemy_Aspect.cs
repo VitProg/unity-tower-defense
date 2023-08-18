@@ -5,7 +5,6 @@ using td.features.destroy.flags;
 using td.features.enemy.components;
 using td.features.enemy.flags;
 using td.features.enemy.mb;
-using td.features.movement;
 using td.features.movement.components;
 using td.features.movement.flags;
 using td.features.movement.systems;

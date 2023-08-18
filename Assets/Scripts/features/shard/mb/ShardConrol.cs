@@ -1,6 +1,5 @@
 ﻿using NaughtyAttributes;
 using td.features.shard.components;
-using td.utils.di;
 using UnityEngine;
 using UnityEngine.EventSystems;
 

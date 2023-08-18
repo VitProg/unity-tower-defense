@@ -1,10 +1,9 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.features._common;
+using Leopotam.Types;
 using td.features.eventBus;
 using td.features.shard;
 using td.features.tower.towerRadius.bus;
-using td.features.towerRadius.bus;
 using Unity.Collections;
 using UnityEngine;
 
@@ -106,8 +105,8 @@ namespace td.features.tower.towerRadius
             var circleIndex = 0;
             for (var i = 0; i <= triangelesCount; i++)
             {
-                var angleRad = angle * (Mathf.PI / 180f);
-                var vectorFromAngle = new Vector2(Mathf.Cos(angleRad), Mathf.Sin(angleRad) * .85f);
+                var angleRad = angle * (MathFast.Pi / 180f);
+                var vectorFromAngle = new Vector2(MathFast.Cos(angleRad), MathFast.Sin(angleRad) * .85f);
                 Vector3 vertex = origin + vectorFromAngle * radius;
                 vertices[vertexIndex] = vertex;
                 if (i > 0 && i <= circleVerticesv.Length)

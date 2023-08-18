@@ -115,17 +115,14 @@ namespace td.features.wave.systems
             // var enemy = shared.GetEnemyConfig(spawnedEnemy.name);
             var enemy = enemyService.GetEnemyConfig(spawnedEnemy.name);
 
+#if UNITY_EDITOR
             if (enemy == null)
             {
                 throw new NullReferenceException($"Enemy with name '{spawnedEnemy.name}' not found on enemies config.");
             }
+#endif
 
             return spawnedEnemy;
-        }
-
-        public void Init(IProtoSystems systems)
-        {
-            throw new NotImplementedException();
         }
     }
 }

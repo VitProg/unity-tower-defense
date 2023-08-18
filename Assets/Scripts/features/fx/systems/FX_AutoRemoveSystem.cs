@@ -15,7 +15,7 @@ namespace td.features.fx.systems
 
         public void Run()
         {
-            if (!state.GetGameSimulationEnabled()) return;
+            // if (!state.GetGameSimulationEnabled()) return;
             
             foreach (var fxEntity in aspect.itNeedRemove)
             {

@@ -1,14 +1,10 @@
 ﻿using Leopotam.EcsProto.QoL;
 using td.features.destroy;
-using td.features.enemy;
 using td.features.goPool;
 using td.features.movement;
 using td.features.prefab;
 using td.features.projectile.attributes;
 using td.features.projectile.components;
-using td.features.projectile.explosion;
-using td.features.projectile.lightning;
-using td.features.shard;
 using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
@@ -22,10 +18,15 @@ namespace td.features.projectile
         [DI] private GOPool_Service poolService;
         [DI] private Projectile_Converter converter;
         [DI] private Prefab_Service prefabService;
-        [DI] private Enemy_Service enemyService; // todo
-        [DI] private ShardsConfig shardsConfig; // todo
         [DI] private Movement_Service movementService;
         [DI] private Destroy_Service destroyService;
+        
+        public readonly GameObject container;
+
+        public Projectile_Service()
+        {
+            container = GameObject.FindGameObjectWithTag(Constants.Tags.ProjectilesContainer);
+        }
 
         public bool HasProjectile(int projectileEntity) => aspect.projectilePool.Has(projectileEntity);
         public ref Projectile GetProjectile(int projectileEntity) => ref aspect.projectilePool.GetOrAdd(projectileEntity);
@@ -52,7 +53,7 @@ namespace td.features.projectile
             var prefab = prefabService.GetPrefab(PrefabCategory.Projectiles, name);
             var projectilePoolableObject = poolService.Get(
                 prefab,
-                // todo add parent
+                container.transform,
                 Constants.Pools.ProjectileDefaultCopacity,
                 Constants.Pools.ProjectileMaxCopacity,
                 null,

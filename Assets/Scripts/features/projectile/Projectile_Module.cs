@@ -4,7 +4,6 @@ using td.features.projectile.explosion;
 using td.features.projectile.lightning;
 using td.features.projectile.systems;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.projectile
 {

@@ -137,8 +137,11 @@ namespace td.features.fx.subServices
                     return ref pool.Get(fxEntity);
                 }
             }
-
+#if UNITY_EDITOR
             throw new NullReferenceException($"Entity {packedEntity} not found in {EditorExtensions.GetCleanTypeName(typeof(T))} pool");
+#else
+            throw new Exception("Entity not found in pool");
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

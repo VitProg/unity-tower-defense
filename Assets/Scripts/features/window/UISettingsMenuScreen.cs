@@ -1,4 +1,3 @@
-using Leopotam.EcsProto.QoL;
 using td.features.window.common;
 using td.utils.di;
 using UnityEngine;

@@ -1,5 +1,4 @@
-﻿using System;
-using Leopotam.EcsProto;
+﻿using Leopotam.EcsProto;
 
 namespace td.features.state
 {

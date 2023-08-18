@@ -1,6 +1,5 @@
 ﻿using System;
 using Leopotam.EcsProto.QoL;
-using td.features._common;
 using td.features.enemy;
 using td.features.level;
 using td.features.movement;

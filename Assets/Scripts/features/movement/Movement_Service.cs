@@ -68,7 +68,10 @@ namespace td.features.movement
         [CanBeNull][MethodImpl(MethodImplOptions.AggressiveInlining)]
         public GameObject GetGameObject(ProtoPackedEntityWithWorld packedEntity)
         {
-            if (!packedEntity.Unpack(out var w, out var entity)) throw new NullReferenceException($"Can't unpack entity {packedEntity}");
+            var check = packedEntity.Unpack(out var w, out var entity);
+#if UNITY_EDITOR
+            if (!check) throw new NullReferenceException($"Can't unpack entity {packedEntity}");
+#endif
             return GetGameObject(entity);
         }
         [CanBeNull][MethodImpl (MethodImplOptions.AggressiveInlining)]

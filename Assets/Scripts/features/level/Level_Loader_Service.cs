@@ -1,13 +1,11 @@
 ﻿using System;
 using Leopotam.EcsProto.QoL;
-using td.features._common;
 using td.features.destroy;
 using td.features.eventBus;
 using td.features.level.cells;
 using td.features.level.data;
 using td.features.shard.shardCollection;
 using td.features.state;
-using td.monoBehaviours;
 using td.utils;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -119,7 +117,7 @@ namespace td.features.level
 
         private void InitAllCells()
         {
-            foreach (var cell in Object.FindObjectsOfType<CellEditorMB>())
+            foreach (var cell in Object.FindObjectsOfType<CellMonoBehaviour>())
             {
                 levelMap.PreAddCell(Cell.FromCellEditor(cell));
             }

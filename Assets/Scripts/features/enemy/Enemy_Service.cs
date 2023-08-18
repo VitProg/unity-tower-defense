@@ -1,6 +1,7 @@
 ﻿using System;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using td.features._common.components;
 using td.features.destroy;
 using td.features.enemy.bus;
@@ -32,7 +33,7 @@ namespace td.features.enemy
         [DI] private Enemy_Converter converter;
         [DI] private State state;
         [DI] private EventBus events;
-        
+
         private readonly GameObject enemiesContainer;
 
         public Enemy_Service()
@@ -46,12 +47,18 @@ namespace td.features.enemy
 
         public ref Enemy GetEnemy(ProtoPackedEntity packedEntity)
         {
-            if (!HasEnemy(packedEntity, out var enemyEntity)) throw new NullReferenceException("Entity don't have Enemy component. Use HasEnemy method before");
+            var check = HasEnemy(packedEntity, out var enemyEntity);
+#if UNITY_EDITOR
+            if (!check) throw new NullReferenceException("Entity don't have Enemy component. Use HasEnemy method before");
+#endif
             return ref GetEnemy(enemyEntity);
         }
         public ref Enemy GetEnemy(ProtoPackedEntityWithWorld packedEntity)
         {
-            if (!HasEnemy(packedEntity, out var enemyEntity)) throw new NullReferenceException("Entity don't have Enemy component. Use HasEnemy method before");
+            var check = HasEnemy(packedEntity, out var enemyEntity);
+#if UNITY_EDITOR
+            if (!check) throw new NullReferenceException("Entity don't have Enemy component. Use HasEnemy method before");
+#endif
             return ref GetEnemy(enemyEntity);
         }
         public ref Enemy GetEnemy(int enemyEntity) => ref aspect.enemyPool.GetOrAdd(enemyEntity);
@@ -180,7 +187,7 @@ namespace td.features.enemy
             //         enemy.angularSpeed = enemyConfig.angularSpeed;
             //         break;
             // }
-            // enemy.angularSpeed *= Mathf.Clamp(spawnData.speed / 5f, 1f, 100f);
+            // enemy.angularSpeed *= MathFast.Clamp(spawnData.speed / 5f, 1f, 100f);
             ApplySpecificEnemyVariant(
                 enemyConfig.Value,
                 enemyType,
@@ -188,7 +195,7 @@ namespace td.features.enemy
                 enemyPoolableObject.gameObject,
                 ref enemy
             );
-            enemy.angularSpeed *= Mathf.Clamp(spawnData.speed / 5f, 1f, 100f);
+            enemy.angularSpeed *= MathFast.Clamp(spawnData.speed / 5f, 1f, 100f);
             
             transform.SetScale(RandomUtils.Range(
                 spawnData.scaleMin > 0.001f ? spawnData.scaleMin : Constants.Enemy.MinSize,
@@ -198,13 +205,13 @@ namespace td.features.enemy
                 spawnData.offsetMin > 0.001f ? spawnData.offsetMin : Constants.Enemy.OffsetMin,
                 spawnData.offsetMax > 0.001f ? spawnData.offsetMax : Constants.Enemy.OffsetMax
             );
-            enemy.energy = (uint)Mathf.Max(
+            enemy.energy = (uint)MathFast.Max(
                 (enemy.health * enemy.damage * enemy.speed * transform.ScaleScalar) / 5, 
                 1
             ); //todo move to utils/helper/service/calculator...
 
-            enemy.offset.x = Mathf.Clamp(enemy.offset.x, Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax);
-            enemy.offset.y = Mathf.Clamp(enemy.offset.y, Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax);
+            enemy.offset.x = MathFast.Clamp(enemy.offset.x, Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax);
+            enemy.offset.y = MathFast.Clamp(enemy.offset.y, Constants.Enemy.OffsetMin, Constants.Enemy.OffsetMax);
             // enemy.offset.x = 0;
             // enemy.offset.y = 0;
             
@@ -305,7 +312,7 @@ namespace td.features.enemy
 
         public void ChangeHealthRelative(int enemyEntity, float helthRelative)
         {
-            if (Mathf.Abs(helthRelative) < 0.0001f) return;
+            if (MathFast.Abs(helthRelative) < 0.0001f) return;
             GetEnemy(enemyEntity).health += helthRelative;
             events.global.Add<Event_Enemy_ChangeHealth>().Entity = aspect.World().PackEntityWithWorld(enemyEntity);
         }        
@@ -379,11 +386,19 @@ namespace td.features.enemy
 
             return nearestEnemies;
         }
-        
+
+        private Enemy_Config[] enemyConfigs;
+
         public Enemy_Config? GetEnemyConfig(string enemyName)
         {
             var enemyNameLowerCase = enemyName.ToLower();
-            foreach (var enemyConfig in ServiceContainer.Get<Enemy_Config[]>())
+
+            if (enemyConfigs == null)
+            {
+                enemyConfigs = ServiceContainer.Get<Enemy_Config[]>();
+            }
+            
+            foreach (var enemyConfig in enemyConfigs)
             {
                 if (enemyConfig.name == enemyName || enemyConfig.name == enemyNameLowerCase)
                 {

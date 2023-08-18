@@ -1,6 +1,4 @@
-﻿using td.common;
-using UnityEngine;
-using UnityEngine.Rendering;
+﻿using UnityEngine;
 
 namespace td.utils
 {
@@ -8,9 +6,6 @@ namespace td.utils
     {
         public static int IntRange(int min, int max) =>
             Random.Range(min, max + 1);
-
-        public static float Range(MinMaxF minMax) =>
-            Range(minMax.min, minMax.max);
 
         public static float Range(float[] minMax) =>
             Range(minMax[0], minMax[1]);
@@ -25,9 +20,6 @@ namespace td.utils
         public static Vector2 Vector2(float[] minMax) =>
             Vector2(minMax[0], minMax[1]);
 
-        public static Vector2 Vector2(MinMaxF minMax) =>
-            Vector2(minMax.min, minMax.max);
-        
         public static Vector2 Vector2(float min, float max) =>
             new Vector2(Range(min, max),Range(min, max));
 

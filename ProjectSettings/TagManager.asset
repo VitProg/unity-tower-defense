@@ -23,6 +23,9 @@ TagManager:
   - DraggableShard
   - HightlightGrid
   - MainCanvas
+  - WindowsContainer
+  - ProjectilesContainer
+  - FXContainer
   layers:
   - Default
   - TransparentFX

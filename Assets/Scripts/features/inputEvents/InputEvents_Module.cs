@@ -1,16 +1,22 @@
-﻿using Leopotam.EcsProto;
+﻿using System;
+using Leopotam.EcsProto;
+using td.features.eventBus;
+using td.features.inputEvents.bus;
+using td.features.inputEvents.systems;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.inputEvents
 {
-    public class InputEvents_Module : IProtoModule
+    public class InputEvents_Module : IProtoModuleWithEvents
     {
         public void Init(IProtoSystems systems)
         {
             // Debug.Log($"{GetType().Name} Init");
             systems
-                .AddSystem(new InputEvents_System())
+                // .AddSystem(new InputEvents_CicleCollider_System())
+                // .AddSystem(new InputEvents_HexCellCollider_System())
+                .AddSystem(new InputEvents_HexCell_System())
+                //
                 .AddService(new InputEvents_Service(), true)
                 ;
         }
@@ -27,5 +33,7 @@ namespace td.features.inputEvents
         {
             return null;
         }
+
+        public Type[] Events() => Ev.E<Event_PointerDown, Event_PointerUp>();
     }
 }

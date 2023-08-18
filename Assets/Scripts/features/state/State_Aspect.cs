@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
-using UnityEngine;
 
 namespace td.features.state
 {
@@ -23,13 +22,13 @@ namespace td.features.state
 
         public void AddEx<T>(T ex) where T : IStateExtension
         {
-            // Debug.Log("State_Aspect.AddEx() " + ex);
             var type = ex.GetType();
+#if UNITY_EDITOR
             if (extensionsHash.TryGetValue(type, out _))
             {
                 throw new Exception($"State extension {EditorExtensions.GetCleanTypeName(type)} already registered");
             }
-
+#endif
             extensions.Add(ex);
             var idx = extensions.Len() - 1;
             extensionsHash[type] = idx;

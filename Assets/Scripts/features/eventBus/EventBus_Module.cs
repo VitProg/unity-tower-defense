@@ -4,7 +4,6 @@ using Leopotam.EcsProto;
 using td.features.eventBus.subServices;
 using td.features.eventBus.systems;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.eventBus
 {
@@ -24,7 +23,7 @@ namespace td.features.eventBus
             
             systems
                 .AddSystem(new EventBus_System())
-                // .AddSystem(new EventBus_СleaningSystem())
+                .AddSystem(new EventBus_СleaningSystem())
                 //
                 .AddService(new EventBus_GlobalEvents(), true)
                 .AddService(new EventBus_UniqueEvents(), true)

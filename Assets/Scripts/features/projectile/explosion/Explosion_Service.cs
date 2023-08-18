@@ -11,6 +11,7 @@ namespace td.features.projectile.explosion
     public class Explosion_Service
     {
         [DI] private Explosion_Aspect explosionAspect;
+        [DI] private Projectile_Service projectileService;
         [DI] private Projectile_Aspect projectileAspect;
         [DI] private Prefab_Service prefabService;
         [DI] private GOPool_Service poolService;
@@ -21,7 +22,7 @@ namespace td.features.projectile.explosion
             var prefab = prefabService.GetPrefab(PrefabCategory.Projectiles, "explosion");
             var projectilePoolableObject = poolService.Get(
                 prefab,
-                // todo add parent
+                projectileService.container.transform,
                 Constants.Pools.ProjectileEffectsDefaultCopacity,
                 Constants.Pools.ProjectileEffectsMaxCopacity,
                 null,

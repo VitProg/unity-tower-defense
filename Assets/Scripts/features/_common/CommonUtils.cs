@@ -1,14 +1,23 @@
-﻿using UnityEngine;
+﻿using System.Runtime.CompilerServices;
 
 namespace td.features._common
 {
     public static class CommonUtils
     {
-        public static string CostFormat(uint cost) => $"<size=80%>{Constants.UI.CurrencySign}</size>{cost:N0}"
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static string IntegerFormat(uint number) => $"{number:N0}"
             .Replace(',', '\'').Replace(' ', '\'');
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static string PriceFormat(uint cost) =>
+            $"<size=80%>{Constants.UI.CurrencySign}</size>{IntegerFormat(cost)}";
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static string TMPTimeFormat(uint time) => $"<size=80%><sprite=0 tint></size>{IntegerFormat(time)}";
 
         private static uint lastId;
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static uint ID(string type = null)
         {
             lastId++;
@@ -16,6 +25,7 @@ namespace td.features._common
             return lastId;
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static bool IdsIsEquals(uint id1, uint id2) => id1 > 0 && id1 == id2;
     }
 }

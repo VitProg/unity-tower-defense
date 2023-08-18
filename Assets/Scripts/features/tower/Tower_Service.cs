@@ -1,4 +1,5 @@
 ﻿using System;
+using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using td.features._common.components;
 using td.features.tower.components;
@@ -13,11 +14,14 @@ namespace td.features.tower
 
         public bool HasTower(ProtoPackedEntity packedEntity) => packedEntity.Unpack(aspect.World(), out var entity) && HasTower(entity);
         public bool HasTower(ProtoPackedEntity packedEntity, out int towerEntity) => packedEntity.Unpack(aspect.World(), out towerEntity) && HasTower(towerEntity);
-        public bool HasTower(ProtoPackedEntityWithWorld packedEntity, out int towerEntity) => packedEntity.Unpack(out var w, out towerEntity) && aspect.World().Equals(w) && HasTower(towerEntity);
+        public bool HasTower(ProtoPackedEntityWithWorld packedEntity, out ProtoWorld world, out int towerEntity) => packedEntity.Unpack(out world, out towerEntity) && aspect.World().Equals(world) && HasTower(towerEntity);
         public bool HasTower(int entity) => aspect.towerPool.Has(entity);
         public ref Tower GetTower(ProtoPackedEntity packedEntity, out int towerEntity)
         {
-            if (!packedEntity.Unpack(aspect.World(), out towerEntity)) throw new Exception("Can't unpack Tower entity");
+            var check = packedEntity.Unpack(aspect.World(), out towerEntity);
+#if UNITY_EDITOR
+            if (!check) throw new Exception("Can't unpack Tower entity");
+#endif
             return ref GetTower(towerEntity);
         }
         public ref Tower GetTower(int entity) => ref aspect.towerPool.GetOrAdd(entity);
@@ -27,7 +31,10 @@ namespace td.features.tower
         public bool HasShardTower(int entity) => aspect.shardTowerPool.Has(entity);
         public ref ShardTower GetShardTower(ProtoPackedEntity packedEntity)
         {
-            if (!packedEntity.Unpack(aspect.World(), out var entity)) throw new NullReferenceException();
+            var check = packedEntity.Unpack(aspect.World(), out var entity);
+#if UNITY_EDITOR
+            if (!check) throw new NullReferenceException();
+#endif
             return ref GetShardTower(entity);
         }
 

@@ -2,12 +2,12 @@
 using NaughtyAttributes;
 using td.features._common;
 using td.features.camera;
-using td.features.costPopup;
 using td.features.eventBus;
 using td.features.gameStatus.bus;
 using td.features.infoPanel;
 using td.features.level;
 using td.features.level.bus;
+using td.features.pricePopup;
 using td.features.shard.components;
 using td.features.shard.mb;
 using td.features.shard.shardStore;
@@ -180,11 +180,11 @@ namespace td.features.shard.shardCollection
         private void OnShardDragMove(ShardUIButton shardButton, Vector2 point)
         {
             var coll = State.Ex<ShardCollection_StateExtension>();
-            var costPopup = State.Ex<CostPopup_StateExtension>();
+            var costPopup = State.Ex<PricePopup_StateExtension>();
             var infoPanel = State.Ex<InfoPanel_StateExtension>();
             
             var dndTransform = dndShard.transform;
-            dndTransform.position = CameraUtils.ToWorldPoint(CameraService.GetCanvasCamera(), point);
+            dndTransform.position = CameraUtils.TransformPointToCameraSpace(CameraService.GetCanvasCamera(), point);
             dndTransform.FixAnchoeredPosition();
 
             // sc.Clear();
@@ -216,7 +216,7 @@ namespace td.features.shard.shardCollection
                     infoPanel.SetVisible(true);
                     infoPanel.SetTitle(null);
                     infoPanel.SetCostTitle(null);
-                    infoPanel.SetCost(0);
+                    infoPanel.SetPrice(0);
                     
                     // Debug.Log($"canDrop: SELF {canDropStatus}, {dropCost}");
                     // Debug.Log(" 1:" + CommonUtils.IdsIsEquals(hoveredInCollectionShard._id_, shard._id_));
@@ -237,7 +237,7 @@ namespace td.features.shard.shardCollection
                     ? CanDropStatus.CombineWithShardInCollection
                     : CanDropStatus.False;
 
-                costPopup.SetCost(combineCost);
+                costPopup.SetPrice(combineCost);
                 costPopup.SetVisible(true);
                 costPopup.SetTitle("Combine Shards"); // todo i18
                 costPopup.SetIsFine(canDropStatus != CanDropStatus.False);
@@ -247,7 +247,7 @@ namespace td.features.shard.shardCollection
                 infoPanel.SetVisible(true);
                 infoPanel.SetTitle("Combined shard");
                 infoPanel.SetCostTitle("Combine cost");
-                infoPanel.SetCost(combineCost);
+                infoPanel.SetPrice(combineCost);
                 
                 dropCost = combineCost;
             }
@@ -263,9 +263,9 @@ namespace td.features.shard.shardCollection
                 infoPanel.SetVisible(true);
                 infoPanel.SetTitle(null);
                 infoPanel.SetCostTitle(null);
-                infoPanel.SetCost(0);
+                infoPanel.SetPrice(0);
 
-                costPopup.SetCost(operationCost);
+                costPopup.SetPrice(operationCost);
                 costPopup.SetVisible(checkCanDrop != CanDropShardOnMapType.False);
                 dropCost = operationCost;
 
@@ -327,7 +327,7 @@ namespace td.features.shard.shardCollection
             // targetSource.SetHidden(false);
             targetSource = null;
             
-            var costPopup = State.Ex<CostPopup_StateExtension>();
+            var costPopup = State.Ex<PricePopup_StateExtension>();
             costPopup.Clear();
         }
 
@@ -452,7 +452,7 @@ namespace td.features.shard.shardCollection
             
             infoPanel.SetShard(ref shardButton.GetShard());
             infoPanel.SetVisible(true);
-            infoPanel.SetCost(0);
+            infoPanel.SetPrice(0);
             infoPanel.SetCostTitle(null);
             infoPanel.SetBefore(null);
             infoPanel.SetAfter(null);

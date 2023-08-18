@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.features._common;
+using Leopotam.Types;
 using td.features.fx.types;
 using td.features.movement;
 using td.features.state;
@@ -51,7 +51,7 @@ namespace td.features.fx.effects
         {
             if (isStarted)
             {
-                if (!isOn) remainingTime = Mathf.Max(0f, remainingTime + (interval - i));
+                if (!isOn) remainingTime = MathFast.Max(0f, remainingTime + (interval - i));
                 interval = i;
             }
             else
@@ -65,7 +65,7 @@ namespace td.features.fx.effects
         {
             if (isStarted)
             {
-                if (isOn) remainingTime = Mathf.Max(0f, remainingTime + (duration - d));
+                if (isOn) remainingTime = MathFast.Max(0f, remainingTime + (duration - d));
                 duration = d;
             }
             else

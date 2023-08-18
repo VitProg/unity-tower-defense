@@ -3,9 +3,8 @@ using System.Runtime.CompilerServices;
 using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
 using td.features.eventBus;
-using UnityEngine.UIElements;
 using td.utils;
-using UnityEditor.Rendering;
+using UnityEngine.UIElements;
 
 namespace td.features.state
 {
@@ -22,9 +21,10 @@ namespace td.features.state
             var type = typeof(T);
             if (!aspect.HasEx(type, out var idx))
             {
+#if UNITY_EDITOR
                 throw new Exception($"State extension {EditorExtensions.GetCleanTypeName(type)} not registered");
+#endif
             }
-
             return (T)aspect.GetExByIndex(idx);
         }
         

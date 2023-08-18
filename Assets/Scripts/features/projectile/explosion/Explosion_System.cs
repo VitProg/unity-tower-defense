@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using td.features._common;
 using td.features.destroy;
 using td.features.enemy;
@@ -40,7 +41,7 @@ namespace td.features.projectile.explosion
 
                 explosion.progress += explosion.diameterIncreaseSpeed * Time.deltaTime * state.GetGameSpeed();
 
-                explosion.currentDiameter = Mathf.Lerp(
+                explosion.currentDiameter = MathFast.Lerp(
                     0f,
                     explosiveAttribute.diameter,
                     EasingUtils.EaseOutQuad(explosion.progress)
@@ -58,9 +59,13 @@ namespace td.features.projectile.explosion
 
                 if (calcDamage)
                 {
-                    var sqrRadiusMax = Mathf.Pow(explosiveAttribute.diameter / 2f, 2f);
-                    var sqrRadiusFrom = Mathf.Pow(explosion.lastCalcDiameter / 2f, 2f);
-                    var sqrRadiusTo = Mathf.Pow(explosion.currentDiameter / 2f, 2f);
+                    var radiusMax = explosiveAttribute.diameter / 2f;
+                    var radiusFrom = explosion.lastCalcDiameter / 2f;
+                    var radiusTo = explosion.currentDiameter / 2f;
+                    
+                    var sqrRadiusMax = radiusMax * radiusMax;
+                    var sqrRadiusFrom = radiusFrom * radiusFrom;
+                    var sqrRadiusTo = radiusTo * radiusTo;
 
                     var enemiesInRadius = enemyService.FindNearestEnemies(explosion.position, sqrRadiusTo, sqrRadiusFrom);
                     

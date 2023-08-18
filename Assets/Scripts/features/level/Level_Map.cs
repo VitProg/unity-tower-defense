@@ -1,12 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using td.common;
 using td.features.level.cells;
 using td.features.level.data;
-using td.monoBehaviours;
 using td.utils;
+using Unity.Mathematics;
 using UnityEngine;
-using Cell = td.features.level.cells.Cell;
 
 namespace td.features.level
 {
@@ -16,8 +14,8 @@ namespace td.features.level
         public byte KernelCount { get; private set; }
 
         private readonly Cell[,] cells = new Cell[Constants.Level.MaxMapArrayWidth, Constants.Level.MaxMapArrayHeight];
-        public readonly Int2?[] spawns = new Int2?[Constants.Level.MaxSpawns];
-        public readonly Int2?[] kernels = new Int2?[Constants.Level.MaxKernels];
+        public readonly int2?[] spawns = new int2?[Constants.Level.MaxSpawns];
+        public readonly int2?[] kernels = new int2?[Constants.Level.MaxKernels];
 
         private LevelConfig? levelConfig;
 
@@ -40,14 +38,14 @@ namespace td.features.level
         public int Width { get; private set; } = -1;
         public int Height { get; private set; } = -1;
 
-        private Int2 mapOffset = new(0, 0);
+        private int2 mapOffset = new(0, 0);
         
         public Rect Rect { get; private set; }
 
         public void Clear()
         {
             levelConfig = null;
-            mapOffset = new Int2(0, 0);
+            mapOffset = new int2(0, 0);
             
             for (var y = 0; y < Constants.Level.MaxMapArrayHeight; y++)
                 for (var x = 0; x < Constants.Level.MaxMapArrayWidth; x++)
@@ -84,8 +82,8 @@ namespace td.features.level
 
             if (minX <= maxX && minY <= maxY)
             {
-                var c1 = HexGridUtils.CellToPosition(new Int2 { x = minX, y = minY });
-                var c2 = HexGridUtils.CellToPosition(new Int2 { x = maxX, y = maxY });
+                var c1 = HexGridUtils.CellToPosition(new int2(minX, minY));
+                var c2 = HexGridUtils.CellToPosition(new int2(maxX, maxY));
                 Rect = new Rect(
                     c1.x, c1.y,
                     c2.x - c1.x, c2.y - c1.y
@@ -95,7 +93,7 @@ namespace td.features.level
 
         public void BuildMap()
         {
-            mapOffset = new Int2(minX, minY);
+            mapOffset = new int2(minX, minY);
             Width = maxX - minX;
             Height = maxY - minY;
 
@@ -132,7 +130,7 @@ namespace td.features.level
             prebuildedCells.Clear();
         }
         
-        public Int2 GetSpawn(int spawmNumber)
+        public int2 GetSpawn(int spawmNumber)
         {
             if (spawmNumber >= 0 && spawmNumber < Constants.Level.MaxSpawns && spawns[spawmNumber] != null)
             {
@@ -156,11 +154,12 @@ namespace td.features.level
 
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public ref Cell GetCell(Int2 coords, CellTypes? type = null) => ref GetCell(coords.x, coords.y, type);
+        public ref Cell GetCell(int2 coords, CellTypes? type = null) => ref GetCell(coords.x, coords.y, type);
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public ref Cell GetCell(Vector2 position, CellTypes? type = null) => ref GetCell(HexGridUtils.PositionToCell(position), type);
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-
+        public ref Cell GetCell(float x, float y, CellTypes? type = null) => ref GetCell(HexGridUtils.PositionToCell(x, y), type);
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public ref Cell GetCell(int x, int y, CellTypes? type = null)
         {
             var oX = x - mapOffset.x;
@@ -171,7 +170,7 @@ namespace td.features.level
 
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public bool HasCell(Int2? coords, CellTypes? type = null) => coords != null && HasCell(coords.Value.x, coords.Value.y, type);
+        public bool HasCell(int2? coords, CellTypes? type = null) => coords != null && HasCell(coords.Value.x, coords.Value.y, type);
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public bool HasCell(Vector2 position, CellTypes? type = null) => HasCell(HexGridUtils.PositionToCell(position), type);
         public bool HasCell(int x, int y, CellTypes? type = null)
@@ -191,7 +190,7 @@ namespace td.features.level
             return type == null || cell.type == type;
         }
 
-        // public Cell? GetCell(Int2? coords, CellTypes? type = null) =>
+        // public Cell? GetCell(int2? coords, CellTypes? type = null) =>
             // coords != null ? GetCell(coords.Value.x, coords.Value.y, type) : null;
         
         // [CanBeNull]
@@ -204,7 +203,7 @@ namespace td.features.level
             // return cell != null;
         // }
 
-        // public bool TryGetCell(Int2? coords, out Cell? cell, CellTypes? type = null)
+        // public bool TryGetCell(int2? coords, out Cell? cell, CellTypes? type = null)
         // {
             // if (coords != null) return TryGetCell(coords.Value.x, coords.Value.y, out cell, type);
             // cell = null;

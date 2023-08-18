@@ -6,7 +6,6 @@ using td.utils;
 using UnityEngine;
 using UnityEngine.Pool;
 using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 namespace td.features.goPool
 {
@@ -88,10 +87,12 @@ namespace td.features.goPool
 
         private string GetUniqID(PoolableObject poolableObject)
         {
+#if UNITY_EDITOR
             if (poolableObject == null || string.IsNullOrEmpty(poolableObject.uniqID))
             {
                 throw new Exception("uniqId is empty");
             }
+#endif
 
             return poolableObject.uniqID;
         }

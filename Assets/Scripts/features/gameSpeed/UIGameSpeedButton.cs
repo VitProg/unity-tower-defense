@@ -1,11 +1,10 @@
-﻿using Leopotam.EcsProto.QoL;
-using NaughtyAttributes;
+﻿using NaughtyAttributes;
 using td.features.eventBus;
-using UnityEngine;
 using td.features.state;
 using td.features.window;
 using td.utils;
 using td.utils.di;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 

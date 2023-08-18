@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
 using Leopotam.EcsProto.QoL;
-using td.common;
 using td.features.enemy.components;
 using td.features.level;
 using td.features.level.cells;
-using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
+using Unity.Mathematics;
 
 namespace td.features.enemy
 {
@@ -16,12 +15,12 @@ namespace td.features.enemy
         [DI] private LevelMap levelMap;
 
         // private readonly Dictionary<string, List<byte>> cache = new (1);
-        private Dictionary<string, List<List<Int2>>> allPathsCache = new ();
+        private Dictionary<string, List<List<int2>>> allPathsCache = new ();
 
         public void PrecalculateAllPaths()
         {
             allPathsCache.Clear();
-            allPathsCache = new Dictionary<string, List<List<Int2>>>();
+            allPathsCache = new Dictionary<string, List<List<int2>>>();
 
             for (var spawnIndex = 0; spawnIndex < levelMap.SpawnCount; spawnIndex++)
             {
@@ -29,18 +28,18 @@ namespace td.features.enemy
                 
                 if (!spawnCoords.HasValue) return;
 
-                var sCache = new List<List<Int2>>();
+                var sCache = new List<List<int2>>();
                 
                 if (!levelMap.HasCell(spawnCoords, CellTypes.CanWalk)) continue;
                 
                 ref var cell = ref levelMap.GetCell(spawnCoords.Value, CellTypes.CanWalk);
                 
-                var path = new List<Int2> { spawnCoords.Value };
+                var path = new List<int2> { spawnCoords.Value };
                 sCache.Add(path);
                 var nextCoords = HexGridUtils.GetNeighborsCoords(ref cell.coords, cell.dirToNext);
                 Tick(ref nextCoords, ref path, ref sCache);
 
-                var sCacheFiltered = new List<List<Int2>>(sCache.Count / 2);
+                var sCacheFiltered = new List<List<int2>>(sCache.Count / 2);
 
                 foreach (var pathItem in sCache)
                 {
@@ -54,7 +53,7 @@ namespace td.features.enemy
             }
         }
 
-        private void Tick(ref Int2 coords, ref List<Int2> path, ref List<List<Int2>> sCache, int depth = 0)
+        private void Tick(ref int2 coords, ref List<int2> path, ref List<List<int2>> sCache, int depth = 0)
         {
             if (!levelMap.HasCell(coords.x, coords.y, CellTypes.CanWalk)) return; 
             ref var cell = ref levelMap.GetCell(coords.x, coords.y, CellTypes.CanWalk);
@@ -72,13 +71,13 @@ namespace td.features.enemy
                 return;
             }
 
-            path.Add(new Int2 { x = coords.x, y = coords.y });
+            path.Add(new int2(coords.x, coords.y));
             
             if (cell.isKernel) return;
             
             if (cell is { isSwitcher: true, HasNextAltDir: true })
             {
-                var altPath = new List<Int2>(path);
+                var altPath = new List<int2>(path);
                 sCache.Add(altPath);
                 var nextAltCoords = HexGridUtils.GetNeighborsCoords(ref cell.coords, cell.dirToNextAlt);
                 Tick(ref nextAltCoords, ref altPath, ref sCache, depth + 1);
@@ -91,13 +90,13 @@ namespace td.features.enemy
         }
 
 
-        public int RandomPathNumber(ref Int2 spawnCoords)
+        public int RandomPathNumber(ref int2 spawnCoords)
         {
             var spawnKey = spawnCoords.ToString();
             var currentCache = allPathsCache[spawnKey];
             return currentCache.Count == 1 ? 0 : RandomUtils.IntRange(0, currentCache.Count - 1);
         }
-        public void PrepareEnemyPath(ref Int2 spawnCoords, int enemyEntity)
+        public void PrepareEnemyPath(ref int2 spawnCoords, int enemyEntity)
         {
             ref var enemyPath = ref aspect.enemyPathPool.GetOrAdd(enemyEntity);
 
@@ -111,7 +110,7 @@ namespace td.features.enemy
             enemyPath.index = 0;
         }
 
-        public void SetPath(int enemyEntity, ref Int2 spawnCoords, int pathNumber)
+        public void SetPath(int enemyEntity, ref int2 spawnCoords, int pathNumber)
         {
             var spawnKey = spawnCoords.ToString();
             ref var enemyPath = ref aspect.enemyPathPool.GetOrAdd(enemyEntity);
@@ -120,18 +119,18 @@ namespace td.features.enemy
             enemyPath.index = 0;
         }
 
-        public List<Int2> GetPath(ref Enemy_Path enemyPath)
+        public List<int2> GetPath(ref Enemy_Path enemyPath)
         {
             return allPathsCache[enemyPath.spawnKey][enemyPath.pathNumber];
         }       
         
-        public List<Int2> GetPath(ref Int2 spawnCoords, int pathNumber)
+        public List<int2> GetPath(ref int2 spawnCoords, int pathNumber)
         {
             var spawnKey = spawnCoords.ToString();
             return allPathsCache[spawnKey][pathNumber];
         }
         
-        public List<Int2> GetPath(int enemyEntity)
+        public List<int2> GetPath(int enemyEntity)
         {
             ref var enemyPath = ref aspect.enemyPathPool.GetOrAdd(enemyEntity);
             return GetPath(ref enemyPath);

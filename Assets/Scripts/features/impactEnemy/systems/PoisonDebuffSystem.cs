@@ -2,8 +2,6 @@
 using Leopotam.EcsProto.QoL;
 using td.features._common;
 using td.features.eventBus;
-using td.features.fx;
-using td.features.fx.effects;
 using td.features.impactEnemy.bus;
 using td.features.state;
 using UnityEngine;

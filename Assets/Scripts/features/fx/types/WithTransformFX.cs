@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Leopotam.Types;
 using UnityEngine;
 
 namespace td.features.fx.types
@@ -60,7 +61,7 @@ namespace td.features.fx.types
             scale.y = s.y;
         }
 
-        public float ScaleScalar => Mathf.Max(scale.x, scale.y);
+        public float ScaleScalar => MathFast.Max(scale.x, scale.y);
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public Vector3 GetScaleVector(float z = 1f) => new Vector3(scale.x, scale.y, z);

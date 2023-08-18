@@ -20,8 +20,14 @@ namespace td.features.window
         private readonly Dictionary<Type, GameObject> cache = new();
 
         private readonly Stack<Type> stack = new();
+        private readonly GameObject container;
 
         public GameObject Get(Type type) => GetWindow(type);
+
+        public Window_Service()
+        {
+            container = GameObject.FindGameObjectWithTag(Constants.Tags.WindowsContainer);
+        }
         
         public async Task<bool> Open(Type type, bool immediately = false)
         {
@@ -161,7 +167,9 @@ namespace td.features.window
                 Type.SettingsMenu => prefabService.GetPrefab(PrefabCategory.Windows, "SettingsMenu"),
                 Type.ProfilePopup => prefabService.GetPrefab(PrefabCategory.Windows, "ProfilePopup"),
                 Type.GameExitConfirm => prefabService.GetPrefab(PrefabCategory.Windows, "GameExitConfirm"),
+#if UNITY_EDITOR
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+#endif
             };
         }
 
@@ -178,8 +186,8 @@ namespace td.features.window
             var menuPrefab = GetPrefab(type);
 
             if (menuPrefab == null) return null;
-            
-            var menuGO = Object.Instantiate(menuPrefab, cameraService.GetCanvas().transform);
+
+            var menuGO = Object.Instantiate(menuPrefab, container.transform);//cameraService.GetCanvas().transform);
             menuGO.SetActive(false);
             
             cache.Add(type, menuGO);

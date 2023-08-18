@@ -1,6 +1,4 @@
-﻿using UnityEngine;
-using Leopotam.EcsProto.QoL;
-using td.common;
+﻿using Leopotam.EcsProto.QoL;
 using td.features.camera;
 using td.features.level.cells;
 using td.features.shard;
@@ -8,6 +6,8 @@ using td.features.shard.components;
 using td.features.state;
 using td.features.tower;
 using td.utils;
+using Unity.Mathematics;
+using UnityEngine;
 
 namespace td.features.level
 {
@@ -35,7 +35,7 @@ namespace td.features.level
             return CheckCanDrop(coords.x, coords.y, ref shard);
         }
 
-        public (CanDropShardOnMapType, uint cost, ProtoPackedEntityWithWorld? towerEntity, ProtoPackedEntityWithWorld? shardEntity) CheckCanDrop(ref Int2 coords, ref Shard shard) => CheckCanDrop(coords.x, coords.y, ref shard);
+        public (CanDropShardOnMapType, uint cost, ProtoPackedEntityWithWorld? towerEntity, ProtoPackedEntityWithWorld? shardEntity) CheckCanDrop(ref int2 coords, ref Shard shard) => CheckCanDrop(coords.x, coords.y, ref shard);
 
         public (CanDropShardOnMapType, uint cost, ProtoPackedEntityWithWorld? towerEntity, ProtoPackedEntityWithWorld? shardEntity) CheckCanDrop(int x, int y, ref Shard shard)
         {

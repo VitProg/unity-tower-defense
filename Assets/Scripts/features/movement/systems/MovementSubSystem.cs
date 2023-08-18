@@ -1,5 +1,7 @@
-﻿using Leopotam.EcsProto;
+﻿using System;
+using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using td.features.movement.flags;
 using td.features.state;
 using td.utils;
@@ -45,7 +47,7 @@ namespace td.features.movement.systems
                     ? deltaTime * state.GetGameSpeed()
                     : deltaTime;
 
-                if (!Mathf.Approximately(m.speedV.x, 0f) || !Mathf.Approximately(m.speedV.x, 0f))
+                if (!FloatUtils.IsZero(m.speedV.x) || !FloatUtils.IsZero(m.speedV.x))
                 {
                     t.Move(m.speedV.x * correctedDeltaTime, m.speedV.y * correctedDeltaTime);
                     // m.SetSpeed(m.speed, t.rotation);
@@ -57,7 +59,7 @@ namespace td.features.movement.systems
                 var check = ChechPointIntersections(m.from, m.target, t.position);
                 
 #if DEBUG && UNITY_EDITOR && MOVEMENT_DEBUG
-                var gap = Mathf.Sqrt(m.gapSqr);
+                var gap = (float) Math.Sqrt(m.gapSqr);
                 Debug.DrawLine(m.from, m.target, Color.magenta, 0.2f, false);
                 Debug.DrawLine(m.from, t.position, Color.yellow, 0.2f, false);
                 DebugEx.DrawCross(m.target, gap / 1.1f, Color.cyan, 0.2f);
@@ -102,7 +104,7 @@ namespace td.features.movement.systems
             var vectorToCurrent = current - target;
 
             // Проверим, находятся ли точки с разных сторон окружности относительно target
-            var sideFrom = Mathf.Sign(Vector2.Dot(vectorToFrom, vectorToCurrent));
+            var sideFrom = MathFast.Sign(Vector2.Dot(vectorToFrom, vectorToCurrent));
             if (FloatUtils.IsZero(sideFrom))
             {
                 // Одна из точек совпадает с центром окружности, вернуть -1
@@ -113,8 +115,8 @@ namespace td.features.movement.systems
             var dotCurrentFrom = Vector2.Dot(vectorToFrom, current - from);
             var dotTargetCurrent = Vector2.Dot(vectorToFrom, target - current);
             
-            var sideDotFrom = Mathf.RoundToInt(Mathf.Sign(dotCurrentFrom));
-            var sideDotCurrent = Mathf.RoundToInt(Mathf.Sign(dotTargetCurrent));
+            var sideDotFrom = MathFast.Round(MathFast.Sign(dotCurrentFrom));
+            var sideDotCurrent = MathFast.Round(MathFast.Sign(dotTargetCurrent));
             
             if (sideDotFrom != 0 && sideDotCurrent != 0 && sideDotFrom + sideDotCurrent == 0)
             {

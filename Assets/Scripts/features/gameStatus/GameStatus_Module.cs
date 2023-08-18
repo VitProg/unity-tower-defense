@@ -3,8 +3,6 @@ using Leopotam.EcsProto;
 using td.features.eventBus;
 using td.features.gameStatus.bus;
 using td.features.gameStatus.systems;
-using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.gameStatus
 {

@@ -3,8 +3,6 @@ using Leopotam.EcsProto;
 using td.features.eventBus;
 using td.features.infoPanel.bus;
 using td.features.state;
-using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.infoPanel
 {

@@ -1,5 +1,8 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
+using td.features.camera.bus;
+using td.features.eventBus;
 using td.utils;
 using UnityEngine;
 
@@ -8,6 +11,7 @@ namespace td.features.camera
     public class CameraMoveSystem : IProtoRunSystem
     {
         [DI] private Camera_Service cameraService;
+        [DI] private EventBus events;
 
         private Vector3 startCursorScreenPosition;
         private Vector3 lastCursorScreenPosition;
@@ -52,8 +56,8 @@ namespace td.features.camera
             lastCursorScreenPosition = cursorScreenPosition;
 
             ///// KEYBOARD ////
-            var keyboardInertiaX = Mathf.Abs(keyboardVector.x) > 0.0001f;
-            var keyboardInertiaY = Mathf.Abs(keyboardVector.y) > 0.0001f;
+            var keyboardInertiaX = MathFast.Abs(keyboardVector.x) > 0.0001f;
+            var keyboardInertiaY = MathFast.Abs(keyboardVector.y) > 0.0001f;
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
             {
                 keyboardVector.y = Constants.Camera.MoveSpeedKeyborad * Time.deltaTime;
@@ -86,13 +90,15 @@ namespace td.features.camera
 
             if (mouseVector.sqrMagnitude > 0.0001f || keyboardVector.sqrMagnitude > 0.0001f)
             {
+                var camera = cameraService.GetVirtualCamera();
+                
                 mouseTime += Time.deltaTime;
 
                 var speed = (mouseVector.magnitude + keyboardVector.magnitude) *
-                            (cameraService.GetVirtualCamera().m_Lens.OrthographicSize / Constants.Camera.MinOrthographicZoom) *
-                            (Mathf.Max(Screen.width, Screen.height) / 1000f);
+                            (camera.m_Lens.OrthographicSize / Constants.Camera.MinOrthographicZoom) *
+                            (MathFast.Max(Screen.width, Screen.height) / 1000f);
 
-                speed = Mathf.Clamp(speed, 0, Constants.Camera.MaxMoveSpeed);
+                speed = MathFast.Clamp(speed, 0, Constants.Camera.MaxMoveSpeed);
 
                 // Debug.Log($"Speed: {speed}, MVector: {mouseVector}, KVector: {keyboardVector}");
 
@@ -100,7 +106,7 @@ namespace td.features.camera
                 vector.Normalize();
                 vector *= speed;
 
-                /////
+                /////f
 
                 var cameraTransform = cameraService.GetMainCamera().transform;
                 var cameraPosition = cameraTransform.position;
@@ -112,7 +118,8 @@ namespace td.features.camera
 
                 pos.z = cameraPosition.z;
 
-                cameraService.GetVirtualCamera().ForceCameraPosition(pos, cameraTransform.rotation);
+                camera.ForceCameraPosition(pos, cameraTransform.rotation);
+                events.unique.GetOrAdd<Event_Camera_Moved>();
 
                 if (mouseInertia)
                 {
@@ -126,7 +133,7 @@ namespace td.features.camera
                 if (keyboardInertiaX)
                 {
                     keyboardTimeX += Time.deltaTime;
-                    keyboardVector.x = Mathf.Lerp(
+                    keyboardVector.x = MathFast.Lerp(
                         keyboardVector.x,
                         0,
                         EasingUtils.EaseOutQuad(keyboardTimeX * Constants.Camera.MoveKeyboardInertiatiaAttenuation)
@@ -136,7 +143,7 @@ namespace td.features.camera
                 if (keyboardInertiaY)
                 {
                     keyboardTimeY += Time.deltaTime;
-                    keyboardVector.y = Mathf.Lerp(
+                    keyboardVector.y = MathFast.Lerp(
                         keyboardVector.y,
                         0,
                         EasingUtils.EaseOutQuad(keyboardTimeY * Constants.Camera.MoveKeyboardInertiatiaAttenuation)

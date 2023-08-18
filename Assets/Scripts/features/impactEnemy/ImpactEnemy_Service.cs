@@ -1,11 +1,11 @@
 ﻿using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using td.features._common;
 using td.features.eventBus;
 using td.features.impactEnemy.components;
 using td.features.movement;
 using td.utils;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.impactEnemy
 {
@@ -28,15 +28,15 @@ namespace td.features.impactEnemy
         public void SpeedDebuff(int target, float duration, float speedMultipler)
         {
             ref var debuf = ref aspect.speedDebuffPool.GetOrAdd(target);
-            debuf.duration = Mathf.Max(duration, debuf.duration);
-            debuf.speedMultipler = Mathf.Max(speedMultipler, debuf.speedMultipler);
+            debuf.duration = MathFast.Max(duration, debuf.duration);
+            debuf.speedMultipler = MathFast.Max(speedMultipler, debuf.speedMultipler);
         }
             
         public void PoisonDebuff(int target, float damage, float duration)
         {
             ref var debuf = ref aspect.poisonDebuffPool.GetOrAdd(target);
-            debuf.damage = Mathf.Max(debuf.damage, damage);
-            debuf.duration = Mathf.Max(debuf.duration, duration);
+            debuf.damage = MathFast.Max(debuf.damage, damage);
+            debuf.duration = MathFast.Max(debuf.duration, duration);
         }
 
         public void ShockingDebuff(int target, float probability, float duration)

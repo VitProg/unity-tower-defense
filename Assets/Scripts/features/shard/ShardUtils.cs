@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Leopotam.Types;
 using td.features.shard.components;
+using td.features.shard.data;
 using td.utils;
 using UnityEngine;
 
@@ -8,17 +10,17 @@ namespace td.features.shard
 {
     public static class ShardUtils
     {
-        public static Color GetHoverColor(byte[] values, float a, ShardsConfig config)
+        public static Color GetHoverColor(byte[] values, float a, Shards_Config_SO configSO)
         {
-            var mixedColor = GetMixedColor(values, config) * 1.5f;
+            var mixedColor = GetMixedColor(values, configSO) * 1.5f;
             return new Color(mixedColor.r + 0.15f, mixedColor.g + 0.15f, mixedColor.b + 0.15f, a);
         }
 
-        public static Color GetMixedColor(byte[] values, ShardsConfig config) =>
+        public static Color GetMixedColor(byte[] values, Shards_Config_SO configSO) =>
             GetMixedColor(values[0], values[1], values[2], values[3], values[4], values[5], values[6], values[7],
-                config);
+                configSO);
 
-        public static Color GetMixedColor(ref Shard shard, ShardsConfig config) =>
+        public static Color GetMixedColor(ref Shard shard, Shards_Config_SO configSO) =>
             GetMixedColor(
                 shard.red,
                 shard.green,
@@ -28,7 +30,7 @@ namespace td.features.shard
                 shard.orange,
                 shard.pink,
                 shard.violet,
-                config
+                configSO
             );
 
         public static Color GetMixedColor(
@@ -40,18 +42,18 @@ namespace td.features.shard
             byte orange,
             byte pink,
             byte violet,
-            ShardsConfig config
+            Shards_Config_SO configSO
         )
         {
             var colors = new List<Color>();
-            AddColorsToList(ShardTypes.Red, red, config, ref colors);
-            AddColorsToList(ShardTypes.Green, green, config, ref colors);
-            AddColorsToList(ShardTypes.Blue, blue, config, ref colors);
-            AddColorsToList(ShardTypes.Aquamarine, aquamarine, config, ref colors);
-            AddColorsToList(ShardTypes.Yellow, yellow, config, ref colors);
-            AddColorsToList(ShardTypes.Orange, orange, config, ref colors);
-            AddColorsToList(ShardTypes.Pink, pink, config, ref colors);
-            AddColorsToList(ShardTypes.Violet, violet, config, ref colors);
+            AddColorsToList(ShardTypes.Red, red, configSO, ref colors);
+            AddColorsToList(ShardTypes.Green, green, configSO, ref colors);
+            AddColorsToList(ShardTypes.Blue, blue, configSO, ref colors);
+            AddColorsToList(ShardTypes.Aquamarine, aquamarine, configSO, ref colors);
+            AddColorsToList(ShardTypes.Yellow, yellow, configSO, ref colors);
+            AddColorsToList(ShardTypes.Orange, orange, configSO, ref colors);
+            AddColorsToList(ShardTypes.Pink, pink, configSO, ref colors);
+            AddColorsToList(ShardTypes.Violet, violet, configSO, ref colors);
 
             var mixedColor = AvgColorFromList(colors);
 
@@ -68,7 +70,7 @@ namespace td.features.shard
             byte orange,
             byte pink,
             byte violet,
-            ShardsConfig config,
+            Shards_Config_SO configSO,
             List<Color> colors,
             uint count = 32)
         {
@@ -83,9 +85,9 @@ namespace td.features.shard
                 var w = (float)shardArray[i] / quantity;
                 if (!(w > 0.01f)) continue;
 
-                var wInt = Mathf.CeilToInt(w * 10);
+                var wInt = (int) Math.Ceiling(w * 10);
 
-                var color = config[i];
+                var color = configSO[i];
                 // var size = count * w;
                 var limit = (index - 1) + wInt;
                 for (; index < limit && index < count; index++)
@@ -171,19 +173,21 @@ namespace td.features.shard
             return quantity;
         }
 
-        public static Color GetColor(ShardTypes type, ShardsConfig config)
+        public static Color GetColor(ShardTypes type, Shards_Config_SO configSO)
         {
             return type switch
             {
-                ShardTypes.Red => config.redShardColor,
-                ShardTypes.Green => config.greenShardColor,
-                ShardTypes.Blue => config.blueShardColor,
-                ShardTypes.Yellow => config.yellowShardColor,
-                ShardTypes.Orange => config.orangeShardColor,
-                ShardTypes.Pink => config.pinkShardColor,
-                ShardTypes.Violet => config.violetShardColor,
-                ShardTypes.Aquamarine => config.aquamarineShardColor,
+                ShardTypes.Red => configSO.redShardColor,
+                ShardTypes.Green => configSO.greenShardColor,
+                ShardTypes.Blue => configSO.blueShardColor,
+                ShardTypes.Yellow => configSO.yellowShardColor,
+                ShardTypes.Orange => configSO.orangeShardColor,
+                ShardTypes.Pink => configSO.pinkShardColor,
+                ShardTypes.Violet => configSO.violetShardColor,
+                ShardTypes.Aquamarine => configSO.aquamarineShardColor,
+#if UNITY_EDITOR
                 _ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+#endif
             };
         }
 
@@ -191,9 +195,9 @@ namespace td.features.shard
         /////////////////\
 
 
-        private static void AddColorsToList(ShardTypes type, byte quantity, ShardsConfig config, ref List<Color> colors)
+        private static void AddColorsToList(ShardTypes type, byte quantity, Shards_Config_SO configSO, ref List<Color> colors)
         {
-            var color = GetColor(type, config);
+            var color = GetColor(type, configSO);
             for (var i = 0; i < quantity; i++)
             {
                 colors.Add(color);
@@ -321,26 +325,26 @@ namespace td.features.shard
 
         public static void ReduceToOne(ref Shard shard)
         {
-            shard.red = (byte)Mathf.Min(shard.red, 1);
-            shard.green = (byte)Mathf.Min(shard.green, 1);
-            shard.blue = (byte)Mathf.Min(shard.blue, 1);
-            shard.aquamarine = (byte)Mathf.Min(shard.aquamarine, 1);
-            shard.pink = (byte)Mathf.Min(shard.pink, 1);
-            shard.orange = (byte)Mathf.Min(shard.orange, 1);
-            shard.violet = (byte)Mathf.Min(shard.violet, 1);
-            shard.yellow = (byte)Mathf.Min(shard.yellow, 1);
+            shard.red = (byte)MathFast.Min(shard.red, 1);
+            shard.green = (byte)MathFast.Min(shard.green, 1);
+            shard.blue = (byte)MathFast.Min(shard.blue, 1);
+            shard.aquamarine = (byte)MathFast.Min(shard.aquamarine, 1);
+            shard.pink = (byte)MathFast.Min(shard.pink, 1);
+            shard.orange = (byte)MathFast.Min(shard.orange, 1);
+            shard.violet = (byte)MathFast.Min(shard.violet, 1);
+            shard.yellow = (byte)MathFast.Min(shard.yellow, 1);
         }
 
         public static void Multiple(ref Shard shard, int mul)
         {
-            shard.red = (byte)Mathf.Min(shard.red * mul, 255);
-            shard.green = (byte)Mathf.Min(shard.green * mul, 255);
-            shard.blue = (byte)Mathf.Min(shard.blue * mul, 255);
-            shard.aquamarine = (byte)Mathf.Min(shard.aquamarine * mul, 255);
-            shard.pink = (byte)Mathf.Min(shard.pink * mul, 255);
-            shard.orange = (byte)Mathf.Min(shard.orange * mul, 255);
-            shard.violet = (byte)Mathf.Min(shard.violet * mul, 255);
-            shard.yellow = (byte)Mathf.Min(shard.yellow * mul, 255);
+            shard.red = (byte)MathFast.Min(shard.red * mul, 255);
+            shard.green = (byte)MathFast.Min(shard.green * mul, 255);
+            shard.blue = (byte)MathFast.Min(shard.blue * mul, 255);
+            shard.aquamarine = (byte)MathFast.Min(shard.aquamarine * mul, 255);
+            shard.pink = (byte)MathFast.Min(shard.pink * mul, 255);
+            shard.orange = (byte)MathFast.Min(shard.orange * mul, 255);
+            shard.violet = (byte)MathFast.Min(shard.violet * mul, 255);
+            shard.yellow = (byte)MathFast.Min(shard.yellow * mul, 255);
         }
     }
 }

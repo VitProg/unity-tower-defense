@@ -19,7 +19,7 @@ namespace td.features.fx
 
         public FX_Service()
         {
-            fxContainer = new GameObject("[FX Container]");
+            fxContainer = GameObject.FindGameObjectWithTag(Constants.Tags.FXContainer);
         }
 
         internal void PrepareGO(GameObject go, int fxEntity)

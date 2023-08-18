@@ -13,7 +13,7 @@ namespace td.features.enemy.data
     public struct Enemy_Config
     {
         public string name;
-        public string prefabPath;
+        public string prefabName;
         public GameObject prefab;
         public bool animated;
         public float animationSpeed;

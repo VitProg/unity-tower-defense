@@ -6,7 +6,6 @@ using td.features.eventBus;
 using td.features.fx.effects;
 using td.features.impactEnemy.components;
 using td.features.movement;
-using UnityEngine;
 
 namespace td.features.fx.listeners
 {

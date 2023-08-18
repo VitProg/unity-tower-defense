@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using UnityEngine.Serialization;
+﻿using td.features.shard.data;
+using UnityEngine;
 using UnityEngine.UI;
 
 namespace td.features.shard.mb
@@ -13,13 +13,13 @@ namespace td.features.shard.mb
         public float rotation = 0f;
         public int level;
 
-        public void SetLevel(int l, ShardsConfig config)
+        public void SetLevel(int l, Shards_Config_SO configSO)
         {
             level = l;
-            if (config.levelSprites.Length > level - 1)
+            if (configSO.levelSprites.Length > level - 1)
             {
-                if (image) image.sprite = config.levelSprites[level - 1];
-                if (spriteRenderer) spriteRenderer.sprite = config.levelSprites[level - 1];
+                if (image) image.sprite = configSO.levelSprites[level - 1];
+                if (spriteRenderer) spriteRenderer.sprite = configSO.levelSprites[level - 1];
             }
         }
 

@@ -2,9 +2,6 @@
 using Leopotam.EcsProto;
 using td.features.eventBus;
 using td.features.tower.towerRadius.bus;
-using td.features.towerRadius;
-using td.features.towerRadius.bus;
-using td.utils.ecs;
 
 namespace td.features.tower.towerRadius
 {
@@ -19,10 +16,7 @@ namespace td.features.tower.towerRadius
 
         public IProtoAspect[] Aspects()
         {
-            return null;/*new IProtoAspect[]
-            {
-                new Tower_Aspect(),
-            };*/
+            return null;
         }
 
         public IProtoModule[] Modules()

@@ -968,7 +968,6 @@ MonoBehaviour:
   numVertices: 32
   outerRadius: 1
   innerRadius: 0.596
-  shardsConfig: {fileID: 11400000, guid: 539cb70cee1d722469513f0e93eb841b, type: 2}
   levelIndicator: {fileID: 0}
   hover: {fileID: 0}
   deny: {fileID: 0}
@@ -1268,7 +1267,6 @@ MonoBehaviour:
   numVertices: 32
   outerRadius: 1
   innerRadius: 0.596
-  shardsConfig: {fileID: 11400000, guid: 539cb70cee1d722469513f0e93eb841b, type: 2}
   levelIndicator: {fileID: 0}
   hover: {fileID: 0}
   deny: {fileID: 0}

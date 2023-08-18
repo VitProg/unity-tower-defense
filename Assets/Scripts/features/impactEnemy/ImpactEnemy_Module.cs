@@ -5,7 +5,6 @@ using td.features.impactEnemy.bus;
 using td.features.impactEnemy.components;
 using td.features.impactEnemy.systems;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.impactEnemy
 {

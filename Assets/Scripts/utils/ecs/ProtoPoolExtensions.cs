@@ -15,14 +15,20 @@ namespace td.utils.ecs
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static ref T GetOrAdd<T> (this ProtoPool<T> pool, ProtoPackedEntity packedEntity) where T : struct {
-            if (!packedEntity.Unpack(pool.World(), out var entity)) throw new System.Exception("Can't unpack packed entity");
+            var check = packedEntity.Unpack(pool.World(), out var entity);
+#if UNITY_EDITOR
+            if (!check) throw new System.Exception("Can't unpack packed entity");
+#endif
             return ref GetOrAdd(pool, entity);
         }
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static ref T GetOrAdd<T> (this ProtoPool<T> pool, ProtoPackedEntityWithWorld packedEntity) where T : struct {
-            if (!packedEntity.Unpack(out var w, out var entity)) throw new System.Exception("Can't unpack packed entity");
+            var check = packedEntity.Unpack(out var w, out var entity);
+#if UNITY_EDITOR
+            if (!check) throw new System.Exception("Can't unpack packed entity");
             if (!pool.World().Equals(w)) throw new Exception("Can't unpack packed entity with different world");
+#endif
             return ref GetOrAdd(pool, entity);
         }
         

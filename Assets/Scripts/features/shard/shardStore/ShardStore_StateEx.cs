@@ -1,14 +1,14 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Leopotam.EcsProto.QoL;
 using td.features.eventBus;
 using td.features.state;
 using UnityEngine.UIElements;
-#if UNITY_EDITOR
 using td.utils;
-using UnityEditor;
-#endif
 
 namespace td.features.shard.shardStore
 {
@@ -32,7 +32,6 @@ namespace td.features.shard.shardStore
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool GetVisible() => visible;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public float GetX() => x;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public IReadOnlyList<ShardStore_Item> GetItems() => items;
-
         #endregion
         
         #region Setters

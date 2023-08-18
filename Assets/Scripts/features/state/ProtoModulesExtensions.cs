@@ -1,9 +1,7 @@
 ﻿using System;
 using Leopotam.EcsProto;
-using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.state
 {
@@ -18,9 +16,8 @@ namespace td.features.state
                 if (module is not IProtoModuleWithStateEx eventsModule) continue;
                 
                 var stateEx = eventsModule.StateEx();
+#if UNITY_EDITOR
                 var exType = stateEx.GetType();
-                // Debug.Log("try to add state extension " + exType.Name + " " + exType.FullName);
-                
                 for (var idx = 0; idx < stateExtensions.Len(); idx++)
                 {
                     if (stateExtensions.Get(idx) == stateEx)
@@ -29,6 +26,7 @@ namespace td.features.state
                             $"Failed to add an extension for the {EditorExtensions.GetCleanTypeName(exType)} state because it is already registered");
                     }
                 }
+#endif
                 stateExtensions.Add(stateEx);
             }
 

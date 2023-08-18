@@ -5,15 +5,16 @@ using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
 using td.utils.di;
-using UnityEngine;
-using UnityEngine.Rendering;
+// #if ENABLE_IL2CPP
+// using Unity.IL2CPP.CompilerServices;
+// #endif
 
 namespace td.utils.ecs
 {
-#if ENABLE_IL2CPP
-    [Il2CppSetOption (Option.NullChecks, false)]
-    [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
-#endif
+// #if ENABLE_IL2CPP
+//     [Il2CppSetOption (Option.NullChecks, false)]
+//     [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
+// #endif
     public class TotalAutoInjectModule : IProtoModule
     {
         private static readonly Type DIAttrType = typeof(DIAttribute);
@@ -54,7 +55,7 @@ namespace td.utils.ecs
                     if (ItType.IsAssignableFrom(fi.FieldType))
                     {
                         var it = (IProtoIt)fi.GetValue(target);
-#if DEBUG
+#if UNITY_EDITOR
                         if (it == null)
                         {
                             throw new Exception(
@@ -80,7 +81,7 @@ namespace td.utils.ecs
                         }
                         else
                         {
-#if DEBUG
+#if UNITY_EDITOR
                             throw new Exception(
                                 $"ошибка инъекции пользовательских данных в \"{EditorExtensions.GetCleanTypeName(target.GetType())}\" - тип поля \"{fi.Name}\" отсутствует в списке сервисов");
 #endif
@@ -90,10 +91,10 @@ namespace td.utils.ecs
             }
         }
 
-#if ENABLE_IL2CPP
-    [Il2CppSetOption (Option.NullChecks, false)]
-    [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
-#endif
+// #if ENABLE_IL2CPP
+//     [Il2CppSetOption (Option.NullChecks, false)]
+//     [Il2CppSetOption (Option.ArrayBoundsChecks, false)]
+// #endif
         internal sealed class TotalAutoInjectSystem : IProtoPreInitSystem
         {
             public void PreInit(IProtoSystems systems)

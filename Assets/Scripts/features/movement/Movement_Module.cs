@@ -3,7 +3,6 @@ using Leopotam.EcsProto;
 using td.features.movement.flags;
 using td.features.movement.systems;
 using td.utils.ecs;
-using UnityEngine;
 
 namespace td.features.movement
 {

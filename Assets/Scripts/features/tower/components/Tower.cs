@@ -1,5 +1,5 @@
 ﻿using System;
-using td.common;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.tower.components
@@ -10,6 +10,6 @@ namespace td.features.tower.components
         public float radius;
         // public uint cost;
         public Vector2 barrel;
-        public Int2 coords;
+        public int2 coords;
     }
 }

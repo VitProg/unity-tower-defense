@@ -6,8 +6,6 @@ using td.features.movement.flags;
 using td.features.movement.systems;
 using td.features.projectile.attributes;
 using td.features.projectile.components;
-using td.features.projectile.explosion;
-using td.features.projectile.lightning;
 
 namespace td.features.projectile
 {

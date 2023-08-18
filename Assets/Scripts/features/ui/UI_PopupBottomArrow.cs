@@ -1,5 +1,5 @@
+using Leopotam.Types;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace td.features.ui
@@ -49,7 +49,7 @@ namespace td.features.ui
             var height = rect.height;
             var halfHeight = height / 2f;
 
-            var topCenterWidthW = Mathf.Max(topCenterMinWidth, (width - LeftRightWidth * 2f - TopInnerCornerWidth * 2f) / 2f);
+            var topCenterWidthW = MathFast.Max(topCenterMinWidth, (width - LeftRightWidth * 2f - TopInnerCornerWidth * 2f) / 2f);
             var topRightInnerCornerX = topCenterWidthW / 2f;
             var topLeftInnerCornerX = topRightInnerCornerX * -1;
             var topLeftRightW = halfWidth - LeftRightWidth - TopInnerCornerWidth - topCenterWidthW / 2f;

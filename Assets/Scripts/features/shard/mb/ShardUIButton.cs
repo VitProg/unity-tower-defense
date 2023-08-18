@@ -1,17 +1,16 @@
-﻿using System.Collections.Generic;
-using Leopotam.EcsProto.QoL;
-using td.features._common;
-using td.features.shard.components;
-using td.features.state;
-using TMPro;
+﻿#if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.UI;
+#endif
+using System.Collections.Generic;
+using td.features._common;
+using td.features.shard.components;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
-using Button = UnityEngine.UI.Button;
-using Image = UnityEngine.UI.Image;
+using UnityEngine.UI;
 
 namespace td.features.shard.mb
 {
@@ -64,7 +63,7 @@ namespace td.features.shard.mb
             if (hasShard)
             {
                 shardConrol.Refresh();
-                costText.text = CommonUtils.CostFormat(cost);
+                costText.text = CommonUtils.PriceFormat(cost);
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using td.features.shard.components;
-using UnityEngine.Serialization;
 
 namespace td.features.level.data
 {

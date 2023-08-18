@@ -16,18 +16,19 @@ namespace td.features.eventBus
         public ProtoPool<Event> eventPool;
         public ProtoPool<PersistEvent> persistEventPool;
 
-        public ProtoIt itEvent = new(It.Inc<Event>());
-        public Slice<Type> eventTypes = new(64);
+        public readonly ProtoIt itEvent = new(It.Inc<Event>());
+        public readonly Slice<Type> eventTypes = new(64);
 
-        public Slice<ProtoIt> itUniqueEvents = new(32);
-        public Dictionary<Type, int> itUniqueEventsHash = new(32);
+        public readonly Slice<ProtoIt> itUniqueEvents = new(32);
+        public readonly Dictionary<Type, int> itUniqueEventsHash = new(32);
 
-        public ProtoItExc itEventForDelete = new(It.Inc<Event>(), It.Exc<PersistEvent>());
+        // public readonly ProtoItExc itGlobalEventForDelete = new(It.Inc<GlobalEvent>(), It.Exc<PersistEvent>());
+        // public readonly ProtoItExc itUniqueEventForDelete = new(It.Inc<UniqueEvent>(), It.Exc<PersistEvent>());
         
         public bool release;
         
-        private static readonly Type poolType = typeof(ProtoPool<>);
-        private static readonly Type uniqueEventType = typeof(IUniqueEvent);
+        private static readonly Type PoolType = typeof(ProtoPool<>);
+        private static readonly Type UniqueEventType = typeof(IUniqueEvent);
 
         public override void Init(ProtoWorld world)
         {
@@ -41,16 +42,18 @@ namespace td.features.eventBus
                 var isUnique = false;
                 foreach (var i in evType.GetInterfaces())
                 {
-                    if (i != uniqueEventType) continue;
+                    if (i != UniqueEventType) continue;
                     isUnique = true;
                     break;
                 }
                 var capacity = isUnique ? 2 : 128;
                 
                 if (world.HasPool(evType)) continue;
-                var pool = (IProtoPool)Activator.CreateInstance(poolType.MakeGenericType(evType), capacity);
+                var pool = (IProtoPool)Activator.CreateInstance(PoolType.MakeGenericType(evType), capacity);
                 world.AddPool(pool);
+#if UNITY_EDITOR
                 Debug.Log($"A pool has been created for {EditorExtensions.GetCleanTypeName(evType)}");
+#endif
 
                 if (!isUnique)
                 {

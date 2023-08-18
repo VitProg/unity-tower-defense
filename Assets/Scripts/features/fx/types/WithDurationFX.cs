@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using UnityEngine;
+using Leopotam.Types;
 
 namespace td.features.fx.types
 {
@@ -15,7 +15,7 @@ namespace td.features.fx.types
             withDuration = d.HasValue;
             var nd = d ?? 0f;
             remainingTime = d.HasValue
-                ? Mathf.Max(0f, remainingTime + (d.Value - nd))
+                ? MathFast.Max(0f, remainingTime + (d.Value - nd))
                 : 0f;
             duration = nd;
         }

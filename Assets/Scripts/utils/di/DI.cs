@@ -30,13 +30,14 @@ namespace td.utils.di
                 {
                     fi.SetValue(this, result);
                 }*/
+#if UNITY_EDITOR
                 else
                 {
-#if DEBUG
+
                     throw new Exception(
                         $"ошибка инъекции пользовательских данных в MonoBehaviour\"{type.Name}\", тип \"{fi.FieldType.Name}\" для поля \"{fi.Name}\" отсутствует в списке сервисов");
-#endif
                 }
+#endif
             }
         }
     }

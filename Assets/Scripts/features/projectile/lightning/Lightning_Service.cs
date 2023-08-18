@@ -2,7 +2,7 @@
 using td.features.goPool;
 using td.features.prefab;
 using td.features.projectile.attributes;
-using td.features.shard;
+using td.features.shard.data;
 using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
@@ -18,14 +18,14 @@ namespace td.features.projectile.lightning
         [DI] private GOPool_Service goPoolService;
         [DI] private Projectile_Service projectileService;
         [DI] private Lightning_Converter converter;
-        [DI] private ShardsConfig shardsConfig; // todo
+        [DI] private Shards_Config_SO shardsConfigSO; // todo
 
         private PoolableObject CreateObject()
         {
             var prefab = prefabService.GetPrefab(PrefabCategory.Projectiles, "LightningLine");
             var projectilePoolableObject = goPoolService.Get(
                 prefab,
-                // todo add parent
+                projectileService.container.transform,
                 Constants.Pools.ProjectileEffectsDefaultCopacity,
                 Constants.Pools.ProjectileEffectsMaxCopacity,
                 null,

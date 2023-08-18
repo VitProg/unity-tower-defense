@@ -1,4 +1,5 @@
-﻿using NaughtyAttributes;
+﻿using Leopotam.Types;
+using NaughtyAttributes;
 using td.features._common;
 using td.features.eventBus;
 using td.features.gameStatus.bus;
@@ -167,7 +168,7 @@ namespace td.features.shard.shardStore
             infoPanel.Clear();
             infoPanel.SetShard(ref shard);
             infoPanel.SetTitle("Buying shard");
-            infoPanel.SetCost(shard.cost);
+            infoPanel.SetPrice(shard.cost);
             infoPanel.SetVisible(true);
         }
 
@@ -222,7 +223,7 @@ namespace td.features.shard.shardStore
 
         private void ChangeLevel(int l)
         {
-            var newLevel = Mathf.Clamp(level + l, 1, 10);
+            var newLevel = MathFast.Clamp(level + l, 1, 10);
             if (level == newLevel) return;
 
             level = (byte)newLevel;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using Leopotam.Types;
 using td.utils;
 using UnityEngine;
 
@@ -49,7 +50,7 @@ namespace td.features.movement.components
         public void SetSpeed(float s, float x, float y)
         {
             speed = s;
-            if (Mathf.Abs(x + y) > 1f)
+            if (MathFast.Abs(x + y) > 1f)
             {
                 SetSpeed(s, new Vector2(x, y));
                 return;
@@ -62,7 +63,7 @@ namespace td.features.movement.components
         public void SetSpeed(float s, Quaternion rotation)
         {
             speed = s;
-            var n = Mathf.Abs(rotation.x + rotation.y) > 1f
+            var n = MathFast.Abs(rotation.x + rotation.y) > 1f
                 ? rotation.normalized * Vector2.up // sqrt
                 : rotation * Vector2.up;
             speedV.x = s * n.x;

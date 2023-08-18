@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
-using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using NaughtyAttributes;
 using td.features.state;
 using td.utils.di;
@@ -128,7 +128,7 @@ namespace td.features.spriteAnimator
             var currentFrame = frames[fIndex];
             var nextFrame = frames[reverse ? GetPrevFrameIndex() : GetNextFrameIndex()];
 
-            var alpha = Mathf.Lerp(currentFrame.alpha, nextFrame.alpha, timeFromPrevFrame / currentFrame.duration);
+            var alpha = MathFast.Lerp(currentFrame.alpha, nextFrame.alpha, timeFromPrevFrame / currentFrame.duration);
 
             var color = spriteRenderer.color;
             color.a = alpha;

@@ -1,9 +1,10 @@
 ﻿using System;
 using JetBrains.Annotations;
-using Leopotam.EcsProto.QoL;
+using Leopotam.Types;
 using NaughtyAttributes;
 using td.features._common;
 using td.features.shard.components;
+using td.features.shard.data;
 using td.monoBehaviours;
 using td.utils.di;
 using UnityEngine;
@@ -22,9 +23,6 @@ namespace td.features.shard.mb
         [OnValueChanged("Refresh")][MinValue(8)][MaxValue(64)] public int numVertices = 16; // Количество вершин по умолчанию
         [OnValueChanged("Refresh")] public float outerRadius = 1f;
         [OnValueChanged("Refresh")] public float innerRadius = .25f;
-
-        // [OnValueChanged("Refresh")] public ShardMonoBehaviour shardMB;
-        [OnValueChanged("Refresh")][Required] public ShardsConfig shardsConfig;
         
         [Required][OnValueChanged("Refresh")] public ShardLevelIndicatorMB levelIndicator;
         [Required][OnValueChanged("Refresh")] public ShardHoverMB hover;
@@ -32,7 +30,7 @@ namespace td.features.shard.mb
 
         public CanvasRenderer canvasRenderer;
 
-        private const float PI2 = Mathf.PI * 2f;
+        private const float PI2 = MathFast.Pi * 2f;
 
         [SerializeField] private readonly Segment[] segments = new Segment[8];
         [SerializeField] private uint segmentsCount = 0;
@@ -57,12 +55,14 @@ namespace td.features.shard.mb
 
             segmentsCount = 0;
 
+            var shardsConfigSO = ServiceContainer.Get<Shards_Config_SO>();
+
             for (var i = 0; i < 8; i++)
             {
                 var w = (float)shardData[i] / all;
                 if (!(w > 0.01f)) continue;
                 segments[segmentsCount].weight = w;
-                segments[segmentsCount].color = shardsConfig[i];
+                segments[segmentsCount].color = shardsConfigSO[i];
                 segmentsCount++;
             }
 
@@ -140,8 +140,8 @@ namespace td.features.shard.mb
                 var angle = angleStep * i;
                 ref var segment = ref GetSegment(angle);
 
-                var cos = Mathf.Cos(angle);
-                var sin = Mathf.Sin(angle);
+                var cos = MathFast.Cos(angle);
+                var sin = MathFast.Sin(angle);
 
                 // outer
                 var x = cos * oRadius;

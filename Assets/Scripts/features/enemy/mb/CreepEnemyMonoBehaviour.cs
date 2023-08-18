@@ -1,10 +1,8 @@
-﻿using NaughtyAttributes;
+﻿using System.Runtime.CompilerServices;
+using NaughtyAttributes;
 using td.features.enemy.data;
-using td.features.state;
 using td.utils;
-using td.utils.ecs;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.U2D.Animation;
 
 namespace td.features.enemy.mb
@@ -15,7 +13,7 @@ namespace td.features.enemy.mb
         [SerializeField] private Animator animator;
         [SerializeField] private SpriteLibrary spriteLibrary;
         [SerializeField] private SpriteResolver spriteResolver;
-        [FormerlySerializedAs("enemiesConfig")] [SerializeField] private Enemy_Config_SO enemyConfigSo;
+        [SerializeField] private Enemies_Config_SO enemiesConfigSO;
 
         [Header("Main")]
         [OnValueChanged("UpdateView")][SerializeField] public CreepEnemyTypes type;
@@ -25,14 +23,12 @@ namespace td.features.enemy.mb
 
         public void UpdateView()
         {
-            spriteLibrary.spriteLibraryAsset = enemyConfigSo.GetCreepSprites(type, variant);
+            spriteLibrary.spriteLibraryAsset = enemiesConfigSO.GetCreepSprites(type, variant);
             spriteResolver.SetCategoryAndLabel("Run", "1");
-            animator.runtimeAnimatorController = enemyConfigSo.GetRuntimeAnimatorController(type);
-            // animator.speed = (DI.GetCustom<State>()?.GameSpeed ?? 1) * 3;
-            // animator.SetInteger(SType, (int)type);
-            // animator.Play(((int)type).ToString());
+            animator.runtimeAnimatorController = enemiesConfigSO.GetRuntimeAnimatorController(type);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CreepEnemyTypes ParseType(int type) =>
             type switch
             {
@@ -42,6 +38,7 @@ namespace td.features.enemy.mb
                 _ => ParseType(RandomUtils.IntRange(1, 3))
             };
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CreepEnemyVariants ParseVariant(int variant) =>
             variant switch
             {

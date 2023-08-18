@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
@@ -8,12 +11,9 @@ using td.features.eventBus;
 using td.features.shard.components;
 using td.features.shard.mb;
 using td.features.state;
+using td.utils;
 using td.utils.di;
 using UnityEngine.UIElements;
-#if UNITY_EDITOR
-using td.utils;
-using UnityEditor;
-#endif
 
 namespace td.features.shard.shardCollection
 {
