@@ -5,6 +5,7 @@ using td.features.level;
 using td.features.movement;
 using td.features.tower;
 using td.utils;
+using Unity.Burst.Intrinsics;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -17,6 +18,7 @@ namespace td.features.inputEvents.systems
         [DI] private Movement_Service movementService;
         [DI] private Camera_Service cameraService;
         [DI] private Tower_Service towerService;
+        [DI] private InputEvents_Service inputEventsService;
         [DI] private LevelMap levelMap;
 
         private int2? lastHoveredCoord;
@@ -25,7 +27,8 @@ namespace td.features.inputEvents.systems
         public void Run()
         {
             //todo
-            var pointerPosition = (Vector2)CameraUtils.TransformPointToCameraSpace(cameraService.GetMainCamera(), Input.mousePosition);
+            Vector2 pointerScreenPosition = Input.mousePosition;
+            var pointerPosition = (Vector2)CameraUtils.TransformPointToCameraSpace(cameraService.GetMainCamera(), pointerScreenPosition);
             var pointerCellCoord = HexGridUtils.PositionToCell(pointerPosition);
 
             var mouseButtonLeft = Input.GetMouseButton(0);
@@ -39,8 +42,9 @@ namespace td.features.inputEvents.systems
             var hasTouch = touch.HasValue;
             var touchDown = touch is { phase: TouchPhase.Began };
             var touchUp = touch is { phase: TouchPhase.Ended };
+            Vector2? touchScreenPosition = hasTouch ? touch.Value.position : null;
             Vector2? touchPosition = hasTouch
-                ? (Vector2)CameraUtils.TransformPointToCameraSpace(cameraService.GetMainCamera(), touch.Value.position)
+                ? (Vector2)CameraUtils.TransformPointToCameraSpace(cameraService.GetMainCamera(), touchScreenPosition.Value)
                 : null;
             int2? touchCellCoord = hasTouch ? HexGridUtils.PositionToCell(touchPosition.Value) : null;
 
@@ -48,6 +52,7 @@ namespace td.features.inputEvents.systems
             var up = mouseButtonLeftUp || touchUp;
             var pressed = mouseButtonLeft;
 
+            var isUI = (down || up) && inputEventsService.HasUIUnderScreenCoords(hasTouch ? touchScreenPosition.Value : pointerScreenPosition);
             var cellCoord = hasTouch ? touchCellCoord.Value : pointerCellCoord;
 
             if (lastHoveredCoord.HasValue && cellCoord.Equals(lastHoveredCoord.Value) && lastPressed == pressed)
@@ -57,10 +62,9 @@ namespace td.features.inputEvents.systems
                     ref var cell = ref levelMap.GetCell(cellCoord);
                     foreach (var handler in cell.inputEventsHandlers)
                     {
-                        if (handler.IsPressed/* && handler.TimeFromDown < Constants.UI.LongClickTime*/)
+                        if (handler.IsPressed)
                         {
                             handler.TimeFromDown += Time.deltaTime;
-                            // Debug.Log(handler.TimeFromDown);
                         }
                     }
                 }
@@ -83,7 +87,8 @@ namespace td.features.inputEvents.systems
                             hasTouch ? touchPosition.Value.x : pointerPosition.x,
                             hasTouch ? touchPosition.Value.y : pointerPosition.y,
                             down,
-                            up
+                            up,
+                            isUI
                         );
                     }
                 }
@@ -100,7 +105,8 @@ namespace td.features.inputEvents.systems
                         hasTouch ? touchPosition.Value.x : pointerPosition.x,
                         hasTouch ? touchPosition.Value.y : pointerPosition.y,
                         mouseButtonLeftDown || touchDown,
-                        mouseButtonLeftUp || touchUp
+                        mouseButtonLeftUp || touchUp,
+                        isUI
                     );
                 }
                 lastHoveredCoord = cellCoord;
@@ -113,7 +119,8 @@ namespace td.features.inputEvents.systems
             float x,
             float y,
             bool down,
-            bool up
+            bool up,
+            bool isUI
         )
         {
             if (inCell && !handler.IsHovered)
@@ -136,20 +143,23 @@ namespace td.features.inputEvents.systems
             {
                 handler.IsPressed = true;
                 handler.TimeFromDown = 0f;
-                handler.OnPointerDown(x, y);
+                if (!isUI) handler.OnPointerDown(x, y);
                 // Debug.Log("OnPointerDown");
             }
 
             if (handler.IsPressed && up)
             {
                 handler.IsPressed = false;
-                handler.OnPointerUp(x, y, inCell);
-                // Debug.Log("OnPointerUp");
-                if (inCell)
+                if (!isUI)
                 {
-                    handler.OnPointerClick(x, y, handler.TimeFromDown > Constants.UI.LongClickTime);
+                    handler.OnPointerUp(x, y, inCell);
+                    // Debug.Log("OnPointerUp");
+                    if (inCell)
+                    {
+                        handler.OnPointerClick(x, y, handler.TimeFromDown > Constants.UI.LongClickTime);
+                    }
+                    handler.TimeFromDown = 0f;
                 }
-                handler.TimeFromDown = 0f;
             }
         }
     }

@@ -132,12 +132,5 @@ namespace td.features.camera
         {
             return canvasCamera.ViewportToWorldPoint(point);
         }
-
-        // private List<RaycastResult> raycastResults = new(16);
-        public void GetAllCanvasElementsByScreenCoords(in PointerEventData pointerData, in List<RaycastResult> raycastResults)
-        {
-            raycastResults.Clear();
-            EventSystem.current.RaycastAll(pointerData, raycastResults);
-        }
     }
 }

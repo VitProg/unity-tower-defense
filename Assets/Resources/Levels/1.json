@@ -46,8 +46,8 @@
               "variant": -1
             }
           ],
-          "quantity": 5,
-          "delayBetween": 0.35,
+          "quantity": 500,
+          "delayBetween": 0.15,
           "speed": 1.0,
           "health": 1.0,
           "scale": [0.45, 0.75]

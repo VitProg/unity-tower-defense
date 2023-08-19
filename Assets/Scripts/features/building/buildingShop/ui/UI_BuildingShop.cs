@@ -13,10 +13,12 @@ using td.utils;
 using td.utils.di;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.UIElements;
 
 namespace td.features.building.buildingShop.ui
 {
-    public class UI_BuildingShop : MonoBehaviour
+    public class UI_BuildingShop : MonoBehaviour, IPointerClickHandler
     {
         [Required] public RectTransform rectTransform;
         [Required] public GameObject itemsContainer;
@@ -39,6 +41,7 @@ namespace td.features.building.buildingShop.ui
         private Camera_Service _cameraService;
         private Camera_Service CameraService => _cameraService ??= ServiceContainer.Get<Camera_Service>();
         
+
         private int2 cellCoords;
 
         [Button]
@@ -169,6 +172,11 @@ namespace td.features.building.buildingShop.ui
             }
 
             RefreshItemsSize();
+        }
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            StateEx.SetVisible(false);
         }
     }
 }

@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using Leopotam.EcsProto.QoL;
 using td.features._common.components;
 using td.features.inputEvents.components;
 using td.utils.ecs;
+using Unity.Burst.Intrinsics;
+using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace td.features.inputEvents
 {
@@ -65,6 +69,22 @@ namespace td.features.inputEvents
         public ref RefMany<IInputEventsHandler> GetRefHandlers(int entity)
         {
             return ref aspect.refPointerHandlersPool.GetOrAdd(entity);
+        }
+        
+        private PointerEventData pointerData = new(EventSystem.current);
+        private List<RaycastResult> raycastResults = new(16);
+        public void GetAllCanvasElementsByScreenCoords(in Vector2 screenCoords, in List<RaycastResult> raycastResults)
+        {
+            pointerData.position = screenCoords;
+            raycastResults.Clear();
+            EventSystem.current.RaycastAll(pointerData, raycastResults);
+        }
+
+
+        public bool HasUIUnderScreenCoords(in Vector2 screenCoords)
+        {
+            GetAllCanvasElementsByScreenCoords(screenCoords, raycastResults);
+            return raycastResults.Count > 0;
         }
     }
 }

@@ -16,6 +16,7 @@ namespace td.features.inputEvents
                 // .AddSystem(new InputEvents_CicleCollider_System())
                 // .AddSystem(new InputEvents_HexCellCollider_System())
                 .AddSystem(new InputEvents_HexCell_System())
+                .AddSystem(new InputEvents_GlobalHandler_System())
                 //
                 .AddService(new InputEvents_Service(), true)
                 ;
