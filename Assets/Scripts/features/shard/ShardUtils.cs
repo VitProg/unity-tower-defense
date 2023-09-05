@@ -33,6 +33,8 @@ namespace td.features.shard
                 configSO
             );
 
+        private static List<Color> colors = new ();
+        
         public static Color GetMixedColor(
             byte red,
             byte green,
@@ -45,7 +47,7 @@ namespace td.features.shard
             Shards_Config_SO configSO
         )
         {
-            var colors = new List<Color>();
+            colors.Clear();
             AddColorsToList(ShardTypes.Red, red, configSO, ref colors);
             AddColorsToList(ShardTypes.Green, green, configSO, ref colors);
             AddColorsToList(ShardTypes.Blue, blue, configSO, ref colors);
@@ -54,9 +56,7 @@ namespace td.features.shard
             AddColorsToList(ShardTypes.Orange, orange, configSO, ref colors);
             AddColorsToList(ShardTypes.Pink, pink, configSO, ref colors);
             AddColorsToList(ShardTypes.Violet, violet, configSO, ref colors);
-
             var mixedColor = AvgColorFromList(colors);
-
             colors.Clear();
 
             return mixedColor;
@@ -87,7 +87,7 @@ namespace td.features.shard
 
                 var wInt = (int) Math.Ceiling(w * 10);
 
-                var color = configSO[i];
+                var color = configSO.GetColorByIndex(i);
                 // var size = count * w;
                 var limit = (index - 1) + wInt;
                 for (; index < limit && index < count; index++)
@@ -197,8 +197,9 @@ namespace td.features.shard
 
         private static void AddColorsToList(ShardTypes type, byte quantity, Shards_Config_SO configSO, ref List<Color> colors)
         {
+            var q = MathF.Floor(quantity / 10f);
             var color = GetColor(type, configSO);
-            for (var i = 0; i < quantity; i++)
+            for (var i = 0; i < q; i++)
             {
                 colors.Add(color);
             }
@@ -206,9 +207,9 @@ namespace td.features.shard
 
         private static Color AvgColorFromList(List<Color> colors)
         {
-            double r = 0;
-            double g = 0;
-            double b = 0;
+            float r = 0f;
+            float g = 0f;
+            float b = 0f;
 
             foreach (var color in colors)
             {
@@ -221,7 +222,7 @@ namespace td.features.shard
             g /= colors.Count;
             b /= colors.Count;
 
-            return new Color((float)r, (float)g, (float)b, 1f);
+            return new Color(r, g, b, 1f);
         }
 
         public static void Copy(ref Shard target, ref Shard source)
@@ -234,11 +235,11 @@ namespace td.features.shard
             target.orange = source.orange;
             target.violet = source.violet;
             target.yellow = source.yellow;
-            target.cost = source.cost;
-            target.costCombine = source.costCombine;
-            target.costInsert = source.costInsert;
-            target.costRemove = source.costRemove;
-            target.costDrop = source.costDrop;
+            target.price = source.price;
+            target.priceCombine = source.priceCombine;
+            target.priceInsert = source.priceInsert;
+            target.priceRemove = source.priceRemove;
+            target.priceDrop = source.priceDrop;
         }
 
         public static void Copy(ref Shard target, Shard source) => Copy(ref target, ref source);
@@ -253,11 +254,11 @@ namespace td.features.shard
             shard.orange = 0;
             shard.violet = 0;
             shard.yellow = 0;
-            shard.cost = 0;
-            shard.costCombine = 0;
-            shard.costInsert = 0;
-            shard.costRemove = 0;
-            shard.costDrop = 0;
+            shard.price = 0;
+            shard.priceCombine = 0;
+            shard.priceInsert = 0;
+            shard.priceRemove = 0;
+            shard.priceDrop = 0;
         }
 
         public static void Set(ref Shard shard, ShardTypes fieldName, byte value = 1)

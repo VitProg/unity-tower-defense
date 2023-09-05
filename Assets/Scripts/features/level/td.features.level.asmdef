@@ -1,0 +1,28 @@
+{
+    "name": "td.features.level",
+    "rootNamespace": "td.features.level",
+    "references": [
+        "Unity.Mathematics",
+        "Unity.TextMeshPro",
+        "UniTask",
+        "NaughtyAttributes.Core",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "td.utils",
+        "td.features.eventBus",
+        "td.features.state",
+        "Leopotam.Types",
+        "td.features.destroy",
+        "td.features.camera",
+        "td.features.common"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

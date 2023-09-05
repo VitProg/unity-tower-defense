@@ -5,6 +5,7 @@ using td.features.impactEnemy.bus;
 using td.features.movement;
 using td.features.state;
 using td.utils;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.impactEnemy.systems
@@ -16,7 +17,11 @@ namespace td.features.impactEnemy.systems
         [DI] private ImpactEnemy_Service impactEnemy;
         [DI] private Movement_Service movementService;
         [DI] private EventBus events;
-        // [DI] private FX_Service fxService;
+        
+        
+        //
+        private float2 shift;
+        //
         
         public void Run()
         {
@@ -40,12 +45,12 @@ namespace td.features.impactEnemy.systems
                 debuff.shiftPositionTimeRemains -= Time.deltaTime * state.GetGameSpeed();
                 if (debuff.shiftPositionTimeRemains < 0f)
                 {
-                    var shift = new Vector3(
-                        RandomUtils.Range(-Constants.Debuff.ShockingShiftRange, Constants.Debuff.ShockingShiftRange),
-                        RandomUtils.Range(-Constants.Debuff.ShockingShiftRange, Constants.Debuff.ShockingShiftRange),
-                        0f
-                    );
-                    transform.position = debuff.originalPosition + shift;
+                    shift.x = RandomUtils.Range(-Constants.Debuff.ShockingShiftRange, Constants.Debuff.ShockingShiftRange);
+                    shift.y = RandomUtils.Range(-Constants.Debuff.ShockingShiftRange, Constants.Debuff.ShockingShiftRange);
+                    
+                    transform.position.x = debuff.originalPosition.x + shift.x;
+                    transform.position.y = debuff.originalPosition.y + shift.y;
+                    
                     debuff.shiftPositionTimeRemains = Constants.Debuff.ShockingShiftPositionTimeRemains;
                 }
                 

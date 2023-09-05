@@ -1,10 +1,8 @@
 ﻿#if UNITY_EDITOR
+using Leopotam.EcsProto.QoL;
 using UnityEditor;
 #endif
 using System.Collections.Generic;
-using td.features.enemy.components;
-using td.features.shard;
-using td.features.shard.components;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -13,6 +11,20 @@ namespace td.utils
 {
     public static class EditorUtils
     {
+        private static readonly Color LineColor = new Color(0.35f, 0.35f, 0.35f, 0.65f);
+        
+        public static void DrawLine(int height = 2, int marginTop = 4, int marginBottom = 4, Color? color = null)
+        {
+            if (marginTop > 0) EditorGUILayout.Space(marginTop);
+            
+            var rect = EditorGUILayout.GetControlRect(false, height );
+            rect.height = height;
+
+            EditorGUI.DrawRect(rect, color ?? LineColor);
+            
+            if (marginBottom > 0) EditorGUILayout.Space(marginBottom);
+        }
+        
         public static void DrawTitle(string sTitle, bool sep = false)
         {
             if (sep)
@@ -21,7 +33,7 @@ namespace td.utils
                 EditorGUILayout.Separator();
             }
 
-            EditorGUILayout.LabelField(sTitle);//, boldStyle);
+            EditorGUILayout.LabelField(sTitle, EditorStyles.boldLabel);
         }
 
         public static void DrawProperty(string sNname, bool value)
@@ -57,20 +69,21 @@ namespace td.utils
         public static void DrawProperty(string sNname, Vector2 value)
         {
             EditorGUILayout.Vector2Field(sNname, value);
+        }              
+        
+        public static void DrawProperty(string sNname, Color value)
+        {
+            EditorGUILayout.ColorField(sNname, value);
+        }       
+        
+        public static void DrawEntity(string sNname, ProtoPackedEntityWithWorld packedEntity)
+        {
+            EditorGUILayout.TextField(sNname, $"{packedEntity.Id}:${packedEntity.Gen}");
         }
         
-        public static void DrawProperty(string sNname, int2 value)
+        public static void DrawInt2(string sNname, int2 value)
         {
-            EditorGUILayout.Vector2IntField(sNname, new Vector2Int(value.x , value.y));
-        }
-
-        public static void DrawProperty(Enemy? enemy)
-        {
-            if (!enemy.HasValue) return;
-            DrawTitle("Enemy");
-            EditorGUI.indentLevel++;
-            //todo
-            EditorGUI.indentLevel--;
+            EditorGUILayout.Vector2IntField(sNname, new Vector2Int(value.x, value.y));
         }
 
         public static Dictionary<string, bool> foldouts = new();
@@ -78,11 +91,10 @@ namespace td.utils
 
         public static bool FoldoutBegin(string key, string title, string titleHidden = null)
         {
-            EditorGUI.indentLevel++;
             var value = foldouts.TryGetValue(key, out var f) && f;
             foldouts[key] = value;
-            foldouts[key] = EditorGUILayout.Foldout(value,
-                value ? title : (string.IsNullOrEmpty(titleHidden) ? title : titleHidden));
+            foldouts[key] = EditorGUILayout.Foldout(value, value ? title : (string.IsNullOrEmpty(titleHidden) ? title : titleHidden), true);
+            if (value) EditorGUI.indentLevel++;
             return value;
         }
 
@@ -92,36 +104,99 @@ namespace td.utils
             // EditorGUILayout.EndFoldoutHeaderGroup();
         }
 
-        public static void DrawProperty(Shard? shard, Shard_Calculator calc)
+        public static bool PrimaryFoldoutBegin(string key, string title, string titleHidden = null)
         {
-            if (!shard.HasValue) return;
-
-            if (FoldoutBegin(shard.ToString(), "Shard", $"Shard {shard}"))
+            var value = foldouts.TryGetValue(key, out var f) && f;
+            foldouts[key] = value;
+            
+            // EditorGUILayout.BeginVertical(Styles.BorderStyle);
+            foldouts[key] = EditorGUILayout.BeginFoldoutHeaderGroup(value, value ? title : (string.IsNullOrEmpty(titleHidden) ? title : titleHidden));//, Styles.PrimaryFoldoutHeaderStyle);
+            if (value)
             {
-                // DrawTitle("Shard");
-                // EditorGUI.indentLevel++;
-                DrawProperty("Level", calc.GetShardLevel(shard.Value.Quantity));
-                DrawProperty("Quantity", shard.Value.Quantity);
-                EditorGUILayout.Space();
-                DrawProperty("red", shard.Value.red);
-                DrawProperty("green", shard.Value.green);
-                DrawProperty("blue", shard.Value.blue);
-                DrawProperty("aquamarine", shard.Value.aquamarine);
-                DrawProperty("yellow", shard.Value.yellow);
-                DrawProperty("orange", shard.Value.orange);
-                DrawProperty("pink", shard.Value.pink);
-                DrawProperty("violet", shard.Value.violet);
-                EditorGUILayout.Space();
-                DrawProperty("Cost Buy", shard.Value.cost);
-                DrawProperty("Cost Insert", shard.Value.costInsert);
-                DrawProperty("Cost Remove", shard.Value.costRemove);
-                DrawProperty("Cost Combine", shard.Value.costCombine);
-                DrawProperty("Cost Drop", shard.Value.costDrop);
+                EditorGUILayout.BeginVertical(Styles.PrimiryFoldoutContentStyle);
+                EditorGUILayout.Space(-2);
             }
-            FoldoutEnd();
+            return value;
+        }
 
-            // EditorGUI.indentLevel--;
+        // public static void PrimaryFoldoutEnd()
+        // {
+        //     // EditorGUILayout.EndVertical(); // content
+        //     EditorGUILayout.EndFoldoutHeaderGroup();
+        //     // EditorGUILayout.EndVertical(); // border
+        // }
+
+        public static void LabelField(string key, string value, GUIStyle style)
+        {
+            EditorGUILayout.BeginHorizontal();
+            try {
+                EditorGUILayout.LabelField(key, style);
+                EditorGUILayout.LabelField(value, style);
+            } finally {
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+        
+        public static class Styles
+        {
+            public static Color HeaderColor;
+            public static Color ContentColor;
+            public static Color BorderColor;
+            public static GUIStyle PrimaryFoldoutHeaderStyle;
+            public static GUIStyle PrimiryFoldoutContentStyle;
+            public static GUIStyle BorderStyle;
+
+            static Styles()
+            {
+                Init();
+            }
+
+            public static void Init()
+            {
+                // Define colors for the foldout
+                HeaderColor = true ? new Color(0.25f, 0.25f, 0.25f) : new Color(0.76f, 0.76f, 0.76f);
+                ContentColor = true ? new Color(0.25f, 0.25f, 0.25f) : new Color(0.8f, 0.8f, 0.8f);
+                BorderColor = true ? new Color(0.1f, 0.1f, 0.1f) : new Color(0.86f, 0.86f, 0.86f);
+
+                PrimaryFoldoutHeaderStyle = new GUIStyle(EditorStyles.foldout);
+                // PrimaryFoldoutHeaderStyle.normal.textColor = HeaderColor;
+                // PrimaryFoldoutHeaderStyle.onNormal.textColor = HeaderColor;
+                // PrimaryFoldoutHeaderStyle.active.textColor = HeaderColor;
+                // PrimaryFoldoutHeaderStyle.onActive.textColor = HeaderColor;
+                // PrimaryFoldoutHeaderStyle.focused.textColor = HeaderColor;
+                // PrimaryFoldoutHeaderStyle.onFocused.textColor = HeaderColor;
+                PrimaryFoldoutHeaderStyle.normal.background = MakeTex(1, 1, HeaderColor);
+
+                PrimiryFoldoutContentStyle = new GUIStyle(GUI.skin.box);
+                PrimiryFoldoutContentStyle.normal.background = MakeTex(1, 1, ContentColor);
+                PrimiryFoldoutContentStyle.padding.left = 10;
+                PrimiryFoldoutContentStyle.padding.right = 10;
+                PrimiryFoldoutContentStyle.padding.top = 5;
+                PrimiryFoldoutContentStyle.padding.bottom = 5;
+                PrimiryFoldoutContentStyle.margin.bottom = 15;
+                // PrimiryFoldoutContentStyle.normal.background = EditorGUIUtility.whiteTexture;
+                // PrimiryFoldoutContentStyle.normal.textColor = ContentColor;
+                // PrimiryFoldoutContentStyle.border = new RectOffset(1, 1, 1, 1);
+                
+                BorderStyle = new GUIStyle(GUI.skin.box);
+                BorderStyle.normal.background = MakeTex(1, 1, BorderColor);
+            }
+
+            public static Texture2D MakeTex(int width, int height, Color color)
+            {
+                Color[] pix = new Color[width * height];
+                for (int i = 0; i < pix.Length; i++)
+                {
+                    pix[i] = color;
+                }
+                Texture2D result = new Texture2D(width, height);
+                result.SetPixels(pix);
+                result.Apply();
+                return result;
+            }
         }
     }
+
+    
 }
 #endif

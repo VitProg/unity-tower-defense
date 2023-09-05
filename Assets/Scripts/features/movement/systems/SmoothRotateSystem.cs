@@ -1,6 +1,7 @@
 ﻿using System;
 using Leopotam.EcsProto.QoL;
 using td.features.state;
+using td.utils;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -22,7 +23,8 @@ namespace td.features.movement.systems
 
                 var isStarted = smoothRotate.time <= Constants.ZeroFloat;
 
-                if (transform.rotation.eulerAngles == smoothRotate.to.eulerAngles ||
+                // todo
+                if (((Quaternion)transform.rotation).eulerAngles == smoothRotate.to.eulerAngles ||
                     (
                         isStarted &&
                         (

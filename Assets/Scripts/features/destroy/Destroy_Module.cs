@@ -16,7 +16,6 @@ namespace td.features.destroy
             systems
                 .AddService(new Destroy_Service(), true)
                 .AddSystem(new RemoveSystem())
-                .AddSystem(new IdleRemoveSystem())
                 ;
         }
 

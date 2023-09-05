@@ -1,0 +1,25 @@
+{
+    "name": "td.features.ui",
+    "rootNamespace": "td.features.ui",
+    "references": [
+        "UniTask",
+        "Leopotam.Types",
+        "NaughtyAttributes.Core",
+        "Unity.TextMeshPro",
+        "td.features.state",
+        "td.utils",
+        "td.features.eventBus",
+        "td.features.window",
+        "td.features.wave",
+        "td.features.common"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,6 +1,7 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using td.features._common.components;
+using td.features._common.interfaces;
 using td.features.destroy.flags;
 using td.features.inputEvents.components;
 using td.features.movement.components;

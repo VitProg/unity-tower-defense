@@ -3,10 +3,12 @@ using System.Runtime.CompilerServices;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
+using td.features._common;
 using td.features.eventBus;
 using td.features.fx.events;
 using td.features.fx.types;
 using td.features.movement;
+using td.utils;
 using td.utils.ecs;
 using Unity.Mathematics;
 using UnityEngine;
@@ -18,6 +20,7 @@ namespace td.features.fx.subServices
         // private readonly EcsWorldInject fxWorld = Constants.Worlds.FX;
         [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
         [DI] private Movement_Service movementService;
+        [DI] private Common_Service common;
         [DI] private EventBus events;
 
         public ref T Add<T>(
@@ -46,9 +49,9 @@ namespace td.features.fx.subServices
                 ref var t = ref movementService.GetTransform(packedEntity);
                 p.SetPosition(position ?? t.position);
             }
-            else if (movementService.HasGameObject(packedEntity, true))
+            else if (common.HasGameObject(packedEntity, true))
             {
-                var go = movementService.GetGameObject(packedEntity)!;
+                var go = common.GetGameObject(packedEntity)!;
                 p.SetPosition(position ?? go.transform.position);
             }
 

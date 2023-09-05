@@ -1,4 +1,5 @@
 ﻿using System;
+using td.utils;
 using UnityEngine;
 
 namespace td.features.building.data
@@ -15,11 +16,11 @@ namespace td.features.building.data
         public Sprite GetIcon(string buildingId) =>
             buildingId switch
             {
-                "shard_tower" => shardTowerIcon,
-                "shard_trap" => shardTrapIcon,
-                "generator" => generatorIcon,
-                "energy_storage" => energyStorageIcon,
-                "solar_power" => solarPowerIcon,
+                Constants.Buildings.ShardTower => shardTowerIcon,
+                Constants.Buildings.ShardTrap => shardTrapIcon,
+                Constants.Buildings.Generator => generatorIcon,
+                Constants.Buildings.EnergyStorage => energyStorageIcon,
+                Constants.Buildings.SolarPower => solarPowerIcon,
 #if UNITY_EDITOR
                 _ => throw new Exception($"Icon for building '{buildingId}' not found")
 #endif

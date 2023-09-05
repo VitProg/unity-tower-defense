@@ -38,8 +38,12 @@ namespace td.features.enemy.systems
             //todo тут можно запустиить анимацию смерти, эфекты, добавление очков и т.п.
             
             destroyService.MarkAsRemoved(aspect.World().PackEntityWithWorld(enemyEntity));
-            state.SetEnergy(state.GetEnergy() + enemy.energy);
-            state.SetEnemiesCount(state.GetEnemiesCount() - 1);
+
+            state.IncreaseEnergy(enemy.energy);
+            //state.ReduceEnemiesCount();
+            state.IncreaseKillsCount();
+            
+            events.global.Add<Event_Enemy_Died>().Entity = ev.Entity;
         }
     }
 }

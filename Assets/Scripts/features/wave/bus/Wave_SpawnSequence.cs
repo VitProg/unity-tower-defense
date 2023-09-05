@@ -1,6 +1,6 @@
 ﻿using System;
+using td.features._common.data;
 using td.features.eventBus.types;
-using td.features.level.data;
 
 namespace td.features.wave.bus
 {

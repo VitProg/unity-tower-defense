@@ -1,0 +1,21 @@
+{
+    "name": "td.features.destroy",
+    "rootNamespace": "td.features.destroy",
+    "references": [
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "td.features.eventBus",
+        "td.utils",
+        "td.features.goPool",
+        "td.features.common"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

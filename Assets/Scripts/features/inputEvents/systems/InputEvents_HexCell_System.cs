@@ -1,11 +1,10 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using td.features._common.interfaces;
 using td.features.camera;
 using td.features.level;
 using td.features.movement;
-using td.features.tower;
 using td.utils;
-using Unity.Burst.Intrinsics;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -17,9 +16,8 @@ namespace td.features.inputEvents.systems
         [DI] private InputEvents_Service peService;
         [DI] private Movement_Service movementService;
         [DI] private Camera_Service cameraService;
-        [DI] private Tower_Service towerService;
         [DI] private InputEvents_Service inputEventsService;
-        [DI] private LevelMap levelMap;
+        [DI] private Level_State levelState;
 
         private int2? lastHoveredCoord;
         private bool lastPressed = false;
@@ -54,12 +52,12 @@ namespace td.features.inputEvents.systems
 
             var isUI = (down || up) && inputEventsService.HasUIUnderScreenCoords(hasTouch ? touchScreenPosition.Value : pointerScreenPosition);
             var cellCoord = hasTouch ? touchCellCoord.Value : pointerCellCoord;
-
+            
             if (lastHoveredCoord.HasValue && cellCoord.Equals(lastHoveredCoord.Value) && lastPressed == pressed)
             {
-                if (levelMap.HasCell(cellCoord))
+                if (levelState.HasCell(cellCoord))
                 {
-                    ref var cell = ref levelMap.GetCell(cellCoord);
+                    ref var cell = ref levelState.GetCell(cellCoord);
                     foreach (var handler in cell.inputEventsHandlers)
                     {
                         if (handler.IsPressed)
@@ -76,7 +74,7 @@ namespace td.features.inputEvents.systems
 
             if (lastHoveredCoord.HasValue)
             {
-                ref var lastHoveredCell = ref levelMap.GetCell(lastHoveredCoord.Value);
+                ref var lastHoveredCell = ref levelState.GetCell(lastHoveredCoord.Value);
                 if (!lastHoveredCell.coords.Equals(cellCoord))
                 {
                     foreach (var handler in lastHoveredCell.inputEventsHandlers)
@@ -95,8 +93,8 @@ namespace td.features.inputEvents.systems
                 lastHoveredCoord = null;
             }
 
-            if (levelMap.HasCell(cellCoord)) {
-                ref var cell = ref levelMap.GetCell(cellCoord);
+            if (levelState.HasCell(cellCoord)) {
+                ref var cell = ref levelState.GetCell(cellCoord);
                 foreach (var handler in cell.inputEventsHandlers)
                 {
                     Process(
@@ -128,7 +126,7 @@ namespace td.features.inputEvents.systems
                 handler.IsHovered = true;
                 handler.TimeFromDown = 0f;
                 handler.OnPointerEnter(x, y);
-                // Debug.Log("OnPointerEnter");
+                Debug.Log("OnPointerEnter");
             }
 
             if (!inCell && handler.IsHovered)
@@ -136,14 +134,14 @@ namespace td.features.inputEvents.systems
                 handler.IsHovered = false;
                 handler.TimeFromDown = 0f;
                 handler.OnPointerLeave(x, y);
-                // Debug.Log("OnPointerLeave");
+                Debug.Log("OnPointerLeave");
             }
 
-            if (inCell && !handler.IsPressed && down)
+            if (!isUI && inCell && !handler.IsPressed && down)
             {
                 handler.IsPressed = true;
                 handler.TimeFromDown = 0f;
-                if (!isUI) handler.OnPointerDown(x, y);
+                handler.OnPointerDown(x, y);
                 // Debug.Log("OnPointerDown");
             }
 

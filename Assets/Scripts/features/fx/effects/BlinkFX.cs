@@ -4,9 +4,11 @@ using JetBrains.Annotations;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using Leopotam.Types;
+using td.features._common;
 using td.features.fx.types;
 using td.features.movement;
 using td.features.state;
+using td.utils;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -94,6 +96,7 @@ namespace td.features.fx.effects
     public class BlinkFX_System : ProtoIntervalableRunSystem
     {
         [DI] private Movement_Service movementService;
+        [DI] private Common_Service common;
         [DI] private FX_Service fxService;
         [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
         [DI] private State state;
@@ -115,7 +118,7 @@ namespace td.features.fx.effects
 
                 var targetGO = movementService.HasTargetBody(targetEntity)
                     ? movementService.GetTargetBodyGO(targetEntity)
-                    : movementService.GetGameObject(targetEntity);
+                    : common.GetGameObject(targetEntity);
 
                 if (!targetGO || !targetGO.activeSelf)
                 {

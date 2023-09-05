@@ -1,11 +1,10 @@
 ﻿using System.Runtime.CompilerServices;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using td.features._common;
 using td.features.destroy.bus;
 using td.features.eventBus;
 using td.features.goPool;
-using td.features.movement;
-using td.monoBehaviours;
 using td.utils.ecs;
 using UnityEngine;
 
@@ -14,7 +13,7 @@ namespace td.features.destroy
     public class Destroy_Service
     {
         [DI] private Destroy_Aspect aspect;
-        [DI] private Movement_Service movementService;
+        [DI] private Common_Service common;
         [DI] private GOPool_Service goPoolService;
         [DI] private EventBus events;
         
@@ -30,9 +29,9 @@ namespace td.features.destroy
         public void SetIsHidden(int entity, bool value, bool changeGOActive = false)
         {
             aspect.isHiddenPool.SetExistence(entity, value);
-            if (changeGOActive && movementService.HasGameObject(entity))
+            if (changeGOActive && common.HasGameObject(entity))
             {
-                movementService.GetGameObject(entity)?.SetActive(!value);
+                common.GetGameObject(entity)?.SetActive(!value);
             }
         }
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
@@ -59,10 +58,10 @@ namespace td.features.destroy
         {
             if (
                 packedEntity.Unpack(out var world, out var entity) && 
-                movementService.HasGameObject(entity, true)
+                common.HasGameObject(entity, true)
             )
             {
-                var go = movementService.GetGameObject(entity)!;
+                var go = common.GetGameObject(entity)!;
                 var poolableObject = go.GetComponent<PoolableObject>();
 
                 if (poolableObject != null)
@@ -103,7 +102,7 @@ namespace td.features.destroy
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void MarkAsRemoved(ProtoPackedEntityWithWorld packedEntity, bool checkGameObject = true)
         {
-            if (checkGameObject && movementService.HasGameObject(packedEntity) && packedEntity.Unpack(out var world, out var entity))
+            if (checkGameObject && common.HasGameObject(packedEntity) && packedEntity.Unpack(out var world, out var entity))
             {
                 aspect.isDisabledPool.GetOrAdd(entity);
                 events.global.Add<Command_Remove>().Entity = world.PackEntityWithWorld(entity);
@@ -126,5 +125,14 @@ namespace td.features.destroy
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void SetIsOnlyOnLevel(int entity, bool value) => aspect.isOnlyOnLevelPool.SetExistence(entity, value);
+
+        public void removeAllOnlyOnLevel()
+        {
+            // удаляем все ентити которые живут только на уровне
+            foreach (var entity in aspect.itOnlyOnLevel)
+            {
+                SafeRemove(aspect.World().PackEntityWithWorld(entity));
+            }
+        }
     }
 }

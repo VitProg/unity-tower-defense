@@ -1,5 +1,7 @@
 ﻿using Leopotam.EcsProto;
+using td.features.shard.shardStore.systems;
 using td.features.state;
+using td.features.state.interfaces;
 
 namespace td.features.shard.shardStore
 {
@@ -22,6 +24,6 @@ namespace td.features.shard.shardStore
             return null;
         }
 
-        public IStateExtension StateEx() => new ShardStore_StateEx();
+        public IStateExtension StateEx() => new ShardStore_State();
     }
 }

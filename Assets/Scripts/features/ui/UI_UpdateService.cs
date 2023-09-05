@@ -1,74 +1,91 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 using NaughtyAttributes;
 using td.features.eventBus;
 using td.features.state;
+using td.features.state.bus;
+using td.features.wave;
+using td.utils;
 using td.utils.di;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td.features.ui
 {
     public class UI_UpdateService : MonoBehaviour
     {
-        [Required] [SerializeField] private TMP_Text livesLabelText;
-        [Required] [SerializeField] private TMP_Text moneyLabelText;
-        [Required] [SerializeField] private GameObject waveLabel;
-        [Required] [SerializeField] private TMP_Text waveLabelText;
-        [Required] [SerializeField] private TMP_Text enemiesLabelText;
+        // [Required] [SerializeField] private TMP_Text livesLabelText;
+        // [Required] [SerializeField] private TMP_Text moneyLabelText;
+        [Required] [SerializeField] private UI_SliderBar barLives;
+        [Required] [SerializeField] private UI_SliderBar barEnergy;
+        [Required] [SerializeField] private TMP_Text tWave;
+        [Required] [SerializeField] private TMP_Text tEnemies;
 
-        [Required] [SerializeField] private GameObject newWaveTimerContainer;
-        [Required] [SerializeField] private TMP_Text newWaveTimer;
+        // [Required] [SerializeField] private GameObject newWaveTimerContainer;
+        // [Required] [SerializeField] private TMP_Text newWaveTimer;
 
         private readonly Regex oneNumberRegex = new(@"[\d#.-]+");
         private readonly Regex waveRegex = new(@"(\d+|#+)/(\d+|#+)");
 
-        private State State =>  ServiceContainer.Get<State>();
-        private EventBus Events =>  ServiceContainer.Get<EventBus>();
+        private State _state;
+        private State State =>  _state ??= ServiceContainer.Get<State>();
+        private Wave_State _waveState;
+        private Wave_State WaveState =>  _waveState ??= ServiceContainer.Get<Wave_State>();
+        private EventBus _events;
+        private EventBus Events => _events ??= ServiceContainer.Get<EventBus>();
 
         private void Start()
         {
             Events.unique.ListenTo<Event_StateChanged>(OnStateChanged);
+            Events.unique.ListenTo<Event_Wave_StateChanged>(OnWaveStateChanged);
         }
-
+        
         private void OnDestroy()
         {
             Events.unique.RemoveListener<Event_StateChanged>(OnStateChanged);
+            Events.unique.RemoveListener<Event_Wave_StateChanged>(OnWaveStateChanged);
         }
+        
+        // ----------------------------------------------------------
 
         public void OnStateChanged(ref Event_StateChanged ev)
         {
-            if (livesLabelText != null && ev.lives)
-            {
-                livesLabelText.text = oneNumberRegex.Replace(livesLabelText.text, IntegerFormat(State.GetLives()));
+            if (barLives != null && (ev.lives || ev.maxLives)){
+                barLives.value = (uint)State.GetLives();
+                barLives.maxValue = (uint)State.GetMaxLives();
+                barLives.Refresh();
             }
 
-            //
-            if (moneyLabelText != null && ev.energy)
-            {
-                moneyLabelText.text = Constants.UI.CurrencySign + IntegerFormat(State.GetEnergy());
+            if (barEnergy != null && (ev.energy || ev.maxEnergy)){
+                barEnergy.value = State.GetEnergy();
+                barEnergy.maxValue = State.GetMaxEnergy();
+                barEnergy.Refresh();
             }
+        }
 
+        private void OnWaveStateChanged(ref Event_Wave_StateChanged ev)
+        {
             //
-            if (waveLabelText != null && (ev.waveNumber || ev.waveCount))
+            if (tWave != null && (ev.waveNumber || ev.waveCount))
             {
-                if (State.GetWaveNumber() != 0 && State.GetWaveCount() != 0)
+                if (WaveState.GetWaveNumber() >= 0 && WaveState.GetWaveCount() > 0)
                 {
-                    waveLabel.SetActive(true);
-                    waveLabelText.text =
-                        waveRegex.Replace(waveLabelText.text, $@"{State.GetWaveNumber()}/{State.GetWaveCount()}");
+                    tWave.gameObject.SetActive(true);
+                    tWave.text = $"Wave: {Math.Max(WaveState.GetWaveNumber(), 1)}/{WaveState.GetWaveCount()}";
                 }
                 else
                 {
-                    waveLabel.SetActive(false);
+                    tWave.gameObject.SetActive(false);
                 }
             }
 
-            if (newWaveTimer != null && ev.nextWaveCountdown)
+            /*if (newWaveTimer != null && ev.nextWaveCountdown)
             {
-                if (State.GetNextWaveCountdown() > 0)
+                if (!WaveState.GetWaiting() && !WaveState.IsWaveActive() && !WaveState.AreAllWavesComplete() && WaveState.GetWaveNumber() >= 0 && WaveState.GetNextWaveCountdown() > 0)
                 {
                     newWaveTimerContainer.SetActive(true);
-                    var text = $"{State.GetNextWaveCountdown():0.00}";
+                    var text = $"{WaveState.GetNextWaveCountdown():0.00}";
                     var l = text.Contains('.')
                         ? text.Split('.')
                         : text.Split(',');
@@ -78,15 +95,14 @@ namespace td.features.ui
                 {
                     newWaveTimerContainer.SetActive(false);
                 }
-            }
+            }*/
 
-            if (enemiesLabelText != null && ev.enemiesCount)
+            if (tEnemies != null && ev.enemiesCount)
             {
-                enemiesLabelText.text =
-                    oneNumberRegex.Replace(enemiesLabelText.text, IntegerFormat(State.GetEnemiesCount()));
+                tEnemies.text = $"Enemies: {IntegerFormat(WaveState.GetEnemiesCount())}";
             }
         }
-        
+
         private static string IntegerFormat(float number) => number.ToString("N0").Replace(',', '\'').Replace('.', '\'');
         private static string IntegerFormat(int number) => number.ToString("N0").Replace(',', '\'').Replace('.', '\'');
     }

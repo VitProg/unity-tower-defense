@@ -1,9 +1,14 @@
 ﻿using System;
 using Leopotam.EcsProto.QoL;
+using td.features._common.interfaces;
 using td.features.building.components;
 using td.features.building.data;
+using td.features.level;
+using td.features.level.cells;
+using td.utils;
 using td.utils.di;
 using td.utils.ecs;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.building
@@ -12,13 +17,26 @@ namespace td.features.building
     {
         [DI] private Building_Aspect aspect;
         [DI] private Buildings_Config_SO buildingsConfigSO;
+        [DI] private Level_State levelState;
 
         private Building_Config[] buildingConfigs;
         
         public bool HasBuilding(int entity) => aspect.buildingPool.Has(entity);
         public ref Building GetBuilding(int entity) => ref aspect.buildingPool.GetOrAdd(entity);
 
-        public ref Building Init(int entity, string buildingId)
+        public ref Building GetBuilding(ProtoPackedEntityWithWorld entity, out int buildEntity)
+        {
+            var check = entity.Unpack(out var w, out buildEntity);
+#if UNITY_EDITOR
+            if (!check)
+            {
+                throw new Exception($"Building component not found");
+            }
+#endif
+            return ref GetBuilding(buildEntity);
+        }
+
+        public ref Building Init(int entity, string buildingId, int2 coords, IInputEventsHandler inputHandler)
         {
             ref var config = ref GetConfig(buildingId);
             ref var building = ref GetBuilding(entity);
@@ -30,6 +48,22 @@ namespace td.features.building
             building.extraFeaturePriceMultiplier = CalcExtraFeaturePriceMultiplier(ref config);
             building.buildTimeRemaining = 0f;
             building.extraFeatureTimeRemaining = 0f;
+            building.coords = coords;
+            
+            if (levelState.HasCell(coords, CellTypes.CanBuild)) {
+                // ToDo
+                ref var cell = ref levelState.GetCell(coords, CellTypes.CanBuild);
+                cell.packedBuildingEntity = aspect.World().PackEntityWithWorld(entity);
+                cell.buildingId = Constants.Buildings.ShardTower;
+                cell.inputEventsHandlers.Add(inputHandler); // todo ???
+            }
+#if UNITY_EDITOR
+            else
+            {
+                throw new Exception($"Cell {coords} is not type of CanBuild");
+            }
+#endif
+
 
             return ref building;
         }
@@ -124,7 +158,5 @@ namespace td.features.building
         }
         public uint CalcExtraFeatureTime(ref Building_Config config, uint basePrice) =>
             (uint)(basePrice * CalcExtraFeatureTimeMultiplier(ref config));
-
-
     }
 }

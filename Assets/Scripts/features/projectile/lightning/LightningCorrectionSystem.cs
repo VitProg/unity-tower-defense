@@ -17,23 +17,23 @@ namespace td.features.projectile.lightning
         [DI] private Projectile_Aspect projectileAspect;
         [DI] private Enemy_Service enemyService; 
         [DI] private Movement_Service movementService;
-        [DI] private Destroy_Service destroyService; 
+        [DI] private Destroy_Service destroyService;
+
+        private Vector3 tmpV3;
         
         public override void IntervalRun(float deltaTime)
         {
             foreach (var entity in lightningAspect.it)
             {
                 ref var lightning = ref lightningAspect.lightningPool.Get(entity);
-                var lightningLineGO = lightningAspect.refLineRendererPool.Get(entity).reference;
+                var lineRenderer = lightningAspect.refLineRendererPool.Get(entity).reference!;
 
-                if (lightningLineGO == null)
-                {
-                    destroyService.MarkAsRemoved(entity, projectileAspect.World());
-                    continue;
-                }
+                // if (lineRenderer == null)
+                // {
+                //     destroyService.MarkAsRemoved(entity, projectileAspect.World());
+                //     continue;
+                // }
                 
-                var lineRenderer = lightningLineGO.GetComponent<LineRenderer>();
-
                 lineRenderer.positionCount = lightning.length;
 
                 var count = 0;
@@ -44,8 +44,12 @@ namespace td.features.projectile.lightning
                     if (!enemyService.IsAlive(chainPackedEntity, out _)) continue;
 
                     var position = movementService.GetTransform(chainPackedEntity).position;
+
+                    tmpV3.x = position.x;
+                    tmpV3.x = position.y;
+                    tmpV3.z = 0f;
                     
-                    lineRenderer.SetPosition(index, position);
+                    lineRenderer.SetPosition(index, tmpV3);
                     count++;
                 }
 

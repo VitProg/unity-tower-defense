@@ -1,0 +1,27 @@
+{
+    "name": "td.features.impactEnemy",
+    "rootNamespace": "td.features.impactEnemy",
+    "references": [
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "Leopotam.EcsProto.Unity",
+        "Leopotam.Types",
+        "td.utils",
+        "td.features.eventBus",
+        "td.features.state",
+        "td.features.destroy",
+        "td.features.enemy",
+        "td.features.common",
+        "td.features.movement",
+        "Unity.Mathematics"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

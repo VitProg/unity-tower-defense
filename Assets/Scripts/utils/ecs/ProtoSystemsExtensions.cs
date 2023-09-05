@@ -19,14 +19,6 @@ namespace td.utils.ecs
             {
                 var type = asType ?? injectInstance.GetType ();
                 ServiceContainer.Set(type, injectInstance);
-                // var serviceType = ServiceGenericType.MakeGenericType(type);
-                // var serviceSetMethod = serviceType.GetMethod("Set");
-                // if (serviceSetMethod == null)
-                // {
-                    // throw new Exception($"Service {type.Name} does not have Set method");
-                // }
-                // serviceSetMethod.Invoke(null, new [] { injectInstance });
-                // Debug.Log("REGISTER " + type.Name);
             }
             self.AddService(injectInstance, asType);
             return self;

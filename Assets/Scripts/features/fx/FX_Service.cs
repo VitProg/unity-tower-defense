@@ -1,7 +1,8 @@
 ﻿using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
 using td.features.fx.subServices;
-using td.monoBehaviours;
+using td.utils;
+using td.utils.ecs;
 using UnityEngine;
 
 namespace td.features.fx
@@ -13,7 +14,7 @@ namespace td.features.fx
         [DI] public FX_Position_SubService position;
         [DI] public FX_Screen_SubService screen;
         
-        [DI(Constants.Worlds.FX)] public FX_Aspect aspect;
+        [DI(Constants.Worlds.FX)] private FX_Aspect aspect;
 
         public readonly GameObject fxContainer;
 

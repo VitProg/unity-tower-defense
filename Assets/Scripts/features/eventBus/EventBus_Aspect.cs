@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
+using td.features.eventBus.components;
 using td.features.eventBus.types;
 using UnityEngine;
 using Event = td.features.eventBus.types.Event;
@@ -15,57 +16,62 @@ namespace td.features.eventBus
         public ProtoPool<GlobalEvent> globalEventPool;
         public ProtoPool<Event> eventPool;
         public ProtoPool<PersistEvent> persistEventPool;
+        public ProtoPool<EventLifetime> eventLifetimePool;
 
         public readonly ProtoIt itEvent = new(It.Inc<Event>());
-        public readonly Slice<Type> eventTypes = new(64);
+        public readonly ProtoItExc itNonPersistEvents = new(
+            It.Inc<Event>(), It.Exc<PersistEvent>()
+        );
 
-        public readonly Slice<ProtoIt> itUniqueEvents = new(32);
-        public readonly Dictionary<Type, int> itUniqueEventsHash = new(32);
-
-        // public readonly ProtoItExc itGlobalEventForDelete = new(It.Inc<GlobalEvent>(), It.Exc<PersistEvent>());
-        // public readonly ProtoItExc itUniqueEventForDelete = new(It.Inc<UniqueEvent>(), It.Exc<PersistEvent>());
         
+        public readonly Slice<Type> eventTypes = new(128);
+        
+        public readonly HashSet<Type> persistEventTypes = new(32);
+        public readonly HashSet<Type> globalEventTypes = new(64);
+        public readonly HashSet<Type> uniqueEventTypes = new(64);
+
+
+        public readonly Slice<ProtoIt> sliceItUniqueEvents = new(32);
+        public readonly Dictionary<Type, int> sliceItUniqueEventsHash = new(32);
+
         public bool release;
-        
-        private static readonly Type PoolType = typeof(ProtoPool<>);
-        private static readonly Type UniqueEventType = typeof(IUniqueEvent);
 
+        private static readonly Type PoolType = typeof(ProtoPool<>);
+        
         public override void Init(ProtoWorld world)
         {
-            // Debug.Log("EventBus_Aspect.Init() " + world);
-            base.Init(world);
-
             for (var idx = 0; idx < eventTypes.Len(); idx++)
             {
                 var evType = eventTypes.Get(idx);
-                
-                var isUnique = false;
-                foreach (var i in evType.GetInterfaces())
-                {
-                    if (i != UniqueEventType) continue;
-                    isUnique = true;
-                    break;
-                }
+
+                var isUnique = uniqueEventTypes.Contains(evType);
                 var capacity = isUnique ? 2 : 128;
                 
                 if (world.HasPool(evType)) continue;
                 var pool = (IProtoPool)Activator.CreateInstance(PoolType.MakeGenericType(evType), capacity);
                 world.AddPool(pool);
-#if UNITY_EDITOR
-                Debug.Log($"A pool has been created for {EditorExtensions.GetCleanTypeName(evType)}");
-#endif
+            }
+            
+            base.Init(world);
+        }
 
+        public override void PostInit() {
+            for (var idx = 0; idx < eventTypes.Len(); idx++) {
+                var evType = eventTypes.Get(idx);
+                var isUnique = uniqueEventTypes.Contains(evType);
                 if (!isUnique)
                 {
                     var it = new ProtoIt(new [] { evType });
-                    var itIdx = itUniqueEvents.Len();
-                    itUniqueEvents.Add(it);
-                    itUniqueEventsHash.Add(evType, itIdx);
-                    it.Init(world);
+                    var itIdx = sliceItUniqueEvents.Len();
+                    sliceItUniqueEvents.Add(it);
+                    sliceItUniqueEventsHash.Add(evType, itIdx);
+                    it.Init(World());
                 }
             }
-            
+
+            base.PostInit();
+
             release = true;
-        }
+        } 
     }
 }

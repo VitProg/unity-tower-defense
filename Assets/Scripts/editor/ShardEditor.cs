@@ -9,11 +9,14 @@ namespace td.editor
         [MenuItem("TD/Update All Shard Meshes", false, -200)]
         public static void UpdateShardMeshes()
         {
-            foreach (var shardMeshGenerator in FindObjectsOfType<ShardMonoBehaviour>())
+            foreach (var s in FindObjectsOfType<UI_Shard_Button>())
             {
-                shardMeshGenerator.Refresh();
+                s.Refresh();
+            }       
+            foreach (var s in FindObjectsOfType<UI_Shard>())
+            {
+                s.FullRefresh();
             }
-            
         }
     }
 }

@@ -1,0 +1,20 @@
+{
+    "name": "td.features.spriteAnimator",
+    "rootNamespace": "td.features.spriteAnimator",
+    "references": [
+        "td.features.state",
+        "Leopotam.Types",
+        "NaughtyAttributes.Core",
+        "td.utils",
+        "Leopotam.EcsProto"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

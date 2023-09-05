@@ -1,10 +1,9 @@
-﻿using System;
-using Leopotam.EcsProto.QoL;
+﻿using Leopotam.EcsProto.QoL;
+using td.features._common.data;
+using td.features.camera;
 using td.features.destroy;
 using td.features.eventBus;
 using td.features.level.cells;
-using td.features.level.data;
-using td.features.shard.shardCollection;
 using td.features.state;
 using td.utils;
 using UnityEngine;
@@ -12,98 +11,66 @@ using Object = UnityEngine.Object;
 
 namespace td.features.level
 {
-    // ReSharper disable once ClassNeverInstantiated.Global
     public class LevelLoader_Service
     {
-        [DI] private Level_Aspect aspect;
-        [DI] private LevelMap levelMap;
         [DI] private State state;
         [DI] private Destroy_Service destroyService;
         [DI] private EventBus events;
+        [DI] private Camera_Service cameraService;
+        [DI] private Level_State levelState;
         
         private GameObject levelGameObject;
         
         
         public bool HasLevel()
         {
-            var check1 = Resources.Load<TextAsset>($"Levels/{state.GetLevelNumber()}") != null;
-            var check2 = Resources.Load<GameObject>($"Levels/{state.GetLevelNumber()}") != null;
+            var check1 = Resources.Load<TextAsset>($"Levels/{levelState.GetLevelNumber()}") != null;
+            var check2 = Resources.Load<GameObject>($"Levels/{levelState.GetLevelNumber()}") != null;
 
             return check1 && check2;
         }
 
-        public void LoadLevel()
+        public void LoadLevel(int? levelNumber)
         {
-            var ln = state.GetLevelNumber();
+            var ln = levelNumber ?? levelState.GetLevelNumber();
             state.Clear();
-            state.SetLevelNumber(ln);
-            
+            levelState.SetLevelNumber(ln);
+
             ClearLastLevelData();
-            
-            LoadLevelConfig();
-            LoadLevelPrefab();
+
+            LoadLevelConfig(ln);
+            LoadLevelPrefab(ln);
 
             InitAllCells();
-            levelMap.BuildMap();
 
-            FixSpawnPoints();
-
-#if UNITY_EDITOR
-            // Debug.Log("FINAL MAP");
-            levelMap.DebugLogHexMap();
-#endif
+            cameraService.SetBoundingRect(levelState.GetRectExtra());
+            cameraService.MoveTo(levelState.GetCenter(), true);
         }
-
-        private void FixSpawnPoints()
-        {
-            // levelMap.LevelConfig?.waves[0].spawns[0].spawner
-            
-            // foreach (var spawn in levelMap.Value.Spawns)
-            // {
-            //     
-            // }
-        }
-
 
         private void ClearLastLevelData()
         {
-            if (levelMap.LevelConfig == null) return;
-
-            levelMap.Clear();
-
-            // очищаем все события и команды во внешке
-            // var outerEntities = Array.Empty<int>();
-            // outerWorld.Value.GetAllEntities(ref outerEntities);
-            // foreach (var outerEntity in outerEntities)
-            // {
-            //     outerWorld.Value.DelEntity(outerEntity);
-            // }
-
-            // удаляем все ентити которые живут только на уровне
-            foreach (var entity in aspect.itOnlyOnLevel)
-            {
-                destroyService.SafeRemove(aspect.World().PackEntityWithWorld(entity));
-            }
+            levelState.Clear();
+            destroyService.removeAllOnlyOnLevel();
         }
 
-        private void LoadLevelConfig()
+        private void LoadLevelConfig(int levelNumber)
         {
-            var levelConfig = ResourcesUtils.LoadJson<LevelConfig>($"Levels/{state.GetLevelNumber()}");
-            levelConfig.levelNumber = state.GetLevelNumber();
-            levelMap.LevelConfig = levelConfig;
+            var levelConfig = ResourcesUtils.LoadJson<LevelConfig>($"Levels/{levelNumber}");
+            levelConfig.levelNumber = levelNumber;
+            levelState.SetLevelConfig(ref levelConfig);
             
-            state.SetMaxLives(Math.Max(1, levelConfig.startedLives));
-            state.SetLives(Math.Max(1, state.GetMaxLives()));
-            state.SetLevelNumber(levelConfig.levelNumber);
-            state.SetEnergy(Math.Max(0, levelConfig.startedEnergy));
-            state.SetNextWaveCountdown(0);
-            state.SetActiveSpawnCount(0);
-            state.SetWaveNumber(0);
-            state.SetWaveCount(levelConfig.waves.Length);
-            state.Ex<ShardCollection_StateExtension>().SetMaxItems(Math.Max((byte)4, levelConfig.maxShards));
+            levelState.SetLevelNumber(levelConfig.levelNumber);
+            
+            /* todo using player stats for increase started values */
+            state.SetMaxLives(levelConfig.maxLives);
+            state.SetLives(state.GetMaxLives());
+            
+            /* todo using player stats for increase started values */
+            state.SetMaxEnergy(levelConfig.maxEnergy);
+            state.SetEnergy(levelConfig.energy);
         }
 
-        private void LoadLevelPrefab()
+        private void LoadLevelPrefab(int levelNumber)
         {
             if (levelGameObject != null)
             {
@@ -111,7 +78,7 @@ namespace td.features.level
             }
 
             levelGameObject = Object.Instantiate(
-                Resources.Load<GameObject>($"Levels/{state.GetLevelNumber()}")
+                Resources.Load<GameObject>($"Levels/{levelNumber}")
             );
         }
 
@@ -119,8 +86,9 @@ namespace td.features.level
         {
             foreach (var cell in Object.FindObjectsOfType<CellMonoBehaviour>())
             {
-                levelMap.PreAddCell(Cell.FromCellEditor(cell));
+                levelState.PreAddCell(Cell.FromCellEditor(cell));
             }
+            levelState.Build();
         }
     }
 }

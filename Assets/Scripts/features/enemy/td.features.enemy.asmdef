@@ -1,0 +1,33 @@
+{
+    "name": "td.features.enemy",
+    "rootNamespace": "td.features.enemy",
+    "references": [
+        "Unity.Mathematics",
+        "Unity.2D.Animation.Editor",
+        "Unity.2D.Animation.Runtime",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "Leopotam.Types",
+        "td.utils",
+        "td.features.destroy",
+        "td.features.eventBus",
+        "td.features.state",
+        "td.features.common",
+        "td.features.movement",
+        "td.features.ecsConverter",
+        "NaughtyAttributes.Core",
+        "td.features.prefab",
+        "td.features.level",
+        "td.features.goPool",
+        "td.features.impactKernel"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

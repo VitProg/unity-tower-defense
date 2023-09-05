@@ -27,11 +27,11 @@ namespace td.features.shard
             destroyService.SetIsOnlyOnLevel(entity, true);
             
             var shardMB = 
-                gameObject.GetComponent<ShardMonoBehaviour>() ??
-                gameObject.GetComponentInChildren<ShardMonoBehaviour>();
+                gameObject.GetComponent<UI_Shard>() ??
+                gameObject.GetComponentInChildren<UI_Shard>();
             
             shardService.GetShardMBRef(entity).reference = shardMB;
-            shardMBService.Add(shardMB);
+            // shardMBService.Add(shardMB);
         }
     }
 }

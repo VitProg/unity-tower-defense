@@ -28,9 +28,10 @@ namespace td.features.level.cells
         {
             isCellMBNull = cellMB == null;
         }
-
+        
         private void Update()
         {
+            if (Application.isPlaying) return;
             if (isCellMBNull)
             {
                 if (transform.parent)

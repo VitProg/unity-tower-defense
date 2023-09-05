@@ -1,0 +1,25 @@
+{
+    "name": "td.features.wave",
+    "rootNamespace": "td.features.wave",
+    "references": [
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "td.utils",
+        "td.features.eventBus",
+        "td.features.level",
+        "td.features.common",
+        "td.features.state",
+        "td.features.shard",
+        "td.features.enemy",
+        "td.features.tower"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

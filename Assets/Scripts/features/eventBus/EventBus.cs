@@ -10,4 +10,5 @@ namespace td.features.eventBus
     }
     
     public delegate void RefAction<T>(ref T obj) where T : struct;
+    public delegate void GlobalListener(ref object obj);
 }

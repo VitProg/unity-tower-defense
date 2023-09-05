@@ -11,8 +11,8 @@ namespace td.features.camera
         public void Init(IProtoSystems systems)
         {
             systems
-                .AddSystem(new CameraZoomSystem())
-                .AddSystem(new CameraMoveSystem())
+                // .AddSystem(new CameraZoomSystem())
+                // .AddSystem(new CameraMoveSystem())
                 //
                 .AddService(new Camera_Service(), true)
                 ;

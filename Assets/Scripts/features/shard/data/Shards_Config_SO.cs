@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using td.features.shard.components;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -49,7 +50,7 @@ namespace td.features.shard.data
         public float radiusImpactOfYellow = 1.1f;
 
         [Header("Levels Cooficients")]
-        public readonly int[] triangularPyramids = {
+        public readonly ushort[] triangularPyramids = {
             /* 1*/ 1,
             /* 2*/ 4,
             /* 3*/ 10,
@@ -71,7 +72,7 @@ namespace td.features.shard.data
         public Sprite[] levelSprites;
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public Color GetColor(int index)
+        public Color GetColorByIndex(int index)
         {
             return (index % 8) switch
             {
@@ -86,6 +87,23 @@ namespace td.features.shard.data
 #if UNITY_EDITOR
                 _ => throw new ArgumentOutOfRangeException()
 #endif
+            };
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public Color GetColor(ShardTypes type)
+        {
+            return (type) switch
+            {
+                ShardTypes.Red => redShardColor,
+                ShardTypes.Green => greenShardColor,
+                ShardTypes.Blue => blueShardColor,
+                ShardTypes.Aquamarine => aquamarineShardColor,
+                ShardTypes.Yellow => yellowShardColor,
+                ShardTypes.Orange => orangeShardColor,
+                ShardTypes.Pink => pinkShardColor,
+                ShardTypes.Violet => violetShardColor,
+                _ => Color.gray,
             };
         }
 
@@ -109,17 +127,19 @@ namespace td.features.shard.data
             
         }
 
-        public int GetLevelCoefficient(uint quantity)
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public byte GetShardLevelByQuantity(uint quantity)
         {
-            var o = triangularPyramids;
-            for (var i = o.Length - 1; i >= 0; i--) {
-                if (o[i] <= quantity) {
-                    return i + 1;
+            for (var i = triangularPyramids.Length - 1; i >= 0; i--) {
+                if (triangularPyramids[i] <= quantity) {
+                    return (byte)(i + 1);
                 }
             }
             return 1;
         }
 
-        public Color this[int index] => GetColor(index);
+        // public Color this[int index] => GetColor(index);
+
+        public Sprite[] sectors;
     }
 }

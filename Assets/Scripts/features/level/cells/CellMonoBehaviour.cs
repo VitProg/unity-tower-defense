@@ -1,16 +1,17 @@
 ﻿using System.Runtime.CompilerServices;
 using NaughtyAttributes;
+using td.features._common.interfaces;
 using td.features.eventBus;
-using td.features.inputEvents;
 using td.features.level.bus;
 using td.utils;
 using td.utils.di;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.level.cells
 {
 #if UNITY_EDITOR
-    [SelectionBase] // Если вы кликнете на внутреннюю запчасть префаба, то выделится именно этот объект
+    [SelectionBase]
 #endif
     public class CellMonoBehaviour : MonoBehaviour, IInputEventsHandler
     {
@@ -47,14 +48,18 @@ namespace td.features.level.cells
 
         [BoxGroup("Main Parapeters")] [ShowIf("type", CellTypes.CanWalk)] [EnableIf("isSpawn")]
         public byte spawnNumber = 0;
+
+        [ShowNativeProperty]public int CellCoordX => HexGridUtils.PositionToCell(transform.position).x;
+        [ShowNativeProperty]public int CellCoordY => HexGridUtils.PositionToCell(transform.position).y;
         #endregion
 
-        private EventBus Events =>  ServiceContainer.Get<EventBus>();
+        private EventBus _events;
+        private EventBus Events => _events ??= ServiceContainer.Get<EventBus>();
         
         //
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private ref Cell GetCell() => ref ServiceContainer.Get<LevelMap>().GetCell(transform.position);
+        private ref Cell GetCell() => ref ServiceContainer.Get<Level_State>().GetCell(transform.position);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void OnPointerEnter(float x, float y)
@@ -119,6 +124,7 @@ namespace td.features.level.cells
     
     public enum CellTypes
     {
+        Any,
         CanWalk,
         CanBuild,
         Empty,

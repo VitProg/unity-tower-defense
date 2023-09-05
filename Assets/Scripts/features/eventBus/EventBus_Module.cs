@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Leopotam.EcsProto;
 using td.features.eventBus.subServices;
 using td.features.eventBus.systems;
+using td.features.eventBus.types;
+using td.utils;
 using td.utils.ecs;
 
 namespace td.features.eventBus
@@ -11,6 +13,10 @@ namespace td.features.eventBus
     {
         private EventBus_Aspect aspect;
         private static Type protoPoolType = typeof(ProtoPool<>);
+        
+        private readonly string persistEventTypeName = typeof(IPersistEvent).FullName;
+        private readonly string globalEventTypeName = typeof(IGlobalEvent).FullName;
+        private readonly string uniqueEventTypeName = typeof(IUniqueEvent).FullName;
 
         public EventBus_Module()
         {
@@ -52,15 +58,17 @@ namespace td.features.eventBus
         public void AddEvents(List<Type> buildEvents)
         {
             // Debug.Log($"EventBus_Module.AddEvents(...{buildEvents.Count})");
-            foreach (var evType in buildEvents)
+            foreach (var evType in buildEvents) 
             {
-                // Debug.Log($" - {evType.Name} event");
-                // if (aspect.eventTypes.Contains(evType))
-                // {
-                    // throw new Exception($"Тип события {evType.Name} уже зарегистрирован в аспекте EventBus_Aspect");
-                // }
-                //todo проверить на уникальность
                 aspect.eventTypes.Add(evType);
+                
+                var isPersist = TypeUtils.HasInterface(evType, persistEventTypeName);
+                var isGlobal = TypeUtils.HasInterface(evType, globalEventTypeName);
+                var isUnique = TypeUtils.HasInterface(evType, uniqueEventTypeName);
+                
+                if (isPersist) aspect.persistEventTypes.Add(evType);
+                if (isGlobal) aspect.globalEventTypes.Add(evType);
+                if (isUnique) aspect.uniqueEventTypes.Add(evType);
             }
         }
     }

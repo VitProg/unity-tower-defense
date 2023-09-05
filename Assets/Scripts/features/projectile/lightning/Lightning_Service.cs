@@ -2,8 +2,6 @@
 using td.features.goPool;
 using td.features.prefab;
 using td.features.projectile.attributes;
-using td.features.shard.data;
-using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -18,7 +16,6 @@ namespace td.features.projectile.lightning
         [DI] private GOPool_Service goPoolService;
         [DI] private Projectile_Service projectileService;
         [DI] private Lightning_Converter converter;
-        [DI] private Shards_Config_SO shardsConfigSO; // todo
 
         private PoolableObject CreateObject()
         {
@@ -41,7 +38,7 @@ namespace td.features.projectile.lightning
             return projectilePoolableObject;
         }
         
-        private void ActionOnDestroy(PoolableObject o) => EcsPoolUtils.ActionOnDestroy(o);
+        private void ActionOnDestroy(PoolableObject o) => Projectile_GOPoolUtils.ActionOnDestroy(o);
         
         public int SpawnLightningLine(ProtoPackedEntityWithWorld firstEntity, ref LightningAttribute lightningSource)
         {

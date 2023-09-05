@@ -1,5 +1,7 @@
 ﻿using System;
 using Leopotam.EcsProto;
+using td.features.eventBus;
+using td.features.shard.bus;
 using td.features.shard.data;
 using td.features.shard.shardCollection;
 using td.features.shard.shardStore;
@@ -9,7 +11,7 @@ using UnityEngine;
 
 namespace td.features.shard
 {
-    public class Shard_Module : IProtoModule
+    public class Shard_Module : IProtoModuleWithEvents
     {
         private readonly Func<float> getDeltaTime;
         private readonly Shards_Config_SO shardConfigSO;
@@ -18,13 +20,16 @@ namespace td.features.shard
         {
             this.getDeltaTime = getDeltaTime;
             shardConfigSO = Resources.Load<Shards_Config_SO>("Configs/Shards Config");
-            Debug.Log("shardConfigSO = " + shardConfigSO);
         }
         
         public void Init(IProtoSystems systems)
         {
             systems
-                .AddSystem(new ShardUpdateAndInit_MB_System(1/20f, 0f, getDeltaTime))
+                .AddSystem(new Shard_UpdateAndInit_MB_System(1/30f, 0f, getDeltaTime))
+                .AddSystem(new Shard_BuyHandler_System())
+                .AddSystem(new Shard_CombineHandler_System())
+                .AddSystem(new Shard_DropHandler_System())
+                .AddSystem(new Shard_InsertHandler_System())
                 //
                 .AddService(shardConfigSO, true)
                 .AddService(new Shard_Service(), true)
@@ -50,5 +55,17 @@ namespace td.features.shard
                 new ShardStore_Module(),
             };
         }
+
+        public Type[] Events() => Ev.E<
+           Command_BuyShard,
+           Command_CombineShards_InBuilding,
+           Command_CombineShards_InCollection,
+           Command_DropShard_OnMap,
+           Command_InsertShard_InBuilding,
+           //
+           Event_ShardsCombined,
+           Event_ShardDropped_OnMap,
+           Event_ShardInserted_InBuilding
+        >();
     }
 }

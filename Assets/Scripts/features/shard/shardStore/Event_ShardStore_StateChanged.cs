@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using td.features.state;
+using td.features.state.interfaces;
 
 namespace td.features.shard.shardStore
 {
@@ -8,9 +9,11 @@ namespace td.features.shard.shardStore
         public bool items;
         public bool visible;
         public bool x;
+        public bool hoveredIndex;
+        public bool level;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsEmpty() => !items && !visible && !x;
+        public bool IsEmpty() => !items && !visible && !x && !hoveredIndex && !level;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
@@ -18,6 +21,8 @@ namespace td.features.shard.shardStore
             items = false;
             visible = false;
             x = false;
+            hoveredIndex = false;
+            level = false;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -26,6 +31,8 @@ namespace td.features.shard.shardStore
             items = true;
             visible = true;
             x = true;
+            hoveredIndex = true;
+            level = true;
         }
     }
 }

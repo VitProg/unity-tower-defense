@@ -1,0 +1,26 @@
+{
+    "name": "td.features.inputEvents",
+    "rootNamespace": "td.features.inputEvents",
+    "references": [
+        "Unity.Mathematics",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "td.utils",
+        "td.features.eventBus",
+        "td.features.state",
+        "td.features.camera",
+        "td.features.common",
+        "td.features.destroy",
+        "td.features.movement",
+        "td.features.level"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

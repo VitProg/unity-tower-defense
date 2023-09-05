@@ -1,44 +1,43 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Runtime.CompilerServices;
+using UnityEngine;
 
 namespace td.utils
 {
     public static class RandomUtils
     {
+        public static readonly System.Random Random;
+
+        static RandomUtils()
+        {
+            Random = new System.Random(Environment.TickCount);
+        }
+        
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int IntRange(int min, int max) =>
-            Random.Range(min, max + 1);
+            Random.Next(min, max + 1);
 
-        public static float Range(float[] minMax) =>
-            Range(minMax[0], minMax[1]);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Range(float min = 0f, float max = 1f) {
+            var randomValue = Random.Next();
+            var normalizedValue = (float)randomValue / int.MaxValue;
+            return normalizedValue * (max - min) + min;
+        }
 
-        public static float Range(float min, float max) =>
-            Random.Range(min * 100f, max * 100f) / 100f;
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T RandomArrayItem<T>(ref T[] array) =>
             array[IntRange(0, array.Length - 1)];
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 Vector2(float[] minMax) =>
             Vector2(minMax[0], minMax[1]);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Vector2 Vector2(float min, float max) =>
-            new Vector2(Range(min, max),Range(min, max));
+            new(Range(min, max),Range(min, max));
 
-        public static bool Bool(float probability = 0.5f) => Random.Range(0f, 1f) >= probability;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Bool(float probability = 0.5f) => Random.NextDouble() < probability;
 
-        public static Quaternion Rotation() => RandomArrayItem(ref rotations);
-        
-        private static Quaternion[] rotations = new Quaternion[360*2];
-        static RandomUtils()
-        {
-            var index = 0;
-            for (var angl = 0f; angl < 360; angl += 0.5f)
-            {
-                rotations[index] = Quaternion.AngleAxis(angl, Vector3.forward);
-                index++;
-            }
-
-            Debug.Log(rotations);
-            
-        }
     }
 }

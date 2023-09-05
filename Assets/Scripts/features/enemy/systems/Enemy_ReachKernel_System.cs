@@ -40,8 +40,9 @@ namespace td.features.enemy.systems
             enemyService.SetIsDead(enemyEntity, true);
             destroyService.MarkAsRemoved(aspect.World().PackEntityWithWorld(enemyEntity));
             impactKernel.TakeDamage(enemy.damage);
+            events.global.Add<Event_Enemy_Died>().Entity = ev.Entity;
 
-            state.SetEnemiesCount(state.GetEnemiesCount() - 1);
+            // state.SetEnemiesCount(state.GetEnemiesCount() - 1);
         }
     }
 }

@@ -5,9 +5,9 @@ using td.features.movement;
 using td.features.prefab;
 using td.features.projectile.attributes;
 using td.features.projectile.components;
-using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.projectile
@@ -69,7 +69,7 @@ namespace td.features.projectile
             return projectilePoolableObject;
         }
         
-        private void ActionOnDestroy(PoolableObject o) => EcsPoolUtils.ActionOnDestroy(o);
+        private void ActionOnDestroy(PoolableObject o) => Projectile_GOPoolUtils.ActionOnDestroy(o);
 
         private static void ActionOnRelease(PoolableObject o)
         {
@@ -81,8 +81,8 @@ namespace td.features.projectile
         //todo
         public int SpawnProjectile(
             string name, 
-            Vector2 position,
-            Vector2 target,
+            float2 position,
+            float2 target,
             float speed,
             float sqrGap,
             int whoFired,

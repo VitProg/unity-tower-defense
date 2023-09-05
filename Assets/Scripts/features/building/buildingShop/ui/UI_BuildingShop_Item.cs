@@ -1,5 +1,10 @@
 ﻿using NaughtyAttributes;
 using td.features._common;
+using td.features.building.buildingShop.bus;
+using td.features.building.buildingShop.state;
+using td.features.eventBus;
+using td.features.state;
+using td.utils.di;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -39,12 +44,19 @@ namespace td.features.building.buildingShop.ui
         [Required, BoxGroup("Icon"), OnValueChanged("Refresh")]
         public Sprite icon;
 
-
+        [FormerlySerializedAs("id")] [OnValueChanged("Refresh")] public string buildingId;
         [OnValueChanged("Refresh")] public string title;
         [OnValueChanged("Refresh")] public string description;
         [OnValueChanged("Refresh")] public uint builtTime;
         [OnValueChanged("Refresh")] public uint price;
         [FormerlySerializedAs("prisetIsGood")] [OnValueChanged("Refresh")] public bool pricetIsGood = true;
+        
+        //
+        private EventBus _events;
+        private EventBus Events => _events ??= ServiceContainer.Get<EventBus>();
+        private State _state;
+        private State State =>  _state ??= ServiceContainer.Get<State>();
+        //
 
         public void OnPointerEnter(PointerEventData eventData)
         {
@@ -58,7 +70,13 @@ namespace td.features.building.buildingShop.ui
 
         public void OnPointerClick(PointerEventData eventData)
         {
-            //todo
+            var s = State.Ex<BuildingShop_StateEx>();
+            ref var cmd = ref Events.global.Add<Command_BuyBuilding>();
+            cmd.buildingId = buildingId;
+            cmd.cellCoords = s.GetCellCoords();
+            cmd.price = price;
+            cmd.buildTime = builtTime;
+            s.SetVisible(false);
         }
 
         [Button]

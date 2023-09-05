@@ -4,6 +4,7 @@ using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
 using td.features.fx.types;
+using td.utils;
 using td.utils.ecs;
 
 namespace td.features.fx.subServices

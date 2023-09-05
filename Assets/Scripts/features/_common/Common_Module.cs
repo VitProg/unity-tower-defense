@@ -1,5 +1,5 @@
 ﻿using Leopotam.EcsProto;
-using td.features._common.systems;
+using td.utils.ecs;
 
 namespace td.features._common
 {
@@ -8,13 +8,16 @@ namespace td.features._common
         public void Init(IProtoSystems systems)
         {
             systems
-                .AddSystem(new SturtupInitSystem())
+                .AddService(new Common_Service(), true)
                 ;
         }
 
         public IProtoAspect[] Aspects()
         {
-            return null;
+            return new IProtoAspect[]
+            {
+                new Common_Aspect(),
+            };
         }
 
         public IProtoModule[] Modules()

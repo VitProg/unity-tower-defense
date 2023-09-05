@@ -1,6 +1,9 @@
 ﻿using System;
 using Leopotam.EcsProto.QoL;
+using td.features._common;
+using td.utils;
 using td.utils.ecs;
+using UnityEngine;
 
 namespace td.features.movement.systems
 {
@@ -8,6 +11,7 @@ namespace td.features.movement.systems
     {
         [DI] private Movement_Aspect aspect;
         [DI] private Movement_Service movementService;
+        [DI] private Common_Service common;
 
         public override void IntervalRun(float _)
         {
@@ -17,9 +21,9 @@ namespace td.features.movement.systems
 
                 if (!t.IsChanged()) continue;
 
-                var got = movementService.GetGOTransform(entity);
+                var got = common.GetGOTransform(entity);
 
-                if (t.positionChanged) got.position = t.position;
+                if (t.positionChanged) got.position = t.position.ToVector3();
                 if (t.scaleChanged) got.localScale = t.GetScaleVector(got.localScale.z);
                 if (t.rotationChanged)
                 {

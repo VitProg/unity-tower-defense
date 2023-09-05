@@ -4,6 +4,9 @@ using System.Runtime.CompilerServices;
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
+using td.features.state.interfaces;
+using td.utils.di;
+using UnityEngine;
 
 namespace td.features.state
 {
@@ -11,14 +14,6 @@ namespace td.features.state
     {
         public readonly Slice<IStateExtension> extensions = new();
         private readonly Dictionary<Type, int> extensionsHash = new (10);
-        public bool release;
-
-        public override void Init(ProtoWorld world)
-        {
-            // Debug.Log("State_Aspect.Init() " + world);
-            base.Init(world);
-            release = true;
-        }
 
         public void AddEx<T>(T ex) where T : IStateExtension
         {
@@ -32,6 +27,8 @@ namespace td.features.state
             extensions.Add(ex);
             var idx = extensions.Len() - 1;
             extensionsHash[type] = idx;
+            
+            ServiceContainer.Set(type, ex);
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]

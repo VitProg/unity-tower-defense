@@ -7,10 +7,18 @@ namespace td.features.tower.towerRadius
 {
     public class TowerRadius_Module : IProtoModuleWithEvents
     {
+        private readonly Func<float> getDeltaTime;
+        
+        public TowerRadius_Module(Func<float> getDeltaTime)
+        {
+            // Debug.Log($"{GetType().Name} Init");
+            this.getDeltaTime = getDeltaTime;
+        }
+
         public void Init(IProtoSystems systems)
         {
             systems
-                .AddSystem(new TowerRadius_System())
+                .AddSystem(new TowerRadius_Visible_System(1/15f, 0f, getDeltaTime))
                 ;
         }
 
@@ -24,9 +32,6 @@ namespace td.features.tower.towerRadius
             return null;
         }
 
-        public Type[] Events() => Ev.E<
-            Command_Tower_HideRadius,
-            Command_Tower_ShowRadius
-        >();
+        public Type[] Events() => Ev.E<Command_ShowTowerRadius>();
     }
 }

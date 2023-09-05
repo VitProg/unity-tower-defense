@@ -6,6 +6,7 @@ using td.features.eventBus;
 using td.features.fx.effects;
 using td.features.impactEnemy.components;
 using td.features.movement;
+using td.utils;
 
 namespace td.features.fx.listeners
 {
@@ -30,10 +31,8 @@ namespace td.features.fx.listeners
 
         private void OnTakeDamage(ref TakeDamage takeDamage)
         {
-            if (!enemyService.IsAlive(takeDamage.entity, out var enemyEntity)) return;
-            
-            // Debug.Log("takeDamage: " + takeDamage.type + "; " + takeDamage.damage);
-            
+            if (!takeDamage.entity.Unpack(out var world, out var enemyEntity) || !enemyService.IsDead(enemyEntity)) return;
+
             var transform = movementService.GetTransform(enemyEntity);
             ref var blinkFx = ref fxService.entityModifier.GetOrAdd<BlinkFX>(takeDamage.entity, 0.3f);
             blinkFx.SetCount(1);
@@ -82,8 +81,6 @@ namespace td.features.fx.listeners
                     hitFx.Color = Constants.FX.ElectroDamageColor;
                     break;
                 }
-                default:
-                    break;
             }
         }
     }

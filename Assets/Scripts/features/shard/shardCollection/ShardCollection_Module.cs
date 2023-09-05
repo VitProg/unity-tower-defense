@@ -1,5 +1,8 @@
 ﻿using Leopotam.EcsProto;
+using td.features.shard.shardCollection.systems;
+using td.features.shard.systems;
 using td.features.state;
+using td.features.state.interfaces;
 
 namespace td.features.shard.shardCollection
 {
@@ -22,6 +25,6 @@ namespace td.features.shard.shardCollection
             return null;
         }
 
-        public IStateExtension StateEx() => new ShardCollection_StateExtension();
+        public IStateExtension StateEx() => new ShardCollection_State();
     }
 }

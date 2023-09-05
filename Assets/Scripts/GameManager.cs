@@ -1,31 +1,33 @@
-﻿using Leopotam.EcsProto;
+﻿using Cysharp.Threading.Tasks;
+using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
 using NaughtyAttributes;
 using td.features._common;
 using td.features.building;
 using td.features.camera;
 using td.features.destroy;
+using td.features.ecsConverter;
 using td.features.enemy;
 using td.features.eventBus;
-using td.features.gameStatus;
 using td.features.goPool;
 using td.features.impactEnemy;
 using td.features.impactKernel;
 using td.features.infoPanel;
 using td.features.inputEvents;
 using td.features.level;
+using td.features.level.bus;
 using td.features.movement;
-using td.features.path;
 using td.features.prefab;
-using td.features.pricePopup;
+using td.features.priceTimePopup;
 using td.features.projectile;
 using td.features.shard;
-using td.features.shard.data;
 using td.features.spriteAnimator;
 using td.features.state;
 using td.features.tower;
 using td.features.wave;
 using td.features.window;
+using td.utils;
 using td.utils.di;
 using td.utils.ecs;
 using UnityEngine;
@@ -45,7 +47,7 @@ namespace td
         private IProtoSystems systems;
         
         //todo move to other place
-        public async void ShowSettings()
+        public async UniTaskVoid ShowSettings()
         {
             var state = ServiceContainer.Get<State>();
             var windowsService = ServiceContainer.Get<Window_Service>();
@@ -62,39 +64,41 @@ namespace td
         
         private void Awake()
         { 
+            // QualitySettings.vSyncCount = 1;
+            // Application.targetFrameRate = 120;
+            
             // main
             var stateModule = new State_Module();
-            var mainModules = new ProtoModulesEx(
+            var mainModules = new ProtoModules(
                 stateModule,
                 new Common_Module(),
+                new Destroy_Module(),
+                new Movement_Module(GetDeltaTime),
+                new InputEvents_Module(),
                 new Prefab_Module(),
                 new GOPool_Module(),
+                new EcsConverter_Module(),
                 new Camera_Module(),
                 new Level_Module(),
-                new Destroy_Module(),
-                new Path_Module(),
-                new PricePopup_Module(),
+                new PriceTimePopup_Module(),
                 new InfoPanel_Module(),
-                new GameStatus_Module(),
                 new SpriteAnimator_Module(), //??
                 new Window_Module(), //??
                 new Building_Module(),
                 new Wave_Module(GetDeltaTime),
-                new Movement_Module(GetDeltaTime),
                 new Projectile_Module(GetDeltaTime),
                 new Enemy_Module(GetDeltaTime),
-                new Shard_Module(GetDeltaTime),
                 new Tower_Module(GetDeltaTime),
+                new Shard_Module(GetDeltaTime),
                 new ImpactEnemy_Module(),
-                new ImpactKernel_Module(),
-                new InputEvents_Module()
+                new ImpactKernel_Module()
             );
             var mainModule = mainModules.BuildModule();
             var mainAspect = mainModules.BuildAspect();
             
             // events
             var eventBusModule = new EventBus_Module();
-            var eventsModules = new ProtoModulesEx(
+            var eventsModules = new ProtoModules(
                 eventBusModule
             );
             var eventsModule = eventsModules.BuildModule();
@@ -102,17 +106,17 @@ namespace td
             
             // fx
 #if !NO_FX
-            var fxModules = new ProtoModulesEx(
+            var fxModules = new ProtoModules(
                 new features.fx.FX_Module(GetDeltaTime)
             );
             var fxModule = fxModules.BuildModule();
             var fxAspect = fxModules.BuildAspect();
 #endif      
             //
-            stateModule.AddStateExtensions(mainModules.BuildStateExtensiont());
-            stateModule.AddStateExtensions(eventsModules.BuildStateExtensiont());
+            stateModule.AddStateExtensions(mainModules.BuildStateExtensions());
+            stateModule.AddStateExtensions(eventsModules.BuildStateExtensions());
 #if !NO_FX
-            stateModule.AddStateExtensions(fxModules.BuildStateExtensiont());
+            stateModule.AddStateExtensions(fxModules.BuildStateExtensions());
 #endif      
             //
             eventBusModule.AddEvents(mainModules.BuildEvents());
@@ -148,19 +152,23 @@ namespace td
                 .AddPoint(Constants.EcsPoints.FX)
                 ;
 
-            ServiceContainer.Get<State>().SetLevelNumber(levelNumber);
+            systems.AddSystem(new SturtupInitSystem());
+
+            // ServiceContainer.Get<EventBus>().unique.GetOrAdd<Command_LoadLevel>().levelNumber = levelNumber;
+            // ServiceContainer.Get<State>().SetLevelNumber(levelNumber);
             
             systems.Init();
         }
 
         private void Start()
         {
+            ServiceContainer.Get<Level_State>().SetLevelNumber(levelNumber);
             ServiceContainer.Get<State>().SendChanges();
         }
 
         private void Update()
         {
-            systems?.Run();
+            systems.Run();
         }
 
         private void OnDestroy()
@@ -183,6 +191,14 @@ namespace td
                 eventsWorld.Destroy ();
                 eventsWorld = null;
             }
+        }
+    }
+    
+    public class SturtupInitSystem : IProtoPreInitSystem
+    {
+        public void PreInit(IProtoSystems systems)
+        {
+            ServiceContainer.Get<Window_Service>().Open(Window_Service.Type.MainMenu, true).Forget();
         }
     }
 }

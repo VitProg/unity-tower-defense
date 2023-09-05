@@ -1,4 +1,5 @@
 ﻿using System;
+using Leopotam.EcsProto.QoL;
 
 namespace td.features.fx.types
 {

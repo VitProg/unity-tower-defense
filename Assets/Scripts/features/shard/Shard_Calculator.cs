@@ -12,7 +12,7 @@ namespace td.features.shard
     public class Shard_Calculator
     {
         [DI] private Shards_Config_SO configSO;
-        [DI] private LevelMap levelMap;
+        [DI] private Level_State levelState;
         
         public float GetProjectileSpeed(ref Shard shard)
         {
@@ -37,7 +37,7 @@ namespace td.features.shard
             // var speed = speedBase * (Mathf.Sqrt(amplifier / (Mathf.Sqrt(0.333333f))) / 10f + 0.87f);
             
             //todo
-            var lm = configSO.GetLevelCoefficient(quantity) / 5.35f;
+            var lm = configSO.GetShardLevelByQuantity(quantity) / 5.35f;
             var levelModifier = lm * lm;
             var speed = (float)(levelModifier * MathF.Log10(quantity * quantity) + speedBase);
 
@@ -123,7 +123,7 @@ namespace td.features.shard
             //
             // damage = GetShardAmplifier(MathF.Max(max, Mathf.CeilToInt(quantity / 10f)));
 
-            var lm = configSO.GetLevelCoefficient(quantity) / 2.97823f;
+            var lm = configSO.GetShardLevelByQuantity(quantity) / 2.97823f;
             var levelModifier = 1 + lm * lm;
             var q = quantity / 7.5f;
             damage = levelModifier * (q * q) + baseDamage;
@@ -155,14 +155,14 @@ namespace td.features.shard
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public int GetShardLevel(ref Shard shard)
+        public byte GetShardLevel(ref Shard shard)
         {
             var quantity = ShardUtils.GetQuantity(ref shard);
-            return configSO.GetLevelCoefficient(quantity);
+            return configSO.GetShardLevelByQuantity(quantity);
         }
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public int GetShardLevel(uint quantity) => configSO.GetLevelCoefficient(quantity);
+        public int GetShardLevel(uint quantity) => configSO.GetShardLevelByQuantity(quantity);
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private float GetShardLogSqrLevel(uint quantity) => LogSqrLevel[GetShardLevel(quantity)];
 
@@ -261,7 +261,7 @@ namespace td.features.shard
             var amplifier = GetShardAmplifier(max);
 
             // var fireRate = baseFireRate + (Mathf.Log(amplifier) * Mathf.Sqrt(max));
-            var lm = configSO.GetLevelCoefficient(quantity) / 3.62f;
+            var lm = configSO.GetShardLevelByQuantity(quantity) / 3.62f;
             var levelModifier = lm * lm;
             var fireRate = levelModifier * MathF.Log10(quantity * quantity) + baseFireRate;
 
@@ -280,13 +280,13 @@ namespace td.features.shard
         }
 
         // yellow - увеличивает радиус
-        public float GetTowerRadius(ref Shard shard)
+        public float GetRadius(ref Shard shard)
         {
             var baseRadius = configSO.radiusBase;
             var impactOfYellow = configSO.radiusImpactOfYellow;
 
             var quantity = ShardUtils.GetQuantity(ref shard);
-            var levelCooficient = configSO.GetLevelCoefficient(quantity);
+            var levelCooficient = configSO.GetShardLevelByQuantity(quantity);
             var lm = levelCooficient / 10f;
             var levelModifier = lm * lm;
 
@@ -305,110 +305,141 @@ namespace td.features.shard
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public uint GetBaseCostByType(ShardTypes type)
+        public uint GetBasePriceByType(ShardTypes type)
         {
-            var costs = levelMap.LevelConfig?.shardsCost;
+            ref var cfg = ref levelState.GetLevelConfig();
             return type switch
             {
-                ShardTypes.Red => costs?.red ?? 10,
-                ShardTypes.Green => costs?.green ?? 10,
-                ShardTypes.Blue => costs?.blue ?? 10,
-                ShardTypes.Yellow => costs?.yellow ?? 10,
-                ShardTypes.Orange => costs?.orange ?? 10,
-                ShardTypes.Pink => costs?.pink ?? 10,
-                ShardTypes.Violet => costs?.violet ?? 10,
-                ShardTypes.Aquamarine => costs?.aquamarine ?? 10,
+                ShardTypes.Red => cfg.shardsPrice.red,
+                ShardTypes.Green => cfg.shardsPrice.green,
+                ShardTypes.Blue => cfg.shardsPrice.blue,
+                ShardTypes.Yellow => cfg.shardsPrice.yellow,
+                ShardTypes.Orange => cfg.shardsPrice.orange,
+                ShardTypes.Pink => cfg.shardsPrice.pink,
+                ShardTypes.Violet => cfg.shardsPrice.violet,
+                ShardTypes.Aquamarine => cfg.shardsPrice.aquamarine,
                 _ => 99999
             };
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public uint CalculateCostByType(ShardTypes type, uint typeQuantity)
+        public uint CalculatePriceByType(ShardTypes type, uint typeQuantity)
         {
-            var baseCost = GetBaseCostByType(type);
+            var basePrice = GetBasePriceByType(type);
             var level = GetShardLevel(typeQuantity);
-            return Math.Max(1, (uint)(typeQuantity * baseCost * level * level));
+            return Math.Max(1, (uint)(typeQuantity * basePrice * level * level));
+        }        
+        
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public uint CalculateInsertTime(ref Shard shard)
+        {
+            var quantity = ShardUtils.GetQuantity(ref shard);
+            var level = GetShardLevel(quantity);
+            return Math.Max(0, (uint)((quantity / 8f + 1f) * level * level)); //todo
         }
 
-        public uint CalculateCost(ref Shard shard)
+        public uint CalculatePrice(ref Shard shard)
         {
-            uint cost = 0;
-            cost += CalculateCostByType(ShardTypes.Red, shard.red);
-            cost += CalculateCostByType(ShardTypes.Green, shard.green);
-            cost += CalculateCostByType(ShardTypes.Blue, shard.blue);
-            cost += CalculateCostByType(ShardTypes.Yellow, shard.yellow);
-            cost += CalculateCostByType(ShardTypes.Orange, shard.orange);
-            cost += CalculateCostByType(ShardTypes.Pink, shard.pink);
-            cost += CalculateCostByType(ShardTypes.Violet, shard.violet);
-            cost += CalculateCostByType(ShardTypes.Aquamarine, shard.aquamarine);
-            return Math.Max(1, cost);
+            uint price = 0;
+            price += CalculatePriceByType(ShardTypes.Red, shard.red);
+            price += CalculatePriceByType(ShardTypes.Green, shard.green);
+            price += CalculatePriceByType(ShardTypes.Blue, shard.blue);
+            price += CalculatePriceByType(ShardTypes.Yellow, shard.yellow);
+            price += CalculatePriceByType(ShardTypes.Orange, shard.orange);
+            price += CalculatePriceByType(ShardTypes.Pink, shard.pink);
+            price += CalculatePriceByType(ShardTypes.Violet, shard.violet);
+            price += CalculatePriceByType(ShardTypes.Aquamarine, shard.aquamarine);
+            return Math.Max(1, price);
         }
         
-        // todo cache into shard
-        public uint CalculateInsertCost(ref Shard shard)
+        public uint CalculateInsertPrice(ref Shard shard)
         {
-            //todo
-            uint cost = 0;
-            cost += (uint)(CalculateCostByType(ShardTypes.Red, shard.red) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.red) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Green, shard.green) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.green) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Blue, shard.blue) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.blue) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Yellow, shard.yellow) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.yellow) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Orange, shard.orange) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.orange) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Pink, shard.pink) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.pink) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Violet, shard.violet) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.violet) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Aquamarine, shard.aquamarine) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.aquamarine) + 1));
-            return Math.Max(1, cost);
+            uint price = 0;
+            price += (uint)(CalculatePriceByType(ShardTypes.Red, shard.red) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.red) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Green, shard.green) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.green) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Blue, shard.blue) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.blue) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Yellow, shard.yellow) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.yellow) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Orange, shard.orange) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.orange) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Pink, shard.pink) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.pink) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Violet, shard.violet) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.violet) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Aquamarine, shard.aquamarine) / 6 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.aquamarine) + 1));
+            return Math.Max(1, price);
         }
         
-        public uint CalculateCombineCost(ref Shard shard)
+        public uint CalculateCombinePrice(ref Shard shard)
         {
-            uint cost = 0;
-            cost += (uint)(CalculateCostByType(ShardTypes.Red, shard.red) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.red) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Green, shard.green) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.green) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Blue, shard.blue) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.blue) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Yellow, shard.yellow) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.yellow) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Orange, shard.orange) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.orange) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Pink, shard.pink) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.pink) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Violet, shard.violet) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.violet) + 1));
-            cost += (uint)(CalculateCostByType(ShardTypes.Aquamarine, shard.aquamarine) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.aquamarine) + 1));
+            uint price = 0;
+            price += (uint)(CalculatePriceByType(ShardTypes.Red, shard.red) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.red) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Green, shard.green) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.green) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Blue, shard.blue) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.blue) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Yellow, shard.yellow) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.yellow) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Orange, shard.orange) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.orange) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Pink, shard.pink) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.pink) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Violet, shard.violet) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.violet) + 1));
+            price += (uint)(CalculatePriceByType(ShardTypes.Aquamarine, shard.aquamarine) / 4 * (int)MathF.Ceiling(GetShardLogSqrLevel(shard.aquamarine) + 1));
 
-            return Math.Max(2, cost);
+            return Math.Max(2, price);
         }
         
-        public uint CalculateRemoveCost(ref Shard shard) => Math.Max(1, CalculateInsertCost(ref shard) / 2);
+        public uint CalculateRemovePrice(ref Shard shard) => Math.Max(1, CalculateInsertPrice(ref shard) / 2);
+        
+        public uint CalculateRemoveTime(ref Shard shard) => Math.Max(0, CalculateInsertTime(ref shard) / 2);
 
-        public uint CalculateDropCost(ref Shard shard) => Math.Max(6, CalculateInsertCost(ref shard) + CalculateCombineCost(ref shard, ref shard) / 2);
+        public uint CalculateDropPrice(ref Shard shard) => Math.Max(6, CalculateInsertPrice(ref shard) + CalculateCombinePrice(ref shard, ref shard) / 2);
 
-        // todo cache part of cost into shard and use this
-        public uint CalculateCombineCost(ref Shard targetShard, ref Shard sourceShard)
+        public uint CalculateCombinePrice(ref Shard targetShard, ref Shard sourceShard)
         {
-            uint cost = 0;
-            if (targetShard.costCombine > 0)
-                cost += targetShard.costCombine;
-            else
-                cost += CalculateCombineCost(ref targetShard);
+            uint price = 0;
+
+            if (targetShard.priceCombine == 0) targetShard.priceCombine = CalculateCombinePrice(ref targetShard);
+            price += targetShard.priceCombine;
             
-            if (sourceShard.costCombine > 0)
-                cost += sourceShard.costCombine;
-            else
-                cost += CalculateCombineCost(ref sourceShard);
+            if (sourceShard.priceCombine > 0) sourceShard.priceCombine = CalculateCombinePrice(ref sourceShard);
+            price += sourceShard.priceCombine;
 
-            return Math.Max(2, cost);
+            return Math.Max(2, price);
         }
 
-        public uint CalculateCombinerIntoTowerCost(ref Shard targetShardInTower, ref Shard sourceShard)
+        public float CalculateCombineTime(ref Shard shard)
         {
-            var combineCost = CalculateCombineCost(ref targetShardInTower, ref sourceShard);
-            var removeCost = targetShardInTower.costRemove > 0 ? targetShardInTower.costRemove : CalculateRemoveCost(ref targetShardInTower);
+            return Math.Max(0, CalculateInsertTime(ref shard) / 5f);
+        }
+
+        public uint CalculateCombineTime(ref Shard targetShard, ref Shard sourceShard)
+        {
+            float time = 0;
+
+            if (targetShard.timeCombine == 0) targetShard.timeCombine = CalculateCombineTime(ref targetShard);
+            time += targetShard.timeCombine;
+            
+            if (sourceShard.timeCombine > 0) sourceShard.timeCombine = CalculateCombineTime(ref sourceShard);
+            time += sourceShard.timeCombine;
+
+            return Math.Max(0, (uint)time);
+        }
+
+        public uint CalculateCombineIntoTowerPrice(ref Shard targetShardInTower, ref Shard sourceShard)
+        {
+            var combinePrice = CalculateCombinePrice(ref targetShardInTower, ref sourceShard);
+            var removePrice = targetShardInTower.priceRemove > 0 ? targetShardInTower.priceRemove : CalculateRemovePrice(ref targetShardInTower);
 
             var combinedShard = targetShardInTower.MakeCopy();
             combinedShard.CombineWith(ref sourceShard);
-            var combinedShardInsertCost = CalculateInsertCost(ref combinedShard);
-            
-            // var insertCost = targetShardInTower.costInsert > 0 ? targetShardInTower.costInsert : CalculateInsertCost(ref targetShardInTower);
-            //var coef = (GetShardLevel(ref targetShardInTower) + GetShardLevel(ref sourceShard)) / 10; //TODO
+            var combinedShardInsertPrice = CalculateInsertPrice(ref combinedShard);
 
-            return Math.Max(3, combineCost + removeCost + combinedShardInsertCost);
+            return Math.Max(3, combinePrice + removePrice + combinedShardInsertPrice);
+        }
+        
+        public uint CalculateCombineIntoTowerTime(ref Shard targetShardInTower, ref Shard sourceShard)
+        {
+            var combineTime = CalculateCombineTime(ref targetShardInTower, ref sourceShard);
+            var removeTime = targetShardInTower.timeRemove > 0 ? targetShardInTower.timeRemove : CalculateRemoveTime(ref targetShardInTower);
+
+            var combinedShard = targetShardInTower.MakeCopy();
+            combinedShard.CombineWith(ref sourceShard);
+            var combinedShardInsertTime = CalculateInsertTime(ref combinedShard);
+
+            return Math.Max(1, combineTime + removeTime + combinedShardInsertTime);
         }
 
         public void CalculateSpread(ref Shard shard, out float maxSpread, out float distanceFactor)

@@ -1,13 +1,14 @@
-﻿using Leopotam.Types;
+﻿using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
 using NaughtyAttributes;
-using td.features._common;
 using td.features.eventBus;
-using td.features.gameStatus.bus;
-using td.features.infoPanel;
 using td.features.level.bus;
+using td.features.shard.bus;
+using td.features.shard.components;
 using td.features.shard.mb;
 using td.features.shard.shardCollection;
 using td.features.state;
+using td.features.state.bus;
 using td.utils;
 using td.utils.di;
 using TMPro;
@@ -18,244 +19,297 @@ namespace td.features.shard.shardStore
 {
     public class UI_ShardStore : MonoBehaviour
     {
-        public Button closeButton;
-        public GridLayoutGroup grid;
-        public Button levelUp;
-        public Button levelDown;
-        public TMP_Text levelText;
-
-        [OnValueChanged("RefreshLevel")] [MinValue(1), MaxValue(10)]
-        public byte level = 1;
+        [Required] public Button closeButton;
+        [Required] public GridLayoutGroup grid;
+        [Required] public Button levelUp;
+        [Required] public Button levelDown;
+        [Required] public TMP_Text levelText;
 
         [SerializeField] private GameObject buttonPrefab;
+        
+        private ShardButtonsByType shardButtons;
 
-        private EventBus Events =>  ServiceContainer.Get<EventBus>();
-        private State State =>  ServiceContainer.Get<State>();
-        private Shard_Calculator Calc =>  ServiceContainer.Get<Shard_Calculator>();
-        private Shard_Service ShardService =>  ServiceContainer.Get<Shard_Service>();
+        #region DI
+        private EventBus _events;
+        private EventBus Events => _events ??= ServiceContainer.Get<EventBus>();
+        
+        private State _state;
+        private State State =>  _state ??= ServiceContainer.Get<State>();
+        
+        private ShardStore_State _stateEx;
+        private ShardStore_State StoreState =>  _stateEx ??= State.Ex<ShardStore_State>();
+        
+        private Shard_Calculator _calc;
+        private Shard_Calculator Calc => _calc ??= ServiceContainer.Get<Shard_Calculator>();
+        
+        private Shard_Service _shardService;
+        private Shard_Service ShardService => _shardService ??= ServiceContainer.Get<Shard_Service>();
+        #endregion
         
         private void Start()
         {
             grid ??= GetComponent<GridLayoutGroup>();
             closeButton.onClick.AddListener(OnClose);
-            levelDown.onClick.AddListener(delegate { ChangeLevel(-1); });
-            levelUp.onClick.AddListener(delegate { ChangeLevel(1); });
+            levelDown.onClick.AddListener(StoreState.ReduceLevel);
+            levelUp.onClick.AddListener(StoreState.IncreaseLevel);
             
-            Events.unique.ListenTo<Event_ShardStore_StateChanged>(OnStateChanged);
+            Events.unique.ListenTo<Event_StateChanged>(OnStateChanged);
+            Events.unique.ListenTo<Event_ShardStore_StateChanged>(OnStoreStateChanged);
             Events.unique.ListenTo<Event_LevelFinished>(OnLevelFinished);
-            Events.unique.ListenTo<Event_YouDied>(OnYouDied);
+            Events.unique.RemoveListener<Command_LoadLevel>(OnLevelLoad);
+
+            for (var index = 0; index < grid.transform.childCount; index++)
+            {
+                var go = grid.transform.GetChild(index).gameObject;
+                var b = go.GetComponent<UI_Shard_Button>();
+                b.OnPointerClicked.RemoveAllListeners();
+                b.OnPointerEntered.RemoveAllListeners();
+                b.OnPointerExited.RemoveAllListeners();
+                Destroy(go);
+            }
+        }
+        
+        private void OnDestroy()
+        {
+            Events.unique.RemoveListener<Event_StateChanged>(OnStateChanged);
+            Events.unique.RemoveListener<Event_ShardStore_StateChanged>(OnStoreStateChanged);
+            Events.unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
             
             for (var index = 0; index < grid.transform.childCount; index++)
             {
                 var go = grid.transform.GetChild(index).gameObject;
-                var b = go.GetComponent<ShardUIButton>();
-                b.onPointerClicked.RemoveAllListeners();
-                b.onPointerEntered.RemoveAllListeners();
-                b.onPointerExited.RemoveAllListeners();
+                var b = go.GetComponent<UI_Shard_Button>();
+                b.OnPointerClicked.RemoveAllListeners();
+                b.OnPointerEntered.RemoveAllListeners();
+                b.OnPointerExited.RemoveAllListeners();
                 Destroy(go);
             }
-        }
 
-        private void OnYouDied(ref Event_YouDied obj)
+            closeButton.onClick.RemoveAllListeners();
+            levelDown.onClick.RemoveListener(StoreState.IncreaseLevel);
+            levelUp.onClick.RemoveListener(StoreState.ReduceLevel);
+            levelUp.onClick.RemoveAllListeners();
+            levelDown.onClick.RemoveAllListeners();
+            State.Ex<ShardCollection_State>().Clear();
+        }
+        
+        // ----------------------------------------------------------------
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void OnStateChanged(ref Event_StateChanged ev)
         {
-            Hide();
+            if (ev.lives && State.IsDead()) Hide();
         }
 
-        private void OnLevelFinished(ref Event_LevelFinished obj)
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void OnLevelLoad(ref Command_LoadLevel item) => Hide();
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void OnLevelFinished(ref Event_LevelFinished obj) => Hide();
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void Hide()
         {
-            Hide();
+            StoreState.SetVisible(false);
+            gameObject.SetActive(false);
         }
 
-        private void OnStateChanged(ref Event_ShardStore_StateChanged e)
+        private void OnStoreStateChanged(ref Event_ShardStore_StateChanged e)
         {
             if (e.IsEmpty()) return;
 
-            if (e.items)
+            if (e.items || e.level)
             {
                 Refresh();
             }
 
-            var s = State.Ex<ShardStore_StateEx>();
+            if (e.level)
+            {
+                RefreshLevel();
+            }
 
             var pos = transform.position;
-            if (!FloatUtils.IsEquals(s.GetX(), pos.x))
+            if (!FloatUtils.IsEquals(StoreState.GetX(), pos.x))
             {
-                pos.x = s.GetX();
+                pos.x = StoreState.GetX();
                 transform.position = pos;
             }
 
-            if (e.visible && gameObject.activeSelf != s.GetVisible())
+            if (e.visible && gameObject.activeSelf != StoreState.GetVisible())
             {
-                gameObject.SetActive(s.GetVisible());
-                if (s.GetVisible())
+                gameObject.SetActive(StoreState.GetVisible());
+                if (StoreState.GetVisible())
                 {
                     for (var index = 0; index < grid.transform.childCount; index++)
                     {
-                        grid.transform.GetChild(index).GetComponent<ShardUIButton>().Refresh();
+                        grid.transform.GetChild(index).GetComponent<UI_Shard_Button>().Refresh();
                     }
                 }
             }
         }
 
-        private void Hide()
-        {
-            State.Ex<ShardStore_StateEx>().SetVisible(false);
-            gameObject.SetActive(false);
-        }
-
         private void Refresh()
         {
-            var s = State.Ex<ShardStore_StateEx>();
+            var s = StoreState;
             
-            var length = s.GetItems().Count;
+            var count = s.GetCount();
 
             var tr = transform;
-            var gridWidth = (grid.cellSize.x + grid.spacing.x * 2) * (length + 1);
+            var gridWidth = (grid.cellSize.x + grid.spacing.x * 2) * (count + 1);
             ((RectTransform)(tr)).SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, gridWidth);
+            
+            shardButtons.Clear();
 
             var fisicCount = grid.transform.childCount;
-            var index = 0;
-            foreach (var item in s.GetItems())
+            
+            for (var idx = 0; idx < count; idx++)
             {
-                var isNew = index >= fisicCount;
+                ref var item = ref StoreState.GetItem(idx);
+                
+                var isNew = idx >= fisicCount;
 
                 var go = isNew 
                     ? Instantiate(buttonPrefab, grid.transform)
-                    : grid.transform.GetChild(index).gameObject;
+                    : grid.transform.GetChild(idx).gameObject;
 
-                var ui = go.GetComponent<ShardUIButton>();
+                var ui = go.GetComponent<UI_Shard_Button>();
+
+                shardButtons.Set(item.shardType, ui);
 
                 if (isNew)
                 {
-                    ui.onPointerClicked.AddListener(delegate { OnShardPointerClicked(ui); });
-                    ui.onPointerEntered.AddListener(delegate { OnShardPointerEntered(ui); });
-                    ui.onPointerExited.AddListener(delegate { OnShardPointerExited(ui); });
+                    var storeItem = item;
+                    ui.OnPointerClicked.AddListener(delegate { OnShardPointerClicked(storeItem.shardType); });
+                    ui.OnPointerEntered.AddListener(delegate { OnShardPointerEntered(storeItem.shardType); });
+                    ui.OnPointerExited.AddListener(delegate { OnShardPointerExited(storeItem.shardType); });
                 }
 
-                ref var shard = ref ui.GetShard();
-                ShardUtils.Clear(ref shard);
-                ShardUtils.Set(ref shard, item.shardType, (byte)Calc.GetQuantityForLevel(level));
-                ShardService.PrecalcAllCosts(ref shard);
+                var level = StoreState.GetLevel();
 
+                if (item.shard.level != level)
+                {
+                    ShardUtils.Set(ref item.shard, item.shardType, (byte)Calc.GetQuantityForLevel(level));
+                    ShardService.PrecalcAllData(ref item.shard);
+                    StoreState.ItemUpdated(item.shardType);
+                }
+                
                 ui.showPlus = false;
-                ui.cost = shard.cost;
+                ui.price = item.shard.price;
                 ui.hasShard = tr;
-                ui.SetShard(ref shard);
+                ui.SetShard(ref item.shard);
                 ui.Refresh();
-
-                index++;
             }
 
-            for (; index < fisicCount; index++)
+            for (var idx = count; idx < fisicCount; idx++)
             {
-                var go = grid.transform.GetChild(index).gameObject;
-                var b = go.GetComponent<ShardUIButton>();
-                b.onPointerClicked.RemoveAllListeners();
-                b.onPointerEntered.RemoveAllListeners();
-                b.onPointerExited.RemoveAllListeners();
+                var go = grid.transform.GetChild(idx).gameObject;
+                var b = go.GetComponent<UI_Shard_Button>();
+                b.OnPointerClicked.RemoveAllListeners();
+                b.OnPointerEntered.RemoveAllListeners();
+                b.OnPointerExited.RemoveAllListeners();
                 Destroy(go);
             }
         }
 
-        private void OnShardPointerEntered(ShardUIButton shardUIButton)
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void OnShardPointerEntered(ShardTypes shardType)
         {
-            var infoPanel = State.Ex<InfoPanel_StateExtension>();
-            var coll = State.Ex<ShardCollection_StateExtension>();
+            if (!StoreState.HasItem(shardType)) return;
+            StoreState.SetHovered(shardType);
+        }
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void OnShardPointerExited(ShardTypes _) => StoreState.SetHoveredIndex(-1);
+
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void OnShardPointerClicked(ShardTypes shardType)
+        {
+            Debug.Log("OnShardPointerClicked: " + shardType);
             
-            ref var shard = ref shardUIButton.GetShard();
-            coll.SetHoveredItem(shardUIButton);
+            var shardButton = shardButtons.Get(shardType);
+            if (!shardButton || !shardButton.hasShard) return;
 
-            infoPanel.Clear();
-            infoPanel.SetShard(ref shard);
-            infoPanel.SetTitle("Buying shard");
-            infoPanel.SetPrice(shard.cost);
-            infoPanel.SetVisible(true);
+            ref var cmd = ref Events.global.Add<Command_BuyShard>();
+            cmd.shard = shardButton.GetShard();
         }
 
-        private void OnShardPointerExited(ShardUIButton shardButton)
-        {
-            var si = State.Ex<InfoPanel_StateExtension>();
-            var sc = State.Ex<ShardCollection_StateExtension>();
-
-            if (sc.GetHoveredItem() == shardButton)
-            {
-                sc.SetHoveredItem(null);
-                if (
-                    si.HasShard() && 
-                    CommonUtils.IdsIsEquals(si.GetShard()._id_, shardButton.GetShard()._id_)
-                )
-                {
-                    si.Clear();
-                }
-            }
-        }
-
-        private void OnShardPointerClicked(ShardUIButton shardButton)
-        {
-            var si = State.Ex<InfoPanel_StateExtension>();
-            var sc = State.Ex<ShardCollection_StateExtension>();
-            var s = State.Ex<ShardStore_StateEx>();
-
-            if (
-                !shardButton.hasShard ||
-                shardButton.cost <= 0 ||
-                State.GetEnergy() < shardButton.cost ||
-                sc.GetItems().Count + 1 > sc.GetMaxItems()
-            ) return;
-
-            var newShard = shardButton.GetShard().MakeCopy();
-
-            State.SetEnergy(State.GetEnergy() - shardButton.cost);
-
-            // state.ShardStore.Remove(state.ShardStore[index]);
-            sc.AddItem(ref newShard);
-
-            // state.RefreshShardStore();
-            sc.UpdateItems();
-            
-            s.SetVisible(false);
-        }
-
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private void RefreshLevel()
         {
-            levelText.text = level.ToString();
+            levelText.text = StoreState.GetLevel().ToString();
         }
 
-        private void ChangeLevel(int l)
-        {
-            var newLevel = MathFast.Clamp(level + l, 1, 10);
-            if (level == newLevel) return;
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void OnClose() => StoreState.SetVisible(false);
+    }
 
-            level = (byte)newLevel;
-            RefreshLevel();
-            Refresh();
+    internal struct ShardButtonsByType {
+        [CanBeNull] private UI_Shard_Button red;
+        [CanBeNull] private UI_Shard_Button green;
+        [CanBeNull] private UI_Shard_Button blue;
+        [CanBeNull] private UI_Shard_Button yellow;
+        [CanBeNull] private UI_Shard_Button orange;
+        [CanBeNull] private UI_Shard_Button pink;
+        [CanBeNull] private UI_Shard_Button violet;
+        [CanBeNull] private UI_Shard_Button aquamarine;
+
+        public void Clear()
+        {
+            red = null;
+            green = null;
+            blue = null;
+            yellow = null;
+            orange = null;
+            pink = null;
+            violet = null;
+            aquamarine = null;
         }
 
-        private void OnClose()
+        public void Set(ShardTypes shardType, UI_Shard_Button ui)
         {
-            State.Ex<ShardStore_StateEx>().SetVisible(false);
-        }
-
-        private void OnDestroy()
-        {
-            Events.unique.RemoveListener<Event_ShardStore_StateChanged>(OnStateChanged);
-            Events.unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
-            Events.unique.RemoveListener<Event_YouDied>(OnYouDied);
-            
-            for (var index = 0; index < grid.transform.childCount; index++)
+            switch (shardType)
             {
-                var go = grid.transform.GetChild(index).gameObject;
-                var b = go.GetComponent<ShardUIButton>();
-                b.onPointerClicked.RemoveAllListeners();
-                b.onPointerEntered.RemoveAllListeners();
-                b.onPointerExited.RemoveAllListeners();
-                Destroy(go);
+                case ShardTypes.Red:
+                    red = ui;
+                    break;
+                case ShardTypes.Green:
+                    green = ui;
+                    break;
+                case ShardTypes.Blue:
+                    blue = ui;
+                    break;
+                case ShardTypes.Yellow:
+                    yellow = ui;
+                    break;
+                case ShardTypes.Orange:
+                    orange = ui;
+                    break;
+                case ShardTypes.Pink:
+                    pink = ui;
+                    break;
+                case ShardTypes.Violet:
+                    violet = ui;
+                    break;
+                case ShardTypes.Aquamarine:
+                    aquamarine = ui;
+                    break;
+                default:
+                    break;
             }
-
-            closeButton.onClick.RemoveAllListeners();
-            levelUp.onClick.RemoveAllListeners();
-            levelDown.onClick.RemoveAllListeners();
-            State.Ex<ShardCollection_StateExtension>().Clear();
-        }
+        }       
+        
+        public UI_Shard_Button Get(ShardTypes shardType) =>
+            shardType switch
+            {
+                ShardTypes.Red => red,
+                ShardTypes.Green => green,
+                ShardTypes.Blue => blue,
+                ShardTypes.Yellow => yellow,
+                ShardTypes.Orange => orange,
+                ShardTypes.Pink => pink,
+                ShardTypes.Violet => violet,
+                ShardTypes.Aquamarine => aquamarine,
+                _ => null
+            };
     }
 }

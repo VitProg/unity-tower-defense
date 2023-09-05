@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using td.features.enemy.components;
 using td.features.level.cells;
 using td.utils;
@@ -9,13 +10,16 @@ namespace td.features.enemy
 {
     public static class Enemy_Utils
     {
-        public static Vector2 CalcPosition(int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static float2 CalcPosition(int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
             HexGridUtils.CellToPosition(cellCoordinates) + (Vector2)(rotation * offset);
         
-        public static Vector2 CalcPosition(ref int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static float2 CalcPosition(ref int2 cellCoordinates, Quaternion rotation, Vector2 offset) =>
             HexGridUtils.CellToPosition(ref cellCoordinates) + (Vector2)(rotation * offset);
         
-        public static Vector2 CalcPosition(int cellX, int cellY, Quaternion rotation, Vector2 offset) =>
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        public static float2 CalcPosition(int cellX, int cellY, Quaternion rotation, Vector2 offset) =>
             HexGridUtils.CellToPosition(cellX, cellY) + (Vector2)(rotation * offset);
 
         private static readonly Dictionary<HexDirections, Quaternion> AngleQuaternions =
@@ -30,6 +34,7 @@ namespace td.features.enemy
             }; 
         
         //todo optimize
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static Quaternion LookToNextCell(ref Cell current, ref Cell next)
         {
             // N 0
@@ -43,6 +48,7 @@ namespace td.features.enemy
             return AngleQuaternions[direction];
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public static float GetAngularSpeed(ref Enemy enemy) =>
             enemy.angularSpeed > Constants.Enemy.MinAngularSpeed
                 ? enemy.angularSpeed

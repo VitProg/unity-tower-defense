@@ -10,6 +10,6 @@ public float speed=10;
 	void Update ()
 	{
 		if(canRotate)
-		  transform.Rotate(speed*Vector3.forward*Time.deltaTime);
+		  transform.Rotate(Vector3.forward * (speed * Time.deltaTime));
 	}
 }

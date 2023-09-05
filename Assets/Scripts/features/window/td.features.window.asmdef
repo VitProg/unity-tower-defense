@@ -1,0 +1,25 @@
+{
+    "name": "td.features.window",
+    "rootNamespace": "td.features.window",
+    "references": [
+        "UniTask",
+        "NaughtyAttributes.Core",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "Leopotam.Types",
+        "td.features.state",
+        "td.features.eventBus",
+        "td.utils",
+        "td.features.prefab",
+        "td.features.level"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

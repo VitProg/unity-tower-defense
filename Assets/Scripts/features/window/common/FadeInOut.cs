@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using Leopotam.Types;
 using NaughtyAttributes;
 using td.utils;
@@ -59,7 +59,7 @@ namespace td.features.window.common
         }
         
         [Button]
-        public async Task FadeIn(bool immediately = false)
+        public async UniTask FadeIn(bool immediately = false)
         {
             gameObject.SetActive(true);
             state = MenuState.FadeIn;
@@ -79,7 +79,7 @@ namespace td.features.window.common
                 alpha = MathFast.Lerp(min, max, t);
                 UpdateAlpha();
                 if (state != MenuState.FadeIn || progress > 1f) break;
-                await Task.Yield();
+                await UniTask.Yield();
             }
             
             if (state != MenuState.FadeIn) return;
@@ -90,7 +90,7 @@ namespace td.features.window.common
         }
 
         [Button]
-        public async Task FadeOut(bool immediately = false)
+        public async UniTask FadeOut(bool immediately = false)
         {
             gameObject.SetActive(true);
             state = MenuState.FadeOut;
@@ -111,7 +111,7 @@ namespace td.features.window.common
                 alpha = MathFast.Lerp(max, min, t);
                 UpdateAlpha();
                 if (state != MenuState.FadeOut || progress > 1f) break;
-                await Task.Yield();
+                await UniTask.Yield();
             }
 
             if (state != MenuState.FadeOut) return;

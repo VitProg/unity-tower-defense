@@ -5,6 +5,6 @@ namespace td.features.shard.shardStore
     public struct ShardStore_Item
     {
         public ShardTypes shardType;
-        public uint cost;
+        public Shard shard;
     }
 }

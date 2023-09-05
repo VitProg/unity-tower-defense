@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Leopotam.EcsProto;
 using td.features._common;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td.features.enemy.components
 {
@@ -26,7 +27,7 @@ namespace td.features.enemy.components
 
         public Vector2 offset;
         
-        public int spawmNumber;
+        [FormerlySerializedAs("spawmNumber")] public int spawnPoinsNumber;
         public float startingSpeed;
         public float startingHealth;
         public float angularSpeed;

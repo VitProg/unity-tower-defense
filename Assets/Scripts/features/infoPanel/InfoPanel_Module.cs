@@ -1,12 +1,11 @@
-﻿using System;
-using Leopotam.EcsProto;
-using td.features.eventBus;
-using td.features.infoPanel.bus;
+﻿using Leopotam.EcsProto;
+using td.features.infoPanel.systems;
 using td.features.state;
+using td.features.state.interfaces;
 
 namespace td.features.infoPanel
 {
-    public class InfoPanel_Module : IProtoModuleWithEvents, IProtoModuleWithStateEx
+    public class InfoPanel_Module : IProtoModuleWithStateEx
     {
         public void Init(IProtoSystems systems)
         {
@@ -27,11 +26,6 @@ namespace td.features.infoPanel
             return null;
         }
 
-        public IStateExtension StateEx() => new InfoPanel_StateExtension();
-
-        public Type[] Events() => Ev.E<
-            Command_HideTowerInfo,
-            Command_ShowTowerInfo
-        >();
+        public IStateExtension StateEx() => new InfoPanel_State();
     }
 }

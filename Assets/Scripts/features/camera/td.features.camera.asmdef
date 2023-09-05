@@ -1,0 +1,24 @@
+{
+    "name": "td.features.camera",
+    "rootNamespace": "td.features.camera",
+    "references": [
+        "Unity.Mathematics",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "Leopotam.EcsProto.Unity",
+        "td.features.eventBus",
+        "td.utils",
+        "Com.LuisPedroFonseca.ProCamera2D",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Leopotam.Types"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

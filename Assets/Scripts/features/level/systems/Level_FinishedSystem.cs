@@ -9,7 +9,7 @@ namespace td.features.level.systems
 {
     public class Level_FinishedSystem : IProtoInitSystem, IProtoDestroySystem
     {
-        [DI] private State state;
+        [DI] private Level_State levelState;
         [DI] private EventBus events;
 
         public void Init(IProtoSystems systems)
@@ -26,19 +26,9 @@ namespace td.features.level.systems
 
         private void OnLevelFinished(ref Event_LevelFinished _)
         {
-            var spawnSequenceCount = state.GetActiveSpawnCount();
-            var enemiesCount = state.GetEnemiesCount();
-
-            if (
-                state.GetWaveNumber() + 1 >= state.GetWaveCount() &&
-                spawnSequenceCount <= 0 &&
-                enemiesCount <= 0
-            )
-            {
-                Debug.Log("LEVEL COMPLETE!!!");
-                //todo show Victory screen
-                events.unique.GetOrAdd<Command_LoadLevel>().levelNumber = (ushort)(state.GetLevelNumber() + 1);
-            }
+            Debug.Log("LEVEL COMPLETE!!!");
+            //todo show Victory screen
+            events.unique.GetOrAdd<Command_LoadLevel>().levelNumber = (ushort)(levelState.GetLevelNumber() + 1);
         }
     }
 }

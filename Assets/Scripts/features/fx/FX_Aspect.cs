@@ -38,7 +38,7 @@ namespace td.features.fx
             It.Exc<IsDestroyed, IsDisabled>()
         );
 
-        public ProtoItExc itEentityFallow = new(
+        public ProtoItExc itEntityFallow = new(
             It.Inc<IsEntityFallowFX, WithTargetEntityFX, WithDurationFX, WithTransformFX>(),
             It.Exc<IsDestroyed, IsDisabled>()
         );

@@ -15,7 +15,7 @@ namespace td.features.enemy
     {
         public ProtoPool<Enemy> enemyPool;
         public ProtoPool<IsEnemyDead> isEnemyDeadPool;
-        public ProtoPool<Enemy_Path> enemyPathPool;
+        public ProtoPool<Enemy_Route> enemyRoutePool;
         public ProtoPool<Ref<EnemyMonoBehaviour>> enemyRefMBPool;
         public ProtoPool<IsTargetReached> isTargetReachedPool;
 
@@ -24,13 +24,18 @@ namespace td.features.enemy
             It.Exc<IsDestroyed, IsDisabled, IsEnemyDead>()
         );     
         
+        public ProtoItExcCached itCachedLivingEnemies = new ProtoItExcCached(
+            It.Inc<Enemy, ObjectTransform>(),
+            It.Exc<IsDestroyed, IsDisabled, IsEnemyDead>()
+        );     
+        
         public ProtoItExc itMovementEnemies = new(
-            It.Inc<Enemy, ObjectTransform, Enemy_Path, Movement>(),
+            It.Inc<Enemy, ObjectTransform, Enemy_Route, Movement>(),
             It.Exc<IsDestroyed, IsDisabled, IsEnemyDead>()
         );
 
         public ProtoItExc itEnemiesReachingCell = new(
-            It.Inc<Enemy, IsTargetReached, Movement, ObjectTransform, Enemy_Path>(),
+            It.Inc<Enemy, IsTargetReached, Movement, ObjectTransform, Enemy_Route>(),
             It.Exc<IsDestroyed, IsDisabled, IsEnemyDead>()
         );
         
@@ -38,7 +43,7 @@ namespace td.features.enemy
             .Chain<Enemy>()
             .Inc<Movement>()
             .Inc<ObjectTransform>()
-            .Inc<Enemy_Path>()
+            .Inc<Enemy_Route>()
             .Exc<IsSmoothRotation>()
             .Exc<IsDestroyed>()
             .Exc<IsDisabled>()

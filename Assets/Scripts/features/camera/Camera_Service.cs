@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using Cinemachine;
+// using Cinemachine;
+using Com.LuisPedroFonseca.ProCamera2D;
+using td.utils;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.Rendering.Universal;
 
 namespace td.features.camera
@@ -13,16 +12,23 @@ namespace td.features.camera
     {
         private readonly Camera mainCamera;
         private readonly Camera canvasCamera;
-        private readonly CinemachineVirtualCamera virtualCamera;
+        // private readonly CinemachineVirtualCamera virtualCamera;
+        private readonly ProCamera2D proCamera2D;
+        private readonly ProCamera2DNumericBoundaries numericBoundaries;
+        private readonly ProCamera2DPanAndZoom panAndZoom;
+        private readonly ProCamera2DShake shake;
         private readonly Canvas canvas;
-        
-        public bool IsPerspectiveCameraMode() =>
+
+        public bool IsPerspectiveCameraMode() => false;/*
             virtualCamera && mainCamera && 
-            !(virtualCamera.m_Lens.Orthographic || mainCamera.orthographic);
+            !(virtualCamera.m_Lens.Orthographic || mainCamera.orthographic);*/
 
         public Camera GetMainCamera() => mainCamera;
         public Camera GetCanvasCamera() => canvasCamera;
-        public CinemachineVirtualCamera GetVirtualCamera() => virtualCamera;
+        // public CinemachineVirtualCamera GetVirtualCamera() => virtualCamera;
+        public ProCamera2D GetProCamera2D() => proCamera2D;
+        // public ProCamera2DPanAndZoom GetPanAndZoom() => panAndZoom;
+        // public ProCamera2DNumericBoundaries GetNumericBoundaries() => numericBoundaries;
         public Canvas GetCanvas() => canvas;
 
         public Camera_Service()
@@ -39,7 +45,11 @@ namespace td.features.camera
 #if UNITY_EDITOR
                         if (mainCamera != null) throw new Exception($"На сцене не может быть более одной основной камеры");
 #endif
-                        mainCamera = camera;
+                        mainCamera = camera;  
+                        proCamera2D = cameraGO.GetComponent<ProCamera2D>();
+                        numericBoundaries = proCamera2D.GetComponent<ProCamera2DNumericBoundaries>();
+                        panAndZoom = proCamera2D.GetComponent<ProCamera2DPanAndZoom>();
+                        shake = proCamera2D.GetComponent<ProCamera2DShake>();
                     }
 
                     if (data.renderType == CameraRenderType.Overlay)
@@ -50,10 +60,10 @@ namespace td.features.camera
                         canvasCamera = camera;
                     }
                 }
-                else 
-                {
-                    virtualCamera = cameraGO.GetComponent<CinemachineVirtualCamera>();
-                }
+                // else 
+                // {
+                    // virtualCamera = cameraGO.GetComponent<CinemachineVirtualCamera>();
+                // }
             }
 
             var canvasGO = GameObject.FindGameObjectWithTag(Constants.Tags.MainCanvas);
@@ -61,12 +71,15 @@ namespace td.features.camera
             {
                 canvas = canvasGO.GetComponent<Canvas>();
             }
-            
+
 #if UNITY_EDITOR
-            if (mainCamera == null) throw new Exception($"На сцене не найдена основная камера");
-            if (canvasCamera == null) throw new Exception($"На сцене не найдена overlay/canvas камера");
-            if (virtualCamera == null) throw new Exception($"На сцене не найдена CinemachineVirtualCamera");
-            if (canvas == null) throw new Exception($"На сцене не найден главный Canvas");
+            if (mainCamera == null) throw new Exception($"No main camera is found on the scene");
+            if (canvasCamera == null) throw new Exception($"No overlay/canvas camera found on scene");
+            // if (virtualCamera == null) throw new Exception($"На сцене не найдена CinemachineVirtualCamera");
+            if (proCamera2D == null) throw new Exception($"No ProCamera2D found on scene");
+            if (numericBoundaries == null) throw new Exception($"Numberic Boundaries extension is not attached to ProCamera2D");
+            if (panAndZoom == null) throw new Exception($"Pan And Zoom extension is not attached to ProCamera2D");
+            if (canvas == null) throw new Exception($"No main Canvas is found on the scene");
 #endif
         }
 
@@ -100,13 +113,17 @@ namespace td.features.camera
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public Vector2 ScreenToMain(Vector2 point)
         {
-            return mainCamera.ScreenToWorldPoint(point);
+            var v = mainCamera.ScreenToWorldPoint(point);
+            v.z = 0f;
+            return v;
         }
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public Vector2 ScreenToCanves(Vector2 point)
+        public Vector2 ScreenToCanves(Vector2 point, float z = 0f)
         {
-            return canvasCamera.ScreenToWorldPoint(point);
+            var p = canvasCamera.ScreenToWorldPoint(point);
+            p.z = z;
+            return p;
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
@@ -131,6 +148,57 @@ namespace td.features.camera
         public Vector2 ViewportToCanves(Vector2 point)
         {
             return canvasCamera.ViewportToWorldPoint(point);
+        }
+        
+        //
+
+        public void SetBoundingRect(float minX, float maxX, float minY, float maxY)
+        {
+            numericBoundaries.LeftBoundary = minX;
+            numericBoundaries.RightBoundary = maxX;
+            numericBoundaries.TopBoundary = maxY;
+            numericBoundaries.BottomBoundary = minY;
+        }
+        public void SetBoundingRect(Rect rect)
+        {
+            numericBoundaries.LeftBoundary = rect.xMin;
+            numericBoundaries.RightBoundary = rect.xMax;
+            numericBoundaries.TopBoundary = rect.yMax;
+            numericBoundaries.BottomBoundary = rect.yMin;
+        }
+
+        public void MoveTo(Vector2 position, bool immediatly)
+        {
+            if (immediatly)
+            {
+                proCamera2D.MoveCameraInstantlyToPosition(position);
+            }
+            else
+            {
+                // todo ApplyInfluence...
+            }
+        }
+
+        public void Shake(ShakeType type)
+        {
+            shake.Shake(type.ToString());
+        }
+        
+        public enum ShakeType
+        {
+            KernelDamage,
+        }
+
+        public void MutePanAndZoom()
+        {
+            panAndZoom.AllowPan = false;
+            panAndZoom.AllowZoom = false;
+        }
+
+        public void ResumePanAndZoom()
+        {
+            panAndZoom.AllowPan = true;
+            panAndZoom.AllowZoom = true;
         }
     }
 }

@@ -1,9 +1,15 @@
 ﻿{
   "levelNumber": 2,
-  "delayBeforeFirstWave": 3,
-  "delayBetweenWaves": 3,
+  
   "lives": 10.0,
-  "startedEnergy": 1000000,
+  "maxLives": 10.0,
+  
+  "energy": 1000000,
+  "maxEnergy": 1000000,
+
+  "delayBeforeFirstWave": 10,
+  "delayBetweenWaves": 3,
+
   "maxShards": 10,
   "shardsStore": {
     "red": false,
@@ -15,7 +21,7 @@
     "pink": true,
     "violet": true
   },
-  "shardsCost": {
+  "shardsPrice": {
     "red": 10,
     "green": 10,
     "blue": 20,

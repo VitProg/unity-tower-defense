@@ -2,6 +2,7 @@
 using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using td.features.fx.types;
+using td.utils;
 using td.utils.ecs;
 using UnityEngine;
 

@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+﻿using Unity.Mathematics;
 
 namespace td.features.impactEnemy.components
 {
     public struct ShockingDebuff
     {
         public float timeRemains;
-        public Vector3 originalPosition;
+        public float2 originalPosition;
         public float shiftPositionTimeRemains;
         public bool started;
     }

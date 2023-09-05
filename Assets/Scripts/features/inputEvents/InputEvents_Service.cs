@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using Leopotam.EcsProto.QoL;
 using td.features._common.components;
+using td.features._common.interfaces;
 using td.features.inputEvents.components;
 using td.utils.ecs;
-using Unity.Burst.Intrinsics;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -14,15 +14,15 @@ namespace td.features.inputEvents
     {
         [DI] private InputEvents_Aspect aspect;
 
-        public bool HasCicleCollider(int entity) => aspect.cicleColliderPool.Has(entity);
-        public ref CicleCollider GetCicleCollider(int entity) => ref aspect.cicleColliderPool.GetOrAdd(entity);
-        public void DelCicleCollider(int entity) => aspect.cicleColliderPool.Del(entity);
+        // public bool HasCicleCollider(int entity) => aspect.cicleColliderPool.Has(entity);
+        // public ref CicleCollider GetCicleCollider(int entity) => ref aspect.cicleColliderPool.GetOrAdd(entity);
+        // public void DelCicleCollider(int entity) => aspect.cicleColliderPool.Del(entity);
 
-        public bool HasHandlers(int entity) => aspect.refPointerHandlersPool.Has(entity) &&
-                                               aspect.refPointerHandlersPool.Get(entity).references != null &&
-                                               aspect.refPointerHandlersPool.Get(entity).count > 0;
+        // public bool HasHandlers(int entity) => aspect.refPointerHandlersPool.Has(entity) &&
+                                               // aspect.refPointerHandlersPool.Get(entity).references != null &&
+                                               // aspect.refPointerHandlersPool.Get(entity).count > 0;
         
-        public ref HexCellCollider GetHexCellCollider(int entity) => ref aspect.hexCellColliderPool.GetOrAdd(entity);
+        // public ref HexCellCollider GetHexCellCollider(int entity) => ref aspect.hexCellColliderPool.GetOrAdd(entity);
 
         public void AddHandler(int entity, IInputEventsHandler handler)
         {
@@ -47,11 +47,7 @@ namespace td.features.inputEvents
                 many.count++;
             }
         }
-        // public void RemoveHandler(int entity, IInputEventsHandler handler)
-        // {
-        //     if (GetRefHandlers(entity).references == null) GetRefHandlers(entity).references = new List<IInputEventsHandler>();
-        //     if (GetRefHandlers(entity).references.Contains(handler)) GetRefHandlers(entity).references.Remove(handler);
-        // }
+
         public void ClearHandler(int entity, IInputEventsHandler handler)
         {
             ref var many = ref GetRefHandlers(entity);
@@ -78,13 +74,46 @@ namespace td.features.inputEvents
             pointerData.position = screenCoords;
             raycastResults.Clear();
             EventSystem.current.RaycastAll(pointerData, raycastResults);
+            // Debug.Log("EventSystem.current.currentSelectedGameObject = " + EventSystem.current.currentSelectedGameObject);
+            // Debug.Log("EventSystem.current.firstSelectedGameObject = " + EventSystem.current.firstSelectedGameObject);
+            
+            var modules = RaycasterManager.GetRaycasters();
+            var modulesCount = modules.Count;
+            for (int i = 0; i < modulesCount; ++i)
+            {
+                var module = modules[i];
+                if (module == null || !module.IsActive())
+                    continue;
+
+                module.Raycast(pointerData, raycastResults);
+            }
+            
         }
 
 
         public bool HasUIUnderScreenCoords(in Vector2 screenCoords)
         {
-            GetAllCanvasElementsByScreenCoords(screenCoords, raycastResults);
-            return raycastResults.Count > 0;
+            // raycastResults.Clear();
+            // GetAllCanvasElementsByScreenCoords(screenCoords, raycastResults);
+            // return raycastResults.Count > 0;
+            pointerData.position = screenCoords;
+            var modules = RaycasterManager.GetRaycasters();
+            var modulesCount = modules.Count;
+            for (var i = 0; i < modulesCount; ++i)
+            {
+                var module = modules[i];
+                if (module == null || !module.IsActive())
+                    continue;
+
+                module.Raycast(pointerData, raycastResults);
+                if (raycastResults.Count > 0)
+                {
+                    raycastResults.Clear();
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

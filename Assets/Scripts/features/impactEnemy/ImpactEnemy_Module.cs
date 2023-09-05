@@ -18,6 +18,7 @@ namespace td.features.impactEnemy
                 .AddSystem(new ShockingDebuffSystem())
                 .AddSystem(new SpeedDebuffSystem())
                 .AddSystem(new TakeDamageSystem())
+                .AddSystem(new ImpactEnemy_ClearSystem())
                 //
                 .AddService(new ImpactEnemy_Service(), true);
         }

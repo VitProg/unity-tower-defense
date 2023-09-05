@@ -18,15 +18,22 @@ namespace td.utils
             return inCameraPos;
         }
 
-        public static void FixAnchoeredPosition(this Transform transform)
+        public static void FixAnchoredPosition(this Transform transform)
         {
             var rectTransform = ((RectTransform)transform);
             var ap = rectTransform.anchoredPosition3D;
             rectTransform.anchoredPosition3D = new Vector3(ap.x, ap.y, 0.0f);
         }
         
-        public static void FixAnchoeredPosition(this RectTransform rectTransform)
+        public static void FixAnchoredPosition(this RectTransform rectTransform)
         {
+            var ap = rectTransform.anchoredPosition3D;
+            rectTransform.anchoredPosition3D = new Vector3(ap.x, ap.y, 0.0f);
+        }
+        
+        public static void SetPositionAndFixAnchoredPosition(this RectTransform rectTransform, Vector3 posistion)
+        {
+            rectTransform.position = posistion;
             var ap = rectTransform.anchoredPosition3D;
             rectTransform.anchoredPosition3D = new Vector3(ap.x, ap.y, 0.0f);
         }

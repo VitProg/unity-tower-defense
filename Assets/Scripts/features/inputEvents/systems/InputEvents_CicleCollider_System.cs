@@ -16,7 +16,7 @@ namespace td.features.inputEvents.systems
 
         public void Run()
         {
-            var pointerPosition = (Vector2)CameraUtils.TransformPointToCameraSpace(cameraService.GetMainCamera(), Input.mousePosition);
+            var pointerPosition = CameraUtils.TransformPointToCameraSpace(cameraService.GetMainCamera(), Input.mousePosition).ToFloat2();
             
             var mouseButtonLeft = Input.GetMouseButton(0);
             var mouseButtonLeftDown = Input.GetMouseButtonDown(0);
@@ -45,9 +45,9 @@ namespace td.features.inputEvents.systems
 
                     if (FloatUtils.IsEquals(size.yScale, 1f))
                     {
-                        var sqrDistanseToPointer = (pointerPosition - position).sqrMagnitude;
+                        var sqrDistanseToPointer = (pointerPosition - position).SqrMagnitude();
                         var sqrDistanseToTouch =
-                            hasTouch ? (touchPosition.Value - position).sqrMagnitude : float.MaxValue;
+                            hasTouch ? (touchPosition.Value - position.ToVector2()).sqrMagnitude : float.MaxValue;
                         inRadius = sqrDistanseToPointer < size.sqrRadius || sqrDistanseToTouch < size.sqrRadius;
                     }
                     else

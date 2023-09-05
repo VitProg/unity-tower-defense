@@ -5,17 +5,15 @@ using System;
 using System.Runtime.CompilerServices;
 using Leopotam.EcsProto.QoL;
 using td.features.eventBus;
-using td.features.state;
+using td.features.state.interfaces;
 using td.utils;
 using Unity.Mathematics;
 using UnityEngine.UIElements;
 
 namespace td.features.building.buildingShop.state
 {
-
     [Serializable]
-    public class BuildingShop_StateEx : IStateExtension
-    {
+    public class BuildingShop_StateEx : IStateExtension {
         [DI] private readonly EventBus events;
         private static Type evType = typeof(Event_BuildingShop_StateChanged);
         private Event_BuildingShop_StateChanged ev;
@@ -106,6 +104,9 @@ namespace td.features.building.buildingShop.state
         public void Refresh() => ev.All();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RefreshItems() => ev.items = true;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()
         {
             visible = false;
@@ -116,26 +117,23 @@ namespace td.features.building.buildingShop.state
         }
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SendChanges()
+        public bool SendChanges()
         {
-            if (!ev.IsEmpty())
-            {
-                events.unique.GetOrAdd<Event_BuildingShop_StateChanged>() = ev;
-            }
+            if (ev.IsEmpty()) return false;
+            events.unique.GetOrAdd<Event_BuildingShop_StateChanged>() = ev;
             ev = default;
+            return true;
         }
 
 #if UNITY_EDITOR
+        public string GetStateName() => "Building Menu";
         public void DrawStateProperties(VisualElement root)
         {
-            EditorUtils.DrawTitle("Building Menu", true);
-            EditorGUI.indentLevel++;
             EditorUtils.DrawProperty("Visible", visible);
-            EditorUtils.DrawProperty("Cell Coords", cellCoords);
+            EditorUtils.DrawInt2("Cell Coords", cellCoords);
             
             if (EditorUtils.FoldoutBegin("building_shop_items", $"Items ({count})"))
             {
-                EditorGUI.indentLevel++;
                 for (var idx = 0; idx < count; idx++)
                 {
                     EditorGUILayout.LabelField($"[{idx}]");
@@ -145,10 +143,8 @@ namespace td.features.building.buildingShop.state
                     EditorUtils.DrawProperty("Build Time" , items[idx].buildTime);
                     EditorGUI.indentLevel--;
                 }
-                EditorGUI.indentLevel--;
+                EditorUtils.FoldoutEnd();
             }
-            
-            EditorGUI.indentLevel--;
         }
 #endif
     }

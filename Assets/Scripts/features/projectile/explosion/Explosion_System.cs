@@ -74,7 +74,7 @@ namespace td.features.projectile.explosion
                         var enemyEntity = enemiesInRadius.Get(idx);
                         var enemyPosition = movementService.GetTransform(enemyEntity).position;
 
-                        var sqrDistanse = (explosion.position - enemyPosition).sqrMagnitude;
+                        var sqrDistanse = (explosion.position - enemyPosition).SqrMagnitude();
 
                         if (sqrRadiusFrom <= sqrDistanse && sqrDistanse <= sqrRadiusTo)
                         {

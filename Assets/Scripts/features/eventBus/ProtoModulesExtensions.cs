@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
 using td.features.eventBus.types;
-using td.utils.ecs;
 
 namespace td.features.eventBus
 {
@@ -10,10 +10,10 @@ namespace td.features.eventBus
     {
         private static readonly Type EventType = typeof(IEvent);
         
-        public static List<Type> BuildEvents(this ProtoModulesEx self)
+        public static List<Type> BuildEvents(this ProtoModules self)
         {
             var events = new List<Type>(16);
-            var modules = self.AllModules();
+            var modules = self.Modules();
             foreach (var module in modules)
             {
                 if (module is IProtoModuleWithEvents eventsModule)

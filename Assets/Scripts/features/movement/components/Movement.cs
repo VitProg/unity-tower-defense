@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using Leopotam.Types;
 using td.utils;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.movement.components
@@ -9,14 +10,14 @@ namespace td.features.movement.components
     [Serializable]
     public struct Movement
     {
-        public Vector2 from;
-        public Vector2 target;
+        public float2 from;
+        public float2 target;
         public float fromToTargetDistanse;
-        public Vector2 nextTarget;
+        public float2 nextTarget;
         public float targetToNextDistanse;
         public float gapSqr;
         public float speed;
-        public Vector2 speedV;
+        public float2 speedV;
         public bool resetAnchoredPositionZ;
         public bool speedOfGameAffected;
 

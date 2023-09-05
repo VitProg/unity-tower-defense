@@ -3,7 +3,6 @@ using Leopotam.EcsProto.QoL;
 using td.features.destroy;
 using td.features.ecsConverter;
 using td.features.enemy.mb;
-using td.features.impactEnemy;
 using td.features.movement;
 using UnityEngine;
 
@@ -15,7 +14,6 @@ namespace td.features.enemy
         [DI] private Enemy_Service enemyService;
         [DI] private Movement_Service movementService;
         [DI] private Destroy_Service destroyService;
-        [DI] private ImpactEnemy_Service impactEnemy;
 
         public override ProtoWorld World() => aspect.World();
         
@@ -33,7 +31,9 @@ namespace td.features.enemy
             movementService.GetRefTargetBody(entity).targetBody = mb.body;
             
             destroyService.SetIsOnlyOnLevel(entity, true);
-            impactEnemy.RemoveAllDebuffs(entity);
+            // impactEnemy.RemoveAllDebuffs(entity);
+            
+            // aspect.World().GetComponents();
         }
     }
 }

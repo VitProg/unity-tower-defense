@@ -1,8 +1,0 @@
-﻿using td.common;
-
-namespace #NS#
-{
-    public sealed class #SCRIPTNAME#Provider : EcsProvider<#SCRIPTNAME#>
-    {
-    }
-}

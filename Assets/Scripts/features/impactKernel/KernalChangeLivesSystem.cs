@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using td.features.camera;
 using td.features.eventBus;
 using td.features.impactKernel.bus;
 using td.features.state;
@@ -11,6 +12,7 @@ namespace td.features.impactKernel
     {
         [DI] private State state;
         [DI] private EventBus events;
+        [DI] private Camera_Service cameraService;
         
         public void Init(IProtoSystems systems)
         {
@@ -32,6 +34,10 @@ namespace td.features.impactKernel
             if (FloatUtils.IsZero(state.GetLives()))
             {
                 // ToDo: events.Value.Unique.Add<LevelFiled>();
+            }
+            else
+            {
+                cameraService.Shake(Camera_Service.ShakeType.KernelDamage);
             }
         }
 

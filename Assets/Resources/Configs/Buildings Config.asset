@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dfde0b89c50d412aaaae2304784afbb3, type: 3}
   m_Name: Buildings Config
   m_EditorClassIdentifier: 
-  towerIcon: {fileID: 0}
-  trapIcon: {fileID: 0}
-  generatorIcon: {fileID: 0}
-  energyStorageIcon: {fileID: 0}
-  solarPowerIcon: {fileID: 0}
+  shardTowerIcon: {fileID: 21300000, guid: 9b05c17b699d59246a5d86cd184650b3, type: 3}
+  shardTrapIcon: {fileID: 21300000, guid: 58317092a10f72f4590826006beb1653, type: 3}
+  generatorIcon: {fileID: 21300000, guid: 937dc2370f5a35441ad747c7d88f9ec3, type: 3}
+  energyStorageIcon: {fileID: 21300000, guid: ce40eebe3197279408cf5c2521ee6a84, type: 3}
+  solarPowerIcon: {fileID: 21300000, guid: 42f46a44930d4164eaf3cd28ec5df904, type: 3}

@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using td.features.state;
+using td.features.state.interfaces;
 
 namespace td.features.building.buildingShop.state
 {

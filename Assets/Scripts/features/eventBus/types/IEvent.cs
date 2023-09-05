@@ -4,6 +4,7 @@
     {
         
     }
-    
-    public struct Event {}
+
+    public struct Event {
+    }
 }

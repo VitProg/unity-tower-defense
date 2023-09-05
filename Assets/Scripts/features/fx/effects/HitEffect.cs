@@ -8,7 +8,6 @@ using td.features.fx.types;
 using td.features.goPool;
 using td.features.prefab;
 using td.features.spriteAnimator;
-using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -115,14 +114,13 @@ namespace td.features.fx.effects
                 fxmb.animator.OnFinish.RemoveAllListeners();
             });
 
-            transform.rotation = RandomUtils.Rotation();
+            transform.rotation = RotateUtils.Random();
             transform.scale *= RandomUtils.Range(0.5f, 1.0f);
             go.transform.rotation = transform.rotation;
             go.transform.localScale = transform.scale;
             
             fxmb.animator.speed *= RandomUtils.Range(0.85f, 1.5f);
             fxmb.animator.Play();
-            
             aspect.refGOPool.GetOrAdd(fxEntity).reference = go;
         }
     }

@@ -6,6 +6,7 @@ using td.features.movement.flags;
 using td.features.state;
 using td.utils;
 using td.utils.ecs;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace td.features.movement.systems
@@ -29,6 +30,8 @@ namespace td.features.movement.systems
 
         public void Run(float deltaTime)
         {
+            if (!state.GetSimulationEnabled()) return;
+            
             // var count = 0u;
             foreach (var entity in aspect.GetIt())
             {
@@ -82,9 +85,9 @@ namespace td.features.movement.systems
                             var toNextV = m.nextTarget - m.target;
                             // var toNextL2 = toNextV.x * toNextV.x + toNextV.y * toNextV.y; // L2
 
-                            var l = d.magnitude; // sqrt
+                            var l = d.Magnitude(); // sqrt
                             
-                            var vectorToNext = toNextV.normalized * l; // sqrt - _t
+                            var vectorToNext = math.normalize(toNextV) * l; // sqrt - _t
                             var correctedPosition = m.target + vectorToNext;
 
 #if DEBUG && UNITY_EDITOR && MOVEMENT_DEBUG

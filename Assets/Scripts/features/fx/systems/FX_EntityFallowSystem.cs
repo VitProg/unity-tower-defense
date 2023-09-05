@@ -3,6 +3,7 @@ using Leopotam.EcsProto.QoL;
 using td.features.destroy;
 using td.features.movement;
 using td.features.state;
+using td.utils;
 using td.utils.ecs;
 
 namespace td.features.fx.systems
@@ -17,9 +18,9 @@ namespace td.features.fx.systems
 
         public override void IntervalRun(float deltaTime)
         {
-            if (!state.GetGameSimulationEnabled()) return;
+            if (!state.GetSimulationEnabled()) return;
             
-            foreach (var fxEntity in aspect.itEentityFallow)
+            foreach (var fxEntity in aspect.itEntityFallow)
             {
                 ref var target = ref aspect.withTargetEntityPool.Get(fxEntity);
                 ref var transform = ref aspect.withTransformPool.Get(fxEntity);

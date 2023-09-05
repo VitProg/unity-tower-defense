@@ -1,0 +1,33 @@
+{
+    "name": "td.features.shard",
+    "rootNamespace": "td.features.shard",
+    "references": [
+        "Unity.Mathematics",
+        "NaughtyAttributes.Core",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "td.utils",
+        "td.features.prefab",
+        "td.features.eventBus",
+        "td.features.state",
+        "td.features.common",
+        "td.features.camera",
+        "td.features.building",
+        "Unity.TextMeshPro",
+        "td.features.destroy",
+        "td.features.ecsConverter",
+        "Leopotam.Types",
+        "td.features.level",
+        "td.features.movement",
+        "td.features.inputEvents"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

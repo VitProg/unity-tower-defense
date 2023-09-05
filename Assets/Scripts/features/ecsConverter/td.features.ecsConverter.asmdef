@@ -1,0 +1,23 @@
+{
+    "name": "td.features.ecsConverter",
+    "rootNamespace": "td.features.ecsConverter",
+    "references": [
+        "Unity.Mathematics",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "Leopotam.EcsProto.Unity",
+        "td.utils",
+        "td.features.movement",
+        "td.features.destroy",
+        "td.features.common"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

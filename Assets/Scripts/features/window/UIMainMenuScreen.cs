@@ -1,7 +1,7 @@
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using td.features.eventBus;
-using td.features.gameStatus.bus;
 using td.features.level.bus;
+using td.features.state;
 using td.features.window.common;
 using td.utils.di;
 using UnityEngine;
@@ -19,8 +19,12 @@ namespace td.features.window
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button profileButton;
 
-        private Window_Service WindowsService =>  ServiceContainer.Get<Window_Service>();
-        private EventBus Events => ServiceContainer.Get<EventBus>();
+        private Window_Service _windowsService;
+        private Window_Service WindowsService => _windowsService ??= ServiceContainer.Get<Window_Service>();
+        private EventBus _events;
+        private EventBus Events => _events ??= ServiceContainer.Get<EventBus>();
+        private State _state;
+        private State State => _state ??= ServiceContainer.Get<State>();
 
         private void Start()
         {
@@ -34,23 +38,31 @@ namespace td.features.window
 // #endif
         }
 
-        private async void OnStartGameClicked()
+        private void OnStartGameClicked()
+        {
+            StartGame().Forget();
+        }
+        
+        private async UniTaskVoid StartGame()
         {
             Debug.Log("OnStartGameClicked");
 
-            Events.unique.GetOrAdd<Command_StopGameSimulation>();
-            Events.unique.GetOrAdd<Command_LoadLevel>();//.levelNumber = 1;
+            //todo
+            State.SetSimulationEnabled(false);
+            Events.unique.GetOrAdd<Command_LoadLevel>();
             
-            await Task.Yield();
-            await Task.Delay(500);
+            await UniTask.Yield();
+            await UniTask.Delay(500);
 
-            await Task.Yield();
+            await UniTask.Yield();
             await WindowsService.CloseAll();
             
-            await Task.Yield();
-            await Task.Delay(300);
+            await UniTask.Yield();
+            await UniTask.Delay(300);
             
-            Events.unique.GetOrAdd<Command_StartGame>();
+            State.SetSimulationEnabled(true);
+            
+            // Events.unique.GetOrAdd<Command_StartGame>();
         }
 
         private async void OnChoiseLevelClicked()

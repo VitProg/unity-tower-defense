@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Leopotam.EcsProto;
 using td.features._common;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace td.features.shard.components
 {
@@ -53,16 +54,26 @@ namespace td.features.shard.components
         /** молния. цепная реакция от моба к мобу */
         public byte aquamarine;
 
-        public uint cost;
-        public uint costInsert;
-        public uint costCombine;
-        public uint costDrop;
-        public uint costRemove;
+        // precalc values
+        public uint price;
+        public uint priceInsert;
+        public uint timeInsert;
+        public uint priceCombine;
+        public float timeCombine;
+        public uint priceDrop;
+        public uint priceRemove;
+        public uint timeRemove;
+
+        public float radius;
+        public float fireRate;
+        public float fireCountdown;
+        public float projectileSpeed;
+        public uint level;
         
         public Color currentColor;
 
 #if UNITY_EDITOR && DEBUG
-        public override string ToString() => $"#{_id_}:{red}-{green}-{blue}-{aquamarine}-{yellow}-{orange}-{pink}-{violet}";
+        public override string ToString() => $"#{_id_}:{level}:{red}-{green}-{blue}-{aquamarine}-{yellow}-{orange}-{pink}-{violet}";
 #else
         public override string ToString() => $"{red}-{green}-{blue}-{aquamarine}-{yellow}-{orange}-{pink}-{violet}";
 #endif
@@ -83,12 +94,12 @@ namespace td.features.shard.components
         };
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public static bool IsEquals(Shard a, Shard b) => IsEquals(ref a, ref b); 
+        public static bool IsEquals(Shard a, Shard b, bool byID = true) => IsEquals(ref a, ref b, byID); 
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public static bool IsEquals(ref Shard a, ref Shard b)
+        public static bool IsEquals(ref Shard a, ref Shard b, bool byID = true)
         {
-            if (CommonUtils.IdsIsEquals(a._id_, b._id_)) return true;
+            if (byID && CommonUtils.IdsIsEquals(a._id_, b._id_)) return true;
             return a.red == b.red &&
                    a.green == b.green &&
                    a.blue == b.blue &&
@@ -100,7 +111,7 @@ namespace td.features.shard.components
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        public bool IsEquals(ref Shard b) => IsEquals(ref this, ref b);
+        public bool IsEquals(ref Shard b, bool byID = true) => IsEquals(ref this, ref b, byID);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Shard CombineTwoShardsToNew(ref Shard a, ref Shard b) => new()
@@ -140,11 +151,11 @@ namespace td.features.shard.components
             pink = pink,
             violet = violet,
             
-            cost = cost,
-            costRemove = costRemove,
-            costDrop = costDrop,
-            costInsert = costInsert,
-            costCombine = costCombine,
+            price = price,
+            priceRemove = priceRemove,
+            priceDrop = priceDrop,
+            priceInsert = priceInsert,
+            priceCombine = priceCombine,
         };
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -159,11 +170,11 @@ namespace td.features.shard.components
             pink = shard.pink;
             violet = shard.violet;
             
-            cost = shard.cost;
-            costRemove = shard.costRemove;
-            costDrop = shard.costDrop;
-            costInsert = shard.costInsert;
-            costCombine = shard.costCombine;
+            price = shard.price;
+            priceRemove = shard.priceRemove;
+            priceDrop = shard.priceDrop;
+            priceInsert = shard.priceInsert;
+            priceCombine = shard.priceCombine;
         }
     }
 

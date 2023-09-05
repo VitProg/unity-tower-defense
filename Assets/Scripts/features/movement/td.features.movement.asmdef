@@ -1,0 +1,23 @@
+{
+    "name": "td.features.movement",
+    "rootNamespace": "td.features.movement",
+    "references": [
+        "Unity.Mathematics",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "Leopotam.Types",
+        "td.utils",
+        "td.features.state",
+        "td.features.common",
+        "td.features.destroy"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

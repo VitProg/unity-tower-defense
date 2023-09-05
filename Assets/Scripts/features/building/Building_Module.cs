@@ -20,6 +20,7 @@ namespace td.features.building
         {
             systems
                 .AddSystem(new Building_InitData_System())
+                // .AddSystem(new Building_BuyHandler_System())
                 //
                 .AddService(new Building_Service(), true)
                 .AddService(buildingsConfigsSO, true)

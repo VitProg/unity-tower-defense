@@ -1,11 +1,9 @@
 ﻿using System;
 using Leopotam.EcsProto;
-using td.features.eventBus;
-using td.features.tower.towerMenu.bus;
 
 namespace td.features.tower.towerMenu
 {
-    public class TowerMenu_Module : IProtoModuleWithEvents
+    public class TowerMenu_Module : IProtoModule
     {
         public void Init(IProtoSystems systems)
         {
@@ -21,10 +19,5 @@ namespace td.features.tower.towerMenu
         {
             return null;
         }
-
-        public Type[] Events() => Ev.E<
-            Command_ShowTowerMenu,
-            Command_HideTowerMenu
-        >();
     }
 }

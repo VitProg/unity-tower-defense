@@ -6,6 +6,6 @@ namespace td.features.level.bus
     [Serializable]
     public struct Command_LoadLevel: IUniqueEvent
     {
-        public ushort levelNumber;
+        public int levelNumber;
     }
 }

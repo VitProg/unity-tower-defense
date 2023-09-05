@@ -1,0 +1,17 @@
+{
+    "name": "td.features.goPool",
+    "rootNamespace": "td.features.goPool",
+    "references": [
+        "Leopotam.EcsProto",
+        "td.utils"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

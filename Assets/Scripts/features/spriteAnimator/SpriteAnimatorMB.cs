@@ -121,7 +121,7 @@ namespace td.features.spriteAnimator
         {
             if (!isPlayed || FramesCount == 0) return;
             
-            timeFromPrevFrame += speed * Time.deltaTime * (State?.GetGameSpeed() ?? 1f);
+            timeFromPrevFrame += speed * Time.deltaTime * (Application.isEditor ? 1f : (State?.GetGameSpeed() ?? 1f));
 
             var fIndex = frameIndex;
 

@@ -57,19 +57,19 @@
       "prefabName": "creep",
       "types": [
         {
-          "baseSpeed": 1.5,
+          "baseSpeed": 1.0,
           "baseHealth": 5,
           "baseDamage": 1,
           "angularSpeed": 20
         },
         {
-          "baseSpeed": 1.25,
+          "baseSpeed": 0.75,
           "baseHealth": 8,
           "baseDamage": 1.2,
           "angularSpeed": 15
         },
         {
-          "baseSpeed": 1,
+          "baseSpeed": 0.25,
           "baseHealth": 12,
           "baseDamage": 2,
           "angularSpeed": 10

@@ -18,7 +18,7 @@ namespace td.features.movement
         public ProtoPool<IsFreezed> isFreezedPool;
         public ProtoPool<IsSmoothRotation> isSmoothRotationPool;
         public ProtoPool<IsTargetReached> isTargetReachedPool;
-        public ProtoPool<Ref<GameObject>> refGoPool = default;
+        public ProtoPool<TargetPoint> targetPointPool;
 
         private ProtoItExc itBaseMovement = It
             .Chain<ObjectTransform>()
@@ -40,7 +40,7 @@ namespace td.features.movement
             It.Inc<ObjectTransform, IsSmoothRotation>(),
             It.Exc<IsDestroyed, IsDisabled>()
         );
-
+        
         public ProtoItExc GetIt() => itBaseMovement;
 
         public ProtoPool<IsTargetReached> GetIsTargetReachedPool() => isTargetReachedPool;

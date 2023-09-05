@@ -6,7 +6,7 @@ using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
 using td.features.eventBus.@internal;
 using td.features.eventBus.types;
-using UnityEngine;
+using td.utils;
 
 namespace td.features.eventBus.subServices
 {
@@ -15,8 +15,16 @@ namespace td.features.eventBus.subServices
         [DI(Constants.Worlds.EventBus)] private EventBus_Aspect aspect;
         
         private readonly Dictionary<Type, IEventListeners> eventListeners = new (25);
-        
-        private readonly Type persistEventType = typeof(IPersistEvent);
+
+#if UNITY_EDITOR
+        private readonly List<GlobalListener> globalListeners = new(1);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void GlobalListenTo(GlobalListener action) => globalListeners.Add(action);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveGlobalListener(GlobalListener action) => globalListeners.Remove(action);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void RemoveAllGlobalListeners() => globalListeners.Clear();
+#endif
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ProtoPool<T> GetPool<T>() where T : struct, IEvent
@@ -36,17 +44,15 @@ namespace td.features.eventBus.subServices
             var pool = GetPool<T>();
             var evEntity = pool.World().NewEntity();
             ref var ev = ref pool.Add(evEntity);
+            
             aspect.eventPool.Add(evEntity);
             aspect.globalEventPool.Add(evEntity);
-            foreach (var i in evType.GetInterfaces())
-            {
-                if (i != persistEventType) continue;
+            if (aspect.persistEventTypes.Contains(evType)) {
                 aspect.persistEventPool.Add(evEntity);
-                break;
+            } else {
+                aspect.eventLifetimePool.Add(evEntity).frames = 0;
             }
 
-            // Debug.Log($"EventBus:Global:Send ${evType.Name}");
-            
             return ref ev;
         }
         
@@ -62,8 +68,6 @@ namespace td.features.eventBus.subServices
             var pool = GetPool(evType);
             var count = pool.Len();
             
-            if (count > 0) Debug.Log($"@@@ EventBus.Global: clear {evType.Name}[{count}]");
-
             if (count  == 0) return;
 
             foreach (var evEntity in pool.Entities())
@@ -151,15 +155,17 @@ namespace td.features.eventBus.subServices
         {
             var evType = typeof(T);
 #if UNITY_EDITOR
-            if (!aspect.itUniqueEventsHash.TryGetValue(evType, out var itIdx))
+            if (!aspect.sliceItUniqueEventsHash.TryGetValue(evType, out var itIdx))
             {
                 throw new Exception($"Iterator for type {EditorExtensions.GetCleanTypeName(evType)} not found for unique event");
             }
 #endif
-            return aspect.itUniqueEvents.Get(aspect.itUniqueEventsHash[evType]);
+            return aspect.sliceItUniqueEvents.Get(aspect.sliceItUniqueEventsHash[evType]);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasListeners<T>() where T : struct, IGlobalEvent => eventListeners.ContainsKey(typeof(T));
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasListeners(Type evType) => eventListeners.ContainsKey(evType);
 
         public void ListenTo<T>(RefAction<T> action) where T : struct, IGlobalEvent 
@@ -173,8 +179,8 @@ namespace td.features.eventBus.subServices
 
             var l = (EventListeners<T>)listeners;
             l.ListenTo(action);
-        }
-
+        }        
+        
         public bool RemoveListener<T>(RefAction<T> action) where T : struct, IGlobalEvent
         {
             var type = typeof(T);
@@ -198,6 +204,12 @@ namespace td.features.eventBus.subServices
         public bool Process(Type evType, object evData)
         {
             if (!eventListeners.ContainsKey(evType)) return false;
+#if UNITY_EDITOR
+            foreach (var globalListener in globalListeners)
+            {
+                globalListener.Invoke(ref evData);
+            }
+#endif
             return eventListeners[evType].InvokeRaw(evData);
         }
     }

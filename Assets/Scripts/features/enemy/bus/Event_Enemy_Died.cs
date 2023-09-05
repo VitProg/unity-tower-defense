@@ -1,0 +1,10 @@
+﻿using Leopotam.EcsProto.QoL;
+using td.features.eventBus.types;
+
+namespace td.features.enemy.bus
+{
+    public struct Event_Enemy_Died : IGlobalEvent
+    {
+        public ProtoPackedEntityWithWorld Entity;
+    }
+}

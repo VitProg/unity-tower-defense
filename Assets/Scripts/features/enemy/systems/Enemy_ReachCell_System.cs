@@ -1,6 +1,7 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
 using td.features.enemy.bus;
+using td.features.enemy.enemyPath;
 using td.features.eventBus;
 using td.features.level;
 using td.features.movement;
@@ -8,103 +9,74 @@ using td.utils;
 using Unity.Mathematics;
 using UnityEngine;
 
-namespace td.features.enemy.systems
-{
-    public class Enemy_ReachCell_System : IProtoRunSystem
-    {
+namespace td.features.enemy.systems {
+    public class Enemy_ReachCell_System : IProtoRunSystem {
         [DI] private Enemy_Aspect aspect;
-        [DI] private LevelMap levelMap;
+        [DI] private Level_State levelState;
         [DI] private Enemy_Service enemyService;
-        [DI] private Enemy_Path_Service enemyPathService;
+        [DI] private EnemyPath_Service enemyPathService;
+        [DI] private EnemyPath_State enemyPathState;
         [DI] private Movement_Service movementService;
         [DI] private EventBus events;
 
-        public void Run()
-        {
-            foreach (var enemyEntity in aspect.itEnemiesReachingCell)
-            {
-                ref var enemy = ref aspect.enemyPool.Get(enemyEntity);
-                ref var enemyPath = ref aspect.enemyPathPool.Get(enemyEntity);
+        public void Run() {
+            foreach (var enemyEntity in aspect.itEnemiesReachingCell) {
                 ref var movement = ref movementService.GetMovement(enemyEntity);
+                
+                if (!levelState.HasCell(movement.target)) continue;
+                
                 ref var transform = ref movementService.GetTransform(enemyEntity);
+                ref var currentCell = ref levelState.GetCell(transform.position);
 
-                if (!levelMap.HasCell(movement.target)) continue;
+                if (currentCell.isKernel) {
+                    events.global.Add<Event_Enemy_ReachKernel>().Entity = aspect.World().PackEntityWithWorld(enemyEntity);
+                    continue;
+                }
+                
+                ref var route = ref enemyPathService.GetRoute(enemyEntity);
+                var routeLength = enemyPathState.GetRouteLength(route.routeIdx);
+                
+                var currentCellCoord = HexGridUtils.PositionToCell(transform.position.x, transform.position.y);
+                if (!enemyPathState.GetRouteItem(route.routeIdx, route.step).Equals(currentCellCoord)) {
+                    var step = enemyPathState.GetRouteItemIndexByCoord(route.routeIdx, currentCellCoord.x, currentCellCoord.y);
+                    route.step = step;
+                }
 
-                // ref var currentCell = ref levelMap.Value.GetCell(movement.target);
-                ref var currentCell = ref levelMap.GetCell(transform.position);
-
-                if (currentCell.isKernel)
-                {
-                    // Debug.Log($"Enemy reach kernel! [{enemyEntity}]");
-                    events.global.Add<Event_Enemy_ReachKernel>().Entity =
-                        aspect.World().PackEntityWithWorld(enemyEntity);
+                if (route.step >= routeLength) {
                     continue;
                 }
 
-                var path = enemyPathService.GetPath(enemyEntity);
+                var hasStepNext = enemyPathState.HasRouteItem(route.routeIdx, route.step + 1);
+                var hasStepNextNext = enemyPathState.HasRouteItem(route.routeIdx, route.step + 2);
+                var stepNext = hasStepNext ? enemyPathState.GetRouteItem(route.routeIdx, route.step + 1) : int2.zero;
+                var stepNextNext = hasStepNextNext ? enemyPathState.GetRouteItem(route.routeIdx, route.step + 2) : int2.zero;
 
-                var currentCoords = HexGridUtils.PositionToCell(transform.position.x, transform.position.y);
-
-                var pathIndex = path.IndexOf(currentCoords);
-
-                enemyPath.index = (ushort)pathIndex;
-
-                /*Debug.Log($"currentCoords: {currentCoords}; pathItem: {path[enemyPath.index]}; nextPathItem: {path[enemyPath.index+1]}");
-
-                if (enemyPath.index + 1 < path.Count && currentCoords != path[enemyPath.index + 1])
-                {
-                    Debug.Log("!!!AHTUNG!!!");
-                    //currentCell = ref levelMap.Value.GetCell(path[enemyPath.index]);
-                }
-                else
-                {
-                    enemyPath.index++;
-                }*/
-
-                // if (currentCoords == path[enemyPath.index])
-                // {
-                // enemyPath.index++;
-                // }
-
-                // Debug.Log("path index = " + enemyPath.index);
-                if (enemyPath.index >= path.Count)
-                {
-                    // Debug.Log($"Enemy finished his path! [{enemyEntity}]");
-                    continue;
-                }
-
-                // var stepCurrent = path[enemyPath.index];
-                var stepNext = enemyPath.index + 1 < path.Count ? path[enemyPath.index + 1] : int2.zero;
-                var stepNextNext = enemyPath.index + 2 < path.Count ? path[enemyPath.index + 2] : int2.zero;
-
-                var nextCell = stepNext.IsZero() || !levelMap.HasCell(stepNext)
+                // todo need ref
+                var nextCell = hasStepNext || !levelState.HasCell(stepNext)
                     ? default
-                    : levelMap.GetCell(stepNext);
-                var nextNextCell = stepNext.IsZero() || !levelMap.HasCell(stepNextNext)
+                    : levelState.GetCell(stepNext);
+                var nextNextCell =hasStepNextNext || !levelState.HasCell(stepNextNext)
                     ? default
-                    : levelMap.GetCell(stepNextNext);
+                    : levelState.GetCell(stepNextNext);
 
-                if (!nextCell.IsEmpty)
-                {
+                if (!nextCell.IsEmpty) {
                     var nextCellCoords = nextCell.coords;
 
                     var rotation = Enemy_Utils.LookToNextCell(ref currentCell, ref nextCell);
 
-                    if (!FloatUtils.IsEquals(transform.rotation.z, rotation.z) ||
-                        !FloatUtils.IsEquals(transform.rotation.w, rotation.w))
-                    {
+                    ref var enemy = ref aspect.enemyPool.Get(enemyEntity);
+                    
+                    if (!FloatUtils.IsEquals(transform.rotation.value.z, rotation.z) ||
+                        !FloatUtils.IsEquals(transform.rotation.value.w, rotation.w)) {
                         var angularSpeed = Enemy_Utils.GetAngularSpeed(ref enemy);
 
-                        if (angularSpeed < Constants.Enemy.SmoothRotationThreshold)
-                        {
+                        if (angularSpeed < Constants.Enemy.SmoothRotationThreshold) {
                             ref var smoothRotation = ref movementService.GetSmoothRotation(enemyEntity);
                             smoothRotation.from = transform.rotation;
                             smoothRotation.to = rotation;
                             smoothRotation.angularSpeed = angularSpeed;
                             // smoothRotation.targetBody = enemyMb.body;
-                        }
-                        else
-                        {
+                        } else {
                             transform.SetRotation(rotation);
                         }
                     }
@@ -112,30 +84,23 @@ namespace td.features.enemy.systems
                     // movement.from = movement.target;
                     movement.from = transform.position;
                     movement.target = Enemy_Utils.CalcPosition(ref nextCellCoords, rotation, enemy.offset);
-                    if (!nextNextCell.IsEmpty)
-                    {
+                    if (!nextNextCell.IsEmpty) {
                         var rotationNextNext = Enemy_Utils.LookToNextCell(ref nextCell, ref nextNextCell);
                         movement.nextTarget =
                             Enemy_Utils.CalcPosition(ref nextNextCell.coords, rotationNextNext, enemy.offset);
-                    }
-                    else
-                    {
+                    } else {
                         movement.nextTarget = Vector2.zero;
                     }
 
-                    // movement.SetSpeed(movement.speed); //, transform.rotation);
-                    // Debug.Log("speedV = " + movement.speedV);
 
                     var fromToTargetV = (movement.target - movement.from);
-                    movement.fromToTargetDistanse = fromToTargetV.magnitude;
+                    movement.fromToTargetDistanse = fromToTargetV.Magnitude();
                     enemy.distanceFromSpawn += movement.fromToTargetDistanse;
 
                     var normX = fromToTargetV.x / movement.fromToTargetDistanse;
                     var normY = fromToTargetV.y / movement.fromToTargetDistanse;
 
                     movement.SetSpeed(movement.speed, normX * movement.speed, normY * movement.speed);
-                    // movement.speedV.x = norm.x * movement.speed;
-                    // movement.speedV.y = norm.y * movement.speed;
                 }
             }
         }

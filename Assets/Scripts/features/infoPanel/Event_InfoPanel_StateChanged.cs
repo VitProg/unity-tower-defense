@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
 using td.features.state;
+using td.features.state.interfaces;
 
 namespace td.features.infoPanel
 {
@@ -19,7 +20,7 @@ namespace td.features.infoPanel
         public bool enemy;
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsEmpty() => !visible || (!title && !priceTitle && !price && !timeTitle && !time && !before && !after && !shard && !enemy);
+        public bool IsEmpty() => !visible && !title && !priceTitle && !price && !timeTitle && !time && !before && !after && !shard && !enemy;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Clear()

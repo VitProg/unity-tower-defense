@@ -1,7 +1,6 @@
 ﻿using Leopotam.EcsProto.QoL;
 using td.features.goPool;
 using td.features.prefab;
-using td.monoBehaviours;
 using td.utils;
 using td.utils.ecs;
 using UnityEngine;
@@ -38,7 +37,7 @@ namespace td.features.projectile.explosion
             return projectilePoolableObject;
         }
 
-        private void ActionOnDestroy(PoolableObject o) => EcsPoolUtils.ActionOnDestroy(o);
+        private void ActionOnDestroy(PoolableObject o) => Projectile_GOPoolUtils.ActionOnDestroy(o);
         
         public void SpawnExplosion(Vector2 position, float damage, float diameter, float damageFading)
         {

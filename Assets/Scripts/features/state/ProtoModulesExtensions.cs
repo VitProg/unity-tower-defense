@@ -1,16 +1,18 @@
 ﻿using System;
 using Leopotam.EcsProto;
+using Leopotam.EcsProto.QoL;
 using Leopotam.EcsProto.Unity;
-using td.utils.ecs;
+using td.features.state.interfaces;
+using UnityEngine;
 
 namespace td.features.state
 {
     public static class ProtoModulesExtensions
     {
-        public static Slice<IStateExtension> BuildStateExtensiont(this ProtoModulesEx self)
+        public static Slice<IStateExtension> BuildStateExtensions(this ProtoModules self)
         {
-            var stateExtensions = new Slice<IStateExtension>(16);
-            var modules = self.AllModules();
+            var stateExtensions = new Slice<IStateExtension>(32);
+            var modules = self.Modules();
             foreach (var module in modules)
             {
                 if (module is not IProtoModuleWithStateEx eventsModule) continue;
@@ -27,6 +29,7 @@ namespace td.features.state
                     }
                 }
 #endif
+                Debug.Log($">>> stateExtensions.Add({stateEx});");
                 stateExtensions.Add(stateEx);
             }
 

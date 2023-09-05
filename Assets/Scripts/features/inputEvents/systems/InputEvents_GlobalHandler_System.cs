@@ -17,53 +17,75 @@ namespace td.features.inputEvents.systems
 
         private List<RaycastResult> raycastResults = new(16);
         private PointerEventData pointerData = new(EventSystem.current);
-        
+
         public void Run()
         {
-            if (Input.mousePresent) // todo add touch
+            if (Input.touchSupported)
+            {
+                Touch? touch = Input.touchCount == 1 ? Input.GetTouch(0) : null;
+                var hasTouch = touch.HasValue;
+                var touchDown = touch is { phase: TouchPhase.Began };
+                var touchUp = touch is { phase: TouchPhase.Ended };
+                
+                if (!touchDown && !touchUp) return;
+                
+                var touchScreenPosition = touch.Value.position;
+                
+                var isUI = inputEventsService.HasUIUnderScreenCoords(touchScreenPosition);
+
+                if (!isUI)
+                {
+                    if (touchDown)
+                    {
+                        ref var ev = ref events.global.Add<Event_PointerDown>();
+                        ev.isTouch = true;
+                        ev.x = touchScreenPosition.x;
+                        ev.y = touchScreenPosition.y;
+                        Debug.Log(ev);
+                    }
+
+                    if (touchUp)
+                    {
+                        ref var ev = ref events.global.Add<Event_PointerUp>();
+                        ev.isTouch = true;
+                        ev.x = touchScreenPosition.x;
+                        ev.y = touchScreenPosition.y;
+                        Debug.Log(ev);
+                    }
+                }
+            }
+            
+            if (Input.mousePresent)
             {
                 var downLeft = Input.GetMouseButtonDown(0);
                 var downRight = Input.GetMouseButtonDown(1);
                 var upLeft = Input.GetMouseButtonUp(0);
                 var upRight = Input.GetMouseButtonUp(1);
 
-                if (!downLeft && !downRight && !upLeft && !upRight) return;
-                
-                var screePoint = (Vector2)Input.mousePosition;
-                var isUI = inputEventsService.HasUIUnderScreenCoords(screePoint);
-                    
-                if (isUI) return;
-                    
-                if (Input.GetMouseButtonDown(0))
-                {
-                    ref var ev = ref events.global.Add<Event_PointerDown>();
-                    ev.mouseButton = 0;
-                    ev.x = screePoint.x;
-                    ev.y = screePoint.y;
-                }
+                if (downLeft || downRight || upLeft || upRight)  {
+                    var screenPoint = (Vector2)Input.mousePosition;
+                    var isUI = inputEventsService.HasUIUnderScreenCoords(screenPoint);
 
-                if (Input.GetMouseButtonDown(1))
-                {
-                    ref var ev = ref events.global.Add<Event_PointerDown>();
-                    ev.mouseButton = 1;
-                    ev.x = screePoint.x;
-                    ev.y = screePoint.y;
-                }
+                    if (!isUI)
+                    {
+                        if (downLeft || downRight)
+                        {
+                            ref var ev = ref events.global.Add<Event_PointerDown>();
+                            ev.mouseButton = (byte)(downLeft ? 0 : 1);
+                            ev.x = screenPoint.x;
+                            ev.y = screenPoint.y;
+                            Debug.Log(ev);
+                        }
 
-                if (Input.GetMouseButtonUp(0))
-                {
-                    ref var ev = ref events.global.Add<Event_PointerUp>();
-                    ev.mouseButton = 0;
-                    ev.x = screePoint.x;
-                    ev.y = screePoint.y;
-                }
-
-                if (Input.GetMouseButtonUp(1))
-                {
-                    ref var ev = ref events.global.Add<Event_PointerUp>();
-                    ev.mouseButton = 1;
-                    ev.x = screePoint.x;
-                    ev.y = screePoint.y;
+                        if (upLeft)
+                        {
+                            ref var ev = ref events.global.Add<Event_PointerUp>();
+                            ev.mouseButton = (byte)(downLeft ? 0 : 1);
+                            ev.x = screenPoint.x;
+                            ev.y = screenPoint.y;
+                            Debug.Log(ev);
+                        }
+                    }
                 }
             }
         }

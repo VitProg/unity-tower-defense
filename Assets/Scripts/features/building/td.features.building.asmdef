@@ -1,0 +1,29 @@
+{
+    "name": "td.features.building",
+    "rootNamespace": "td.features.building",
+    "references": [
+        "NaughtyAttributes.Core",
+        "Unity.Mathematics",
+        "Unity.TextMeshPro",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "td.utils",
+        "td.features.destroy",
+        "td.features.state",
+        "td.features.eventBus",
+        "td.features.gameStatus",
+        "td.features.camera",
+        "td.features.common",
+        "td.features.prefab",
+        "td.features.level"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

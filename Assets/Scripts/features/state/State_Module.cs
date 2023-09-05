@@ -1,6 +1,9 @@
 ﻿using System;
 using Leopotam.EcsProto;
 using td.features.eventBus;
+using td.features.state.bus;
+using td.features.state.interfaces;
+using td.features.state.systems;
 using td.utils.ecs;
 
 namespace td.features.state
@@ -11,9 +14,7 @@ namespace td.features.state
         private readonly State_Aspect aspect;
         
         public State_Module()
-        {
-            // Debug.Log($"{GetType().Name} Init");
-            
+        {   
             aspect = new State_Aspect();
             
             state = new State();
@@ -43,20 +44,21 @@ namespace td.features.state
             return null;
         }
 
+        private Type[] events = {
+            typeof(Event_StageSomeChanged),
+            typeof(Event_StateChanged),
+        };
+
         public Type[] Events()
         {
             var count = aspect.extensions.Len();
             
-            var events = new[]
-            {
-                typeof(Event_StateChanged),
-            };
-            Array.Resize(ref events, count + 1);
+            Array.Resize(ref events, count + 2);
             
             for (var idx = 0; idx < count; idx++)
             {
                 var evType = aspect.extensions.Get(idx).GetEventType();
-                events[idx + 1] = evType;
+                events[idx + 2] = evType;
             }
 
             return events;

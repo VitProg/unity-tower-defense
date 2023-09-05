@@ -1,0 +1,26 @@
+{
+    "name": "td.features.priceTimePopup",
+    "rootNamespace": "td.features.priceTimePopup",
+    "references": [
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "td.features.eventBus",
+        "td.features.state",
+        "td.utils",
+        "Unity.TextMeshPro",
+        "td.features.gameStatus",
+        "td.features.common",
+        "td.features.level",
+        "td.features.tower",
+        "td.features.shard"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

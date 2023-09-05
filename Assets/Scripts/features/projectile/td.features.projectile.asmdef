@@ -1,0 +1,31 @@
+{
+    "name": "td.features.projectile",
+    "rootNamespace": "td.features.projectile",
+    "references": [
+        "Unity.Mathematics",
+        "NaughtyAttributes.Core",
+        "Leopotam.EcsProto",
+        "Leopotam.EcsProto.QoL",
+        "Leopotam.Types",
+        "td.utils",
+        "td.features.prefab",
+        "td.features.goPool",
+        "td.features.common",
+        "td.features.state",
+        "td.features.enemy",
+        "td.features.eventBus",
+        "td.features.movement",
+        "td.features.destroy",
+        "td.features.impactEnemy",
+        "td.features.ecsConverter"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

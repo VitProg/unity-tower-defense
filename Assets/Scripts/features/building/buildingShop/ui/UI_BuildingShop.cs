@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using NaughtyAttributes;
 using td.features.building.buildingShop.state;
 using td.features.camera;
 using td.features.camera.bus;
 using td.features.eventBus;
-using td.features.gameStatus.bus;
 using td.features.level.bus;
 using td.features.state;
 using td.utils;
@@ -14,7 +12,7 @@ using td.utils.di;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.UIElements;
+using Event_StateChanged = td.features.state.bus.Event_StateChanged;
 
 namespace td.features.building.buildingShop.ui
 {
@@ -23,7 +21,7 @@ namespace td.features.building.buildingShop.ui
         [Required] public RectTransform rectTransform;
         [Required] public GameObject itemsContainer;
         [Required][SerializeField] private GameObject itemPrefab;
-        [SerializeField, OnValueChanged("RefreshSize")] private float itemSize = 200f;
+        [SerializeField, OnValueChanged("RefreshItemsSize")] private float itemSize = 200f;
         public List<UI_BuildingShop_Item> items;
         
         private EventBus _events;
@@ -44,63 +42,48 @@ namespace td.features.building.buildingShop.ui
 
         private int2 cellCoords;
 
-        [Button]
-        public void Refresh()
-        {
-            items.Clear();
-            var count = itemsContainer.transform.childCount;
-            for (var idx = 0; idx < count; idx++)
-            {
-                var i = itemsContainer.transform.GetChild(idx).GetComponent<UI_BuildingShop_Item>();
-                if (i) items.Add(i);
-            }
-        }
-
         private void Start()
         {
             Hide();
-            
-            Events.unique.ListenTo<Event_BuildingShop_StateChanged>(OnStateChanged);
+
+            Events.unique.ListenTo<Event_StateChanged>(OnStateChanged);
+            Events.unique.ListenTo<Event_BuildingShop_StateChanged>(OnBuildingShopStateChanged);
             Events.unique.ListenTo<Event_LevelFinished>(OnLevelFinished);
-            Events.unique.ListenTo<Event_YouDied>(OnYouDied);
             Events.unique.ListenTo<Event_Camera_Moved>(OnCameraMoved);
             
             //todo catch camera movement and close buildings menu
         }
-
+        
         private void OnDestroy()
         {
-            Events.unique.RemoveListener<Event_BuildingShop_StateChanged>(OnStateChanged);
+            Events.unique.RemoveListener<Event_StateChanged>(OnStateChanged);
+            Events.unique.RemoveListener<Event_BuildingShop_StateChanged>(OnBuildingShopStateChanged);
             Events.unique.RemoveListener<Event_LevelFinished>(OnLevelFinished);
-            Events.unique.RemoveListener<Event_YouDied>(OnYouDied);
             Events.unique.RemoveListener<Event_Camera_Moved>(OnCameraMoved);
         }
 
         //----------------------------------------------------------------
         
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void OnCameraMoved(ref Event_Camera_Moved obj)
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void OnStateChanged(ref Event_StateChanged ev)
         {
-            UpdatePosition();
+            if (ev.lives && State.IsDead()) Hide();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void OnStateChanged(ref Event_BuildingShop_StateChanged ev)
+        private void OnCameraMoved(ref Event_Camera_Moved obj) => UpdatePosition();
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void OnBuildingShopStateChanged(ref Event_BuildingShop_StateChanged ev)
         {
             if (ev is { visible: false, position: false }) return;
+            if (ev.items) RefreshItems();
             if (StateEx.GetVisible()) Show();
             else Hide();
         }
 
-        private void OnLevelFinished(ref Event_LevelFinished ev)
-        {
-            Hide();
-        }
-
-        private void OnYouDied(ref Event_YouDied ev)
-        {
-            Hide();
-        }
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
+        private void OnLevelFinished(ref Event_LevelFinished ev) => Hide();
         
         //
 
@@ -114,7 +97,7 @@ namespace td.features.building.buildingShop.ui
         private void Show()
         {
             cellCoords = StateEx.GetCellCoords();
-            RefreshItems();
+            // RefreshItems();
             gameObject.SetActive(true);
             UpdatePosition();
         }
@@ -127,7 +110,7 @@ namespace td.features.building.buildingShop.ui
                 var worldPoint = HexGridUtils.CellToPosition(cellCoords);
                 var canvasPoint = CameraService.MainToCanvas(worldPoint);
                 transform.position = canvasPoint;
-                rectTransform.FixAnchoeredPosition();
+                rectTransform.FixAnchoredPosition();
             }
         }
 
@@ -150,30 +133,41 @@ namespace td.features.building.buildingShop.ui
             
             items.Clear();
             var childCount = itemsContainer.transform.childCount;
-            for (var idx = childCount - 1; idx >= 0; idx--)
-            {
-                Destroy(itemsContainer.transform.GetChild(idx).gameObject);
-            }
+            // for (var idx = childCount - 1; idx >= 0; idx--)
+            // {
+                // Destroy(itemsContainer.transform.GetChild(idx).gameObject);
+            // }
 
             var count = sEx.GetCount();
             ref var buildings = ref sEx.GetBuildings();
-            for (var idx = 0; idx < count; idx++)
+            var idx = 0;
+            for (; idx < count; idx++)
             {
                 ref var building = ref buildings[idx];
-                var go = Instantiate(itemPrefab, itemsContainer.transform);
+                var go = idx < childCount
+                    ? itemsContainer.transform.GetChild(idx).gameObject
+                    : Instantiate(itemPrefab, itemsContainer.transform);
                 var mb = go.GetComponent<UI_BuildingShop_Item>();
                 mb.icon = bs.GetIcon(building.id);
+                mb.buildingId = building.id;
                 mb.title = building.name;
                 mb.price = building.price;
                 mb.pricetIsGood = currentEnergy >= building.price;
                 mb.builtTime = building.buildTime;
+                mb.Refresh();
                 
                 items.Add(mb);
+            }
+
+            for (; idx < childCount; idx++)
+            {
+                Destroy(itemsContainer.transform.GetChild(idx).gameObject);
             }
 
             RefreshItemsSize();
         }
 
+        [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public void OnPointerClick(PointerEventData eventData)
         {
             StateEx.SetVisible(false);

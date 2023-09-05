@@ -4,6 +4,7 @@ using Leopotam.EcsProto.QoL;
 using td.features.destroy;
 using td.features.enemy;
 using td.features.movement;
+using td.utils;
 using td.utils.ecs;
 
 namespace td.features.projectile.lightning
@@ -83,7 +84,7 @@ namespace td.features.projectile.lightning
                             continue;
                         }
                         
-                        var sqrDistanse = (potentialEnemyPosition - position).sqrMagnitude;
+                        var sqrDistanse = (potentialEnemyPosition - position).SqrMagnitude();
 
                         if (sqrDistanse < sqrChainRadius && sqrDistanse < minSqrDistanse)
                         {

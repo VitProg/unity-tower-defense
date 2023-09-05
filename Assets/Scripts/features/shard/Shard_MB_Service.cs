@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using Leopotam.EcsProto.QoL;
 using td.features.camera;
-using td.features.level;
-using td.features.level.cells;
 using td.features.shard.data;
 using td.features.shard.mb;
+using td.features.shard.shardCollection;
 using td.features.state;
-using td.features.tower;
 using td.utils;
 using UnityEngine;
 
@@ -16,15 +14,15 @@ namespace td.features.shard
     public class Shard_MB_Service
     {
         [DI] private Shard_Calculator calc;
+        [DI] private Shard_Service shardService;
         [DI] private Shards_Config_SO configSO;
-        [DI] private LevelMap levelMap;
         [DI] private State state;
-        [DI] private Tower_Service towerService;
+        [DI] private ShardCollection_State collectionState;
         [DI] private Camera_Service cameraService;
 
-        private readonly List<ShardMonoBehaviour> list = new(20);
+        private readonly List<UI_Shard> list = new(20);
 
-        private readonly ShardConrol draggableShard;
+        private readonly UI_Shard draggableShard;
 
         public Shard_MB_Service()
         {
@@ -32,7 +30,7 @@ namespace td.features.shard
 #if UNITY_EDITOR
             if (shardGO == null) throw new Exception($"На сцене не найден DruggableShard");
 #endif
-            var shardC = shardGO.GetComponent<ShardConrol>();
+            var shardC = shardGO.GetComponent<UI_Shard>();
 #if UNITY_EDITOR
             if (shardC == null) throw new Exception($"DruggableShard не содержит компонент ShardConrol");
 #endif
@@ -42,139 +40,37 @@ namespace td.features.shard
             draggableShard = shardC;
         }
 
-        public ShardConrol GetDraggableShard() => draggableShard;
+        public UI_Shard GetDraggableShard() => draggableShard;
         
-        public void Add(ShardMonoBehaviour shardMB)
+        public void Add(UI_Shard uiShard)
         {
-            if (!list.Contains(shardMB))
+            if (!list.Contains(uiShard))
             {
-                list.Add(shardMB);
-                shardMB.levelIndicator.colorTime = RandomUtils.Range(0f, 10f);
-                shardMB.levelIndicator.rotation = RandomUtils.Range(0f, 180f);
+                list.Add(uiShard);
+                uiShard.FullRefresh();
             }
         }
 
-        public void Remove(ShardMonoBehaviour shardMB)
+        public void Remove(UI_Shard shardMB)
         {
             list.Remove(shardMB);
         }
-
-        public void Init()
-        {
-            Add(draggableShard.shardMB);
-        }
-
+        
         public void Update(float deltaTime)
         {
-            //todo shard animations
-
-            foreach (var mb in list)
-            {
-                if (!mb.gameObject.activeSelf || !mb.gameObject.activeInHierarchy) continue;
-
-                var li = mb.levelIndicator;
-                var h = mb.hover;
-
-#if UNITY_EDITOR
-                if (li == null || h == null)
-                {
-                    Debug.Log("LevelIndicator or Hover is null", mb.gameObject);
-                    continue;
+            foreach (var uiShard in list) {
+                if (uiShard.shard.level == 0) {
+                    shardService.PrecalcAllData(ref uiShard.shard);
                 }
-#endif
-                
-                var level = calc.GetShardLevel(ref mb.shardData);
-
-                var cDivider = mb.numVertices / Constants.UI.Shard.ColorAnimNumVerticesDivider;
-                var cMax = mb.Colors.Length / cDivider;
-                
-                li.colorTime += deltaTime * state.GetGameSpeed() * Constants.UI.Shard.ColorAnimSpeed;
-                if (li.colorTime > cMax) li.colorTime -= cMax;
-
-                var colorFloat = li.colorTime; //((li.time) % (cm));
-                var colorMinIndex = (int)MathF.Floor(colorFloat) % cMax;
-                var colorMaxIndex = (int)MathF.Ceiling(colorFloat) % cMax;
-                
-                var colorMin = mb.Colors[colorMinIndex * cDivider];
-                var colorMax = mb.Colors[colorMaxIndex * cDivider];
-                
-                var color = colorMin != colorMax ? Color.Lerp(colorMin, colorMax, colorFloat - colorMinIndex) : colorMin;
-                
-                var rotationSpeed = Constants.UI.Shard.RotationSpeed + (level - 1) * Constants.UI.Shard.RotationSpeedLevelImpact;
-                var rotation = li.rotation + deltaTime * state.GetGameSpeed() * rotationSpeed;
-                if (rotation > 360f) rotation -= 360f;
-                // Debug.Log("___________________________________");
-                // Debug.Log("colorFloat = " + colorFloat);
-                // Debug.Log("colorMinIndex = " + colorMinIndex);
-                // Debug.Log("colorMaxIndex = " + colorMaxIndex);
-                // Debug.Log("colorDeltaIndex = " + colorDeltaIndex);
-                // Debug.Log("colorMin = " + colorMin);
-                // Debug.Log("colorMax = " + colorMax);
-                // Debug.Log("color = " + color);
-                // Debug.Log("rotationSpeed = " + rotationSpeed);
-                // Debug.Log("rotation = " + rotation);
-                // Debug.Log("___________________________________");
-                
-                
-                li.SetLevel(level, configSO);
-                li.SetColor(color);
-                li.SetRotation(rotation);
-
-                mb.shardData.currentColor = color;
-                
-                // hack - change color in tower radius
-                if (levelMap.HasCell(mb.transform.position, CellTypes.CanBuild))
-                {
-                    ref var cell = ref levelMap.GetCell(mb.transform.position, CellTypes.CanBuild);
-                    if (
-                        cell.packedBuildingEntity.HasValue &&
-                        cell.packedBuildingEntity.Value.Unpack(out _, out var towerEntity)
-                    )
-                    {
-                        var towerMB = towerService.GetTowerMB(towerEntity);
-                        towerMB.radiusRenderer.startColor = color;
-                        towerMB.radiusRenderer.endColor = color;
-                    }
+                uiShard.PartialRefresh(deltaTime * state.GetGameSpeed());
+                if (uiShard.ecsEntity && shardService.HasShard(uiShard.ecsEntity.packedEntity, out var shardEntity)) {
+                    shardService.GetShard(shardEntity).currentColor = uiShard.shard.currentColor;
                 }
-                // ----
-
-                if (h.IsVisible)
-                {
-                    h.SetColor(color);
+                if (uiShard.collectionIndex >= 0 && collectionState.HasItem(uiShard.collectionIndex)) {
+                    collectionState.GetItem(uiShard.collectionIndex).currentColor = uiShard.shard.currentColor;
                 }
-                
-                mb.SetRotation(rotation);
+                //todo update color in current operation tower radius
             }
-        }
-
-        public void InitializeDndShard(ShardUIButton shardButton, Vector2 screenPoint)
-        {
-            ref var shard = ref shardButton.GetShard();
-
-            draggableShard.SetShard(ref shard);
-            /*
-             * Note!
-             * Copy the ID of the shard we want to move to the global shard to be moved.
-             * For correct operation of the shard equality check 
-             */
-            draggableShard.GetShard()._id_ = shard._id_;
-            draggableShard.shardMB.levelIndicator.level = shardButton.shardConrol.shardMB.levelIndicator.level;
-            draggableShard.shardMB.levelIndicator.rotation = shardButton.shardConrol.shardMB.levelIndicator.rotation;
-            draggableShard.shardMB.levelIndicator.colorTime = shardButton.shardConrol.shardMB.levelIndicator.colorTime;
-            draggableShard.Refresh();
-            draggableShard.gameObject.SetActive(true);
-            // draggableShard.transform.position = CameraUtils.TransformPointToCameraSpace(cameraService.GetCanvasCamera(), screenPoint);
-            draggableShard.transform.position = cameraService.ScreenToCanves(screenPoint);
-            draggableShard.transform.FixAnchoeredPosition();
-        }
-
-        public void RevertDndShard(ShardUIButton shardButton)
-        {
-            draggableShard.GetShard()._id_ = 0;
-            shardButton.shardConrol.shardMB.levelIndicator.level = draggableShard.shardMB.levelIndicator.level;
-            shardButton.shardConrol.shardMB.levelIndicator.rotation = draggableShard.shardMB.levelIndicator.rotation;
-            shardButton.shardConrol.shardMB.levelIndicator.colorTime = draggableShard.shardMB.levelIndicator.colorTime;
-            draggableShard.gameObject.SetActive(false);
         }
     }
 }

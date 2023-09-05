@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using td.features._common;
 using td.features.destroy;
 using td.features.enemy;
 using td.features.impactEnemy;
@@ -17,6 +18,7 @@ namespace td.features.projectile.systems
         [DI] private Projectile_Service projectileService;
         [DI] private ImpactEnemy_Service impactEnemy;
         [DI] private Movement_Service movementService;
+        [DI] private Common_Service common;
         [DI] private Destroy_Service destroyService;
         [DI] private Enemy_Service enemyService;
 
@@ -24,7 +26,7 @@ namespace td.features.projectile.systems
         {
             foreach (var projectileEntity in aspect.itProjectileReachTarget)
             {
-                ref var projectile = ref aspect.projectilePool.Get(projectileEntity);
+                // ref var projectile = ref aspect.projectilePool.Get(projectileEntity);
                 ref var transform = ref movementService.GetTransform(projectileEntity);
                 ref var movement = ref movementService.GetMovement(projectileEntity);
 
@@ -49,7 +51,7 @@ namespace td.features.projectile.systems
                 if (projectileService.HasExplosiveAttribute(projectileEntity))
                 {
                     ref var explosiveProjectile = ref projectileService.GetExplosiveAttribute(projectileEntity);
-                    var targetPosition = movementService.GetGOTransform(enemyEntity).position;
+                    var targetPosition = common.GetGOTransform(enemyEntity).position;
                     explosionService.SpawnExplosion(
                         position: targetPosition,
                         damage: explosiveProjectile.damage,

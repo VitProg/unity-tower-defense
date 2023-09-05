@@ -3,7 +3,7 @@ using NaughtyAttributes;
 using td.features.enemy.data;
 using td.utils;
 using UnityEngine;
-using UnityEngine.U2D.Animation;
+using UnityEngine.U2D.Animation; /* todo Doues it's works in runtime? */
 
 namespace td.features.enemy.mb
 {

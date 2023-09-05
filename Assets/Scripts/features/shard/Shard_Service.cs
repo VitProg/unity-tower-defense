@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using Leopotam.EcsProto.QoL;
 using td.features._common.components;
 using td.features.level;
@@ -8,7 +9,7 @@ using td.features.prefab;
 using td.features.shard.components;
 using td.features.shard.mb;
 using td.features.state;
-using td.features.tower;
+using td.utils;
 using td.utils.ecs;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -20,13 +21,11 @@ namespace td.features.shard
         [DI] private Shard_Aspect aspect;
         [DI] private Shard_Calculator calc;
         [DI] private State state;
-        [DI] private LevelMap levelMap;
         [DI] private Movement_Service movementService;
-        [DI] private Tower_Service towerService;
         [DI] private Prefab_Service prefabService;
         [DI] private Shard_Converter converter;
 
-        public int SpawnShard(ref Shard sourceShard, Vector2 position, Transform parent)
+        public int SpawnShard(ref Shard sourceShard, Vector2 position, [CanBeNull] Transform parent = null)
         {
             var shardPosition = new Vector3(
                 position.x,
@@ -34,8 +33,9 @@ namespace td.features.shard
                 -0.01f
             );
             
-            var prefab = prefabService.GetPrefab(PrefabCategory.Shard, "Shard");
-            var shardGO = Object.Instantiate(prefab, shardPosition, Quaternion.identity, parent);
+            var prefab = prefabService.GetPrefab(PrefabCategory.Shard, "shard");
+            var shardGO = Object.Instantiate(prefab, shardPosition, Quaternion.identity);
+            if (parent) shardGO.transform.SetParent(parent);
             var entity = converter.GetEntity(shardGO) ?? aspect.World().NewEntity();
             converter.Convert(shardGO, entity);
 
@@ -47,66 +47,17 @@ namespace td.features.shard
             ShardUtils.Copy(ref shard, ref sourceShard);
             
             var mb = GetShardMB(entity);
-            mb.shardData = shard;
-            mb.Refresh();
+            mb.shard = shard;
+            PrecalcAllData(ref shard);
+            mb.FullRefresh();
 
             return entity;
         }
 
-        public bool HasShardInTower(ProtoPackedEntity towerPackedEntity) => HasShardInTower(towerPackedEntity, out _);
-        public bool HasShardInTower(ProtoPackedEntity towerPackedEntity, out int shardEntity)
-        {
-            shardEntity = -1;
-            return towerPackedEntity.Unpack(aspect.World(), out var towerEntity) && HasShardInTower(towerEntity, out shardEntity);
-        }
-        public bool HasShardInTower(ProtoPackedEntityWithWorld towerPackedEntity) => HasShardInTower(towerPackedEntity, out _);
-        public bool HasShardInTower(ProtoPackedEntityWithWorld towerPackedEntity, out int shardEntity)
-        {
-            shardEntity = -1;
-            return towerPackedEntity.Unpack(out var _, out var towerEntity) && HasShardInTower(towerEntity, out shardEntity);
-        }
-        public bool HasShardInTower(int towerEntity) => HasShardInTower(towerEntity, out var _);
-        public bool HasShardInTower(int towerEntity, out int shardEntity)
-        {
-            shardEntity = -1;
-
-            if (
-                aspect.shardTowerWithShardPool.Has(towerEntity) &&
-                aspect.shardTowerWithShardPool.Get(towerEntity).shardEntity.Unpack(out _, out shardEntity)
-            ) {
-                return true;
-            }
-
-            ref var transform = ref movementService.GetTransform(towerEntity);
-
-            if (!levelMap.HasCell(transform.position, CellTypes.CanBuild)) return false;
-
-            ref var cell = ref levelMap.GetCell(transform.position, CellTypes.CanBuild);
-            
-            if (
-                !cell.packedShardEntity.HasValue || 
-                !towerService.HasShardTower(cell.kernelNumber) ||
-                !HasShard(cell.packedShardEntity.Value, out shardEntity)
-            ) return false;
-
-            return true;
-        }
-
-        public ref Shard GetShardInTower(int towerEntity, out int shardEntity)
-        {
-            var check = HasShardInTower(towerEntity, out shardEntity);
-#if UNITY_EDITOR
-            if (!check) throw new NullReferenceException("Shard not found in Tower. Use HasShardInTower method for check");
-#endif
-            return ref GetShard(shardEntity);
-        }
-
         public bool HasShard(int shardEntity) => aspect.shardPool.Has(shardEntity);
-        public bool HasShard(ProtoPackedEntity packedEntity, out int shardEntity) => packedEntity.Unpack(aspect.World(), out shardEntity) && HasShard(shardEntity);
         public bool HasShard(ProtoPackedEntityWithWorld packedEntity, out int shardEntity) => packedEntity.Unpack(out _, out shardEntity) && HasShard(shardEntity);
 
         public ref Shard GetShard(int shardEntity) => ref aspect.shardPool.GetOrAdd(shardEntity);
-
         public ref Shard GetShard(ProtoPackedEntityWithWorld packedEntity, out int shardEntity) {
             var check = packedEntity.Unpack(out var w, out shardEntity);
 #if UNITY_EDITOR
@@ -122,107 +73,50 @@ namespace td.features.shard
 #endif
             return ref aspect.shardPool.GetOrAdd(shardEntity);
         }
-        public (CanCombineShardType check, uint cost) CheckCanCombineShards(ref Shard targetShard, ref Shard sourceShard)
-        {
-            var cost = calc.CalculateCombineCost(ref targetShard, ref sourceShard);
-            return state.GetEnergy() >= cost 
-                ? (CanCombineShardType.True, cost) 
-                : (CanCombineShardType.FalseCost, cost);
-        }
         
-        public ref Ref<ShardMonoBehaviour> GetShardMBRef(int enemyEntity) => ref aspect.shardRefMBPool.GetOrAdd(enemyEntity);
-        public ShardMonoBehaviour GetShardMB(int enemyEntity) => GetShardMBRef(enemyEntity).reference!;
+        public ref Ref<UI_Shard> GetShardMBRef(int enemyEntity) => ref aspect.shardRefMBPool.GetOrAdd(enemyEntity);
+        public UI_Shard GetShardMB(int enemyEntity) => GetShardMBRef(enemyEntity).reference!;
 
-        public void PrecalcAllCosts(ref Shard shard)
+        public void PrecalcAllData(ref Shard shard)
         {
-            shard.cost = 0;
-            shard.costInsert = 0;
-            shard.costRemove = 0;
-            shard.costCombine = 0;
-            shard.costDrop = 0;
-            
-            shard.cost = calc.CalculateCost(ref shard);
-            shard.costInsert = calc.CalculateInsertCost(ref shard);
-            shard.costRemove = calc.CalculateRemoveCost(ref shard);
-            shard.costCombine = calc.CalculateCombineCost(ref shard);
-            shard.costDrop = calc.CalculateDropCost(ref shard);
-            //
-            // Debug.Log("shard = " + shard);
-            // Debug.Log(".cost = " + shard.cost);
-            // Debug.Log(".costInsert = " + shard.costInsert);
-            // Debug.Log(".costRemove = " + shard.costRemove);
-            // Debug.Log(".costCombine = " + shard.costCombine);
-            // Debug.Log(".costDrop = " + shard.costDrop);
-        }
+            shard.price = 0;
+            shard.priceInsert = 0;
+            shard.priceRemove = 0;
+            shard.priceCombine = 0;
+            shard.priceDrop = 0;
 
-        public bool InsertShardInTower(ref Shard shard, ProtoPackedEntityWithWorld towerPackedEntity)
-        {
-            if (!towerService.HasTower(towerPackedEntity, out var world, out var towerEntity) && towerService.HasShardTower(towerPackedEntity)) return false;
+            shard.timeInsert = 0;
+            shard.timeRemove = 0;
+            shard.timeCombine = 0;
             
-            var transform = movementService.GetGOTransform(towerEntity);
-            var position = (Vector2)transform.position;
+            shard.price = calc.CalculatePrice(ref shard);
+            shard.priceInsert = calc.CalculateInsertPrice(ref shard);
+            shard.priceRemove = calc.CalculateRemovePrice(ref shard);
+            shard.priceCombine = calc.CalculateCombinePrice(ref shard);
+            shard.priceDrop = calc.CalculateDropPrice(ref shard);
             
-            if (!levelMap.HasCell(position, CellTypes.CanBuild)) return false;
-            
-            ref var cell = ref levelMap.GetCell(transform.position, CellTypes.CanBuild);
+            shard.timeInsert = calc.CalculateInsertTime(ref shard);
+            shard.timeRemove = calc.CalculateRemoveTime(ref shard);
+            shard.timeCombine = calc.CalculateCombineTime(ref shard);
 
-            if (cell.IsEmpty) return false;
-            if (cell.packedShardEntity.HasValue) return false;
-            if (!cell.packedBuildingEntity.HasValue || !cell.packedBuildingEntity.Value.Unpack(out _, out var towerEntityInCell)) return false;
+            shard.level = calc.GetShardLevel(ref shard);
             
-            if (towerEntity != towerEntityInCell) return false;
+            shard.radius = calc.GetRadius(ref shard);
+            shard.fireRate = calc.GetFireRate(ref shard);
+            shard.fireCountdown = 1f / shard.fireRate;
+            shard.projectileSpeed = calc.GetProjectileSpeed(ref shard);
             
-            //
-
-            ref var tower =ref towerService.GetTower(towerEntity);
-
-            tower.radius = calc.GetTowerRadius(ref shard);
-            
-            var shardEntity = SpawnShard(ref shard, position + tower.barrel, transform);
-
-            cell.packedShardEntity = aspect.World().PackEntityWithWorld(shardEntity);
-            
-            aspect.shardTowerWithShardPool.GetOrAdd(towerEntity).shardEntity = aspect.World().PackEntityWithWorld(shardEntity);
-            
-            // add effects
-            // add idle to use for shardTower
-            
-            return true;
-        }
-
-        public void DropToMap(ref Shard shard, Vector2 worldPosition)
-        {
 #if UNITY_EDITOR
-            throw new NullReferenceException();
+            shard.currentColor.r = .5f;
+            shard.currentColor.g = .5f;
+            shard.currentColor.b = .5f;
+            shard.currentColor.a = 1f;
+#else
+            shard.currentColor.r = 1f;
+            shard.currentColor.g = 1f;
+            shard.currentColor.b = 1f;
+            shard.currentColor.a = 0f;
 #endif
         }
-        
-        public float GetRadiusByTower(int towerEntity)
-        {
-            if (!HasShardInTower(towerEntity, out var shardEntity)) return 0f;
-            ref var shard = ref GetShard(shardEntity);
-            return calc.GetTowerRadius(ref shard);
-        }
-
-        public float GetRadius(int shardEntity)
-        {
-            ref var shard = ref GetShard(shardEntity);
-            return calc.GetTowerRadius(ref shard);
-        }
-        public float GetRadius(ref Shard shard)
-        {
-            return calc.GetTowerRadius(ref shard);
-        }
-        public float GetRadius(Shard shard)
-        {
-            return calc.GetTowerRadius(ref shard);
-        }
-    }
-    
-    public enum CanCombineShardType
-    {
-        FalseCost = -1,
-        False = 0,
-        True = 1,
     }
 }

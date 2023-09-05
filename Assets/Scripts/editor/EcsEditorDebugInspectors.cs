@@ -1,6 +1,7 @@
 ﻿using Leopotam.EcsProto.Unity.Editor;
 using Leopotam.Types;
 using td.features._common.components;
+using td.features._common.interfaces;
 using td.features.inputEvents;
 using Unity.Mathematics;
 using UnityEditor;

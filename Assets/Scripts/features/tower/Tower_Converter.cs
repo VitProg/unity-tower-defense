@@ -1,11 +1,15 @@
-﻿using Leopotam.EcsProto;
+﻿using System;
+using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using td.features._common;
 using td.features.building;
 using td.features.destroy;
 using td.features.ecsConverter;
 using td.features.inputEvents;
+using td.features.level;
+using td.features.level.cells;
+using td.features.movement;
 using td.features.tower.mb;
-using td.monoBehaviours;
 using td.utils;
 using UnityEngine;
 
@@ -18,6 +22,8 @@ namespace td.features.tower
         [DI] private Destroy_Service destroyService;
         [DI] private InputEvents_Service input;
         [DI] private Building_Service buildingService;
+        [DI] private Common_Service common;
+        [DI] private Movement_Service movementService;
 
         public override ProtoWorld World()
         {
@@ -26,35 +32,27 @@ namespace td.features.tower
 
         public new void Convert(GameObject gameObject, int entity)
         {
-            base.Convert(gameObject, entity);
-
-            buildingService.Init(entity, "shard_tower");
+            ref var shardTower = ref towerService.GetShardTower(entity);
+            var shardTowerMB = gameObject.GetComponent<ShardTowerMonoBehaviour>();
             
-            ref var tower = ref towerService.GetTower(entity);
-            tower.coords = HexGridUtils.PositionToCell(gameObject.transform.position);
-
+            var transform = gameObject.transform;
+            var coords = HexGridUtils.PositionToCell(transform.position);
+            
+            base.Convert(gameObject, entity);
+            
+            buildingService.Init(entity, Constants.Buildings.ShardTower, coords, shardTowerMB);
+            towerService.GetShardTowerMBRef(entity).reference = shardTowerMB;
+            input.AddHandler(entity, shardTowerMB); // todo ???
             destroyService.SetIsOnlyOnLevel(entity, true);
 
-            var towerMB = gameObject.GetComponent<TowerMonoBehaviour>();
-            towerService.GetTowerMBRef(entity).reference = towerMB;
-            
-            tower.barrel = towerMB.barrel ? (Vector2)towerMB.barrel.transform.localPosition : new Vector2(0, 0);
-
-            // input.GetCicleCollider(entity).SetRadius(towerMB.size.x, towerMB.size.y / towerMB.size.x); // todo calc or move to contatnts
-            // input.GetHexCellCollider(entity);
-            input.AddHandler(entity, towerMB);
+            var targetPoint = (Vector2)shardTowerMB.barrel.transform.localPosition;
+            movementService.GetTargetPointPool(entity).Point = targetPoint;
+            // shardTower.barrel = shardTowerMB.barrel ? targetPoint : new Vector2(0, 0);
             
 #if UNITY_EDITOR
             if (!gameObject.GetComponent<HexGridSnaping>()) gameObject.AddComponent<HexGridSnaping>();
 #endif
 
-            
-            if (gameObject.TryGetComponent(out ShardTowerMonoBehaviour shardTowerMB))
-            {
-                towerService.GetShardTower(entity);
-                towerService.GetShardTowerMBRef(entity).reference = shardTowerMB;
-                input.AddHandler(entity, shardTowerMB);
-            }
         }
     }
 }

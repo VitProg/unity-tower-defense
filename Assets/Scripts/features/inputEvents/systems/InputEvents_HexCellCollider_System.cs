@@ -35,6 +35,7 @@ namespace td.features.inputEvents.systems
             Vector2? touchPosition = hasTouch ? (Vector2)CameraUtils.TransformPointToCameraSpace(cameraService.GetMainCamera(), touch.Value.position) : null;
             int2? touchCell = hasTouch ? HexGridUtils.PositionToCell(touchPosition.Value) : null;
 
+            // todo use chached iterator
             foreach (var entity in aspect.itHexCellCollider)
             {
                 var cell = aspect.hexCellColliderPool.Get(entity).coords;

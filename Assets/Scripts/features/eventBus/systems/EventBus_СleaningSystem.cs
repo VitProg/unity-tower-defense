@@ -1,50 +1,40 @@
-﻿using System;
-using Leopotam.EcsProto;
+﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
-using td.features.eventBus.types;
-using td.features.wave.bus;
 using td.utils;
 using UnityEngine;
 
 namespace td.features.eventBus.systems
 {
-    public class EventBus_СleaningSystem : IProtoPostRunSystem
+    public class EventBus_СleaningSystem : IProtoRunSystem
     {
         [DI(Constants.Worlds.EventBus)] private EventBus_Aspect aspect;
         [DI] private EventBus events;
         
-        private readonly Type persistEventType = typeof(IPersistEvent);
-        private readonly Type globalEventType = typeof(IGlobalEvent);
-        private readonly Type uniqueEventType = typeof(IUniqueEvent);
-        
-        private readonly string persistEventTypeName = typeof(IPersistEvent).FullName;
-        private readonly string globalEventTypeName = typeof(IGlobalEvent).FullName;
-        private readonly string uniqueEventTypeName = typeof(IUniqueEvent).FullName;
-        
-        public void PostRun()
-        {
-            var count = aspect.eventTypes.Len();
-            for (var idx = 0; idx < count; idx++)
-            {
-                var evType = aspect.eventTypes.Get(idx);
+        private readonly Slice<int> remove = new(32);
 
-                var isPersist = TypeUtils.HasInterface(evType, persistEventTypeName);
+        public void Run() {
+            remove.Clear();
+            foreach (var evEntity in aspect.itNonPersistEvents) {
+#if EVENTBUS_DEBUG
+                Debug.Log($"Event Clear {eventEntity}");
+#endif
+                var evData = aspect.World().Entities().Get(evEntity);
+                // Debug.Log("@ evData.Gen=" + evData.Gen);
+                // Debug.Log("@ evData.Mask.Len()=" + evData.Mask.Len());
                 
-                if (isPersist) continue;
-                
-                var isGlobal = TypeUtils.HasInterface(evType, globalEventTypeName);
-                var isUnique = TypeUtils.HasInterface(evType, uniqueEventTypeName);
-
-                if (isGlobal && !events.global.HasListeners(evType))
-                {
-                    events.global.Clear(evType);
-                }
-
-                if (isUnique && !events.unique.HasListeners(evType))
-                {
-                    events.unique.Del(evType);
+                ref var lifetime = ref aspect.eventLifetimePool.Get(evEntity);
+                lifetime.frames++;
+                if (lifetime.frames > 1) {
+                    remove.Add(evEntity);
                 }
             }
+
+            var world = aspect.World();
+            var count = remove.Len();
+            for (var idx = 0; idx < count; idx++) {
+                world.DelEntity(remove.Get(idx));
+            }
+            remove.Clear();
         }
     }
 }
