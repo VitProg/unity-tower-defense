@@ -27,7 +27,7 @@ namespace td.features.wave.systems
         public override void IntervalRun(float deltaTime)
         {
             if (state.GetGameSpeed() == 0 || !state.GetSimulationEnabled()) return;
-            if (waveState.GetWaiting()) return;
+            if (waveState.IsWaiting()) return;
             if (waveState.GetActiveSpawnersCount() == 0) return;
             
             var count = waveState.GetSpawnersCount();

@@ -1,5 +1,6 @@
 ﻿using Leopotam.EcsProto;
 using Leopotam.EcsProto.QoL;
+using td.features.building;
 using td.features.eventBus;
 using td.features.level;
 using td.features.level.cells;
@@ -15,6 +16,7 @@ namespace td.features.shard.systems
         [DI] private EventBus events;
         [DI] private State state;
         [DI] private Level_State levelState;
+        [DI] private Building_Service buildingService;
         [DI] private Shard_Service shardService;
         [DI] private Shard_Calculator calc;
 
@@ -60,12 +62,13 @@ namespace td.features.shard.systems
         {
             if (cmd.cost <= 0 || !state.IsEnoughEnergy(cmd.cost)) return;
             if (!CollectionState.HasItem(cmd.sourceIndex)) return;
-            // if (!CollectionState.HasOperationTargetEntity()) return;
 
             var targetEntity = cmd.targetBuilding;
-            if (!targetEntity.Unpack(out _, out _)) return;
+            if (!targetEntity.Unpack(out _, out var buildingUntity)) return;
 
-            ref var cell = ref levelState.GetCell(cmd.position.x, cmd.position.y);
+            ref var building = ref buildingService.GetBuilding(buildingUntity);
+
+            ref var cell = ref levelState.GetCell(building.coords.x, building.coords.y);
             if (cell.IsEmpty || (cell.type != CellTypes.CanWalk && cell.type != CellTypes.CanBuild)) return;
             if (!cell.HasBuilding() || !cell.HasShard()) return;
             if (cell.buildingId != Constants.Buildings.ShardTower && cell.buildingId != Constants.Buildings.ShardTrap) return;

@@ -55,10 +55,16 @@ namespace td.features.shard
         {
             list.Remove(shardMB);
         }
+
+        public void Clear() {
+            list.Clear();
+        }
         
         public void Update(float deltaTime)
         {
             foreach (var uiShard in list) {
+                if (!uiShard.isActiveAndEnabled) continue;
+                
                 if (uiShard.shard.level == 0) {
                     shardService.PrecalcAllData(ref uiShard.shard);
                 }

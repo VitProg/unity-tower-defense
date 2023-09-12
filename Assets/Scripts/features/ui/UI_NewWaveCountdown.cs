@@ -27,12 +27,12 @@ namespace td.features.ui
         #endregion
 
         private void Awake() {
-            timeSCache = new string[99];
-            for (var i = 0; i < 99; i++) {
+            timeSCache = new string[100];
+            for (var i = 0; i <= 99; i++) {
                 timeSCache[i] = i.ToString();
             }
-            timeMSCache = new string[99];
-            for (var i = 0; i < 99; i++) {
+            timeMSCache = new string[100];
+            for (var i = 0; i <= 99; i++) {
                 timeMSCache[i] = ":" + (i < 10 ? "0" + i : i.ToString());
             }
             
@@ -57,7 +57,7 @@ namespace td.features.ui
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Refresh()
         {
-            if (WaveState.GetWaiting() || WaveState.IsWaveActive()) {
+            if (WaveState.IsWaiting() || WaveState.IsWaveActive()) {
                 gameObject.SetActive(false);
                 return;
             }
@@ -68,6 +68,15 @@ namespace td.features.ui
             var s = t / 100;
             var ms = Math.Abs(t % 100);
 
+#if DEBUG
+            if (s >= timeSCache.Length) {
+                Debug.LogWarning($"Index {s} out of range timeSCache {timeSCache.Length}");
+            }   
+            if (ms >= timeMSCache.Length) {
+                Debug.LogWarning($"Index {ms} out of range timeMSCache {timeMSCache.Length}");
+            }   
+#endif
+            
             tTimeS.text = timeSCache[s];
             tTimeMS.text = timeMSCache[ms];
         }

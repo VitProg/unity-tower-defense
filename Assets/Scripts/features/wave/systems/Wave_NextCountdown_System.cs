@@ -2,6 +2,7 @@
 using Leopotam.EcsProto.QoL;
 using td.features.eventBus;
 using td.features.level;
+using td.features.level.bus;
 using td.features.state;
 using td.utils.ecs;
 
@@ -17,10 +18,7 @@ namespace td.features.wave.systems
         public override void IntervalRun(float deltaTime)
         {
             if (state.GetGameSpeed() == 0 || !state.GetSimulationEnabled()) return;
-            if (waveState.GetWaiting()) return;
-            if (waveState.IsWaveActive()) return;
-            if (waveState.GetActiveSpawnersCount() > 0) return;
-            if (waveState.GetEnemiesCount() > 0) return;
+            if (!waveState.IsNextWaveCountdown()) return;
             
             if (waveState.GetNextWaveCountdown() > 0f) {
                 waveState.ReduceNextWaveCountdown(state.GetGameSpeed() * deltaTime);
@@ -28,6 +26,13 @@ namespace td.features.wave.systems
             }
             
             ref var cfg = ref levelState.GetLevelConfig();
+
+            if (waveState.IsLastWave()) {
+                // todo next level
+                waveState.Clear();
+                events.unique.GetOrAdd<Event_LevelFinished>();
+                return;
+            }
             
             waveState.IncreaseWaveNumber();
             waveState.SetNextWaveCountdown(cfg.delayBetweenWaves);
@@ -35,8 +40,6 @@ namespace td.features.wave.systems
             //
 
             waveState.ClearSpawners();
-                
-            // todo
             var wave = cfg.waves[waveState.GetWaveNumber() - 1];
             for (var index = 0; index < wave.spawns.Length; index++)
             {

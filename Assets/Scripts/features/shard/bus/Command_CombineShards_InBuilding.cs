@@ -8,7 +8,6 @@ namespace td.features.shard.bus
     {
         public int sourceIndex;
         public ProtoPackedEntityWithWorld targetBuilding;
-        public float2 position;
         public uint cost;
         public uint time;
     }

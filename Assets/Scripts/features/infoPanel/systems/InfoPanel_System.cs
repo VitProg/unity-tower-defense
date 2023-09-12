@@ -104,7 +104,7 @@ namespace td.features.infoPanel.systems {
             } else {
                 InfoPanelState.Clear();
             }
-        }
+        } 
 
         private void OnShardStoreStateChanged(ref Event_ShardStore_StateChanged ev) {
             if (!ev.hoveredIndex) return;

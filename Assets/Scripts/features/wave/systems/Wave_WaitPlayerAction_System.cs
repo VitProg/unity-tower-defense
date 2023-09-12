@@ -40,11 +40,6 @@ namespace td.features.wave.systems {
             Start();
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] private void OnStartNextWave(ref Command_StartNextWave obj) {
-            Debug.Log("Wave Wait OnStartNextWave");
-            Start();
-        }
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)] private void OnShardDroppedOnMap(ref Event_ShardDropped_OnMap obj) {
             Debug.Log("Wave Wait OnShardDroppedOnMap");
             Start();
@@ -55,10 +50,18 @@ namespace td.features.wave.systems {
             Start();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] private void OnStartNextWave(ref Command_StartNextWave obj) {
+            Debug.Log("Wave Wait OnStartNextWave");
+            if (waveState.IsWaiting() || waveState.GetNextWaveCountdown() > 0f) {
+                waveState.SetNextWaveCountdown(0f);
+                waveState.SetWaiting(false);
+            }
+        }
+
         // ----------------------------------------------------------------
 
         private void Start() {
-            if (waveState.GetWaiting()) {
+            if (waveState.IsWaiting()) {
                 waveState.SetWaiting(false);
             }
         }

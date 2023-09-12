@@ -29,17 +29,21 @@ namespace td.features.wave
         #endregion
 
         #region Getters
-        [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool GetWaiting() => waiting;
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsWaiting() => waiting;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public int GetWaveNumber() => waveNumber;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public int GetWaveCount() => waveCount;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public float GetNextWaveCountdown() => nextWaveCountdown;
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public ref WaveSpawnSequence GetSpawner(int idx) => ref spawners[idx];
         [MethodImpl(MethodImplOptions.AggressiveInlining)] public int GetSpawnersCount() => spawnersCount;
         [MethodImpl (MethodImplOptions.AggressiveInlining)] public int GetEnemiesCount() => enemiesCount;
-        [MethodImpl (MethodImplOptions.AggressiveInlining)] public bool IsWaveActive() => 
-            !GetWaiting() &&
-            (enemiesCount > 0);
-        
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsWaveActive() =>
+            !IsWaiting() &&
+            enemiesCount > 0;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)] public bool IsNextWaveCountdown() =>
+            !IsWaiting() && !IsWaveActive() && GetActiveSpawnersCount() <= 0 && GetEnemiesCount() <= 0;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public int GetActiveSpawnersCount() {
             var count = 0;
@@ -53,7 +57,7 @@ namespace td.features.wave
         public bool AreAllWavesComplete() => waveNumber >= waveCount;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool IsFinalWave() => waveNumber == waveCount - 1;
+        public bool IsLastWave() => waveNumber == waveCount - 1;
         #endregion
         
         #region Setters
@@ -183,7 +187,7 @@ namespace td.features.wave
             
             EditorUtils.DrawProperty("Active Spawners Count", GetActiveSpawnersCount());
             EditorUtils.DrawProperty("All Waves Complete", AreAllWavesComplete());
-            EditorUtils.DrawProperty("Is Final Wave", IsFinalWave());
+            EditorUtils.DrawProperty("Is Last Wave", IsLastWave());
             
             EditorGUILayout.Space();
 

@@ -26,7 +26,7 @@ namespace td.features.wave.systems
         {
             if (!ev.waveNumber || !ev.enemiesCount) return;
             
-            if (waveState.GetWaiting()) return;
+            if (waveState.IsWaiting()) return;
             if (!waveState.AreAllWavesComplete()) return;
             if (waveState.GetEnemiesCount() > 0) return;
             

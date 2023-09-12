@@ -41,13 +41,7 @@ namespace td.features.wave
         public IStateExtension StateEx() => new Wave_State();
 
         public Type[] Events() => Ev.E<
-            Command_Wave_Increase,
-            Command_Wave_Start,
-            Event_SpawnSequence_Finished,
-            Event_Wave_Changed,
-            Wait_AllEnemiesAreOver,
-            Wave_NextCountdown,
-            Wave_SpawnSequence
+            Command_StartNextWave
         >();
     }
 }
